@@ -1,0 +1,21 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "feeb58ca-b3d3-4627-84dd-32695995513b": {
+      "ProjectGuid": "feeb58ca-b3d3-4627-84dd-32695995513b",
+      "DisplayName": "simulation",
+      "ColorIndex": 0
+    },
+    "632f4adb-4143-4c32-b9a7-1374ef813ac3": {
+      "ProjectGuid": "632f4adb-4143-4c32-b9a7-1374ef813ac3",
+      "DisplayName": "models",
+      "ColorIndex": 1
+    },
+    "7634a9e4-b0c3-4b7e-b174-4161b8a4f348": {
+      "ProjectGuid": "7634a9e4-b0c3-4b7e-b174-4161b8a4f348",
+      "DisplayName": "plotting",
+      "ColorIndex": 2
+    }
+  },
+  "NextColorIndex": 3
+}

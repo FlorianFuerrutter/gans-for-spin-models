@@ -1,0 +1,17 @@
+#--------------
+#ignore files
+#--------------
+
+#Markdown
+.obsidian
+
+#compile VS
+Debug
+Release
+x64
+*.ipch
+*.db
+*.suo
+*.db-shm
+*.db-wal
+*.opendb
