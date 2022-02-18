@@ -6,6 +6,7 @@
 .obsidian
 
 #compile VS
+.vs
 Debug
 Release
 x64
