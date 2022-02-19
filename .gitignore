@@ -19,3 +19,5 @@ x64
 
 #other
 /libs
+__pycache__
+*.pyc

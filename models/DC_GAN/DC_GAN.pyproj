@@ -23,6 +23,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="DC_GAN.py" />
+    <Compile Include="discriminator.py" />
+    <Compile Include="gan.py" />
+    <Compile Include="generator.py" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.10" />
