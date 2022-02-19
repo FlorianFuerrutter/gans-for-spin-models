@@ -2,16 +2,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>632f4adb-4143-4c32-b9a7-1374ef813ac3</ProjectGuid>
+    <ProjectGuid>84731f28-2754-4aaf-b97d-11940115d5b3</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>models.py</StartupFile>
+    <StartupFile>DC_GAN.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>models</Name>
-    <RootNamespace>models</RootNamespace>
-    <InterpreterId>Global|PythonCore|3.9</InterpreterId>
+    <Name>DC_GAN</Name>
+    <RootNamespace>DC_GAN</RootNamespace>
+    <InterpreterId>Global|PythonCore|3.10</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,10 +22,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="models.py" />
+    <Compile Include="DC_GAN.py" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="Global|PythonCore|3.9" />
+    <InterpreterReference Include="Global|PythonCore|3.10" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

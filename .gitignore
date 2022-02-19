@@ -16,3 +16,6 @@ x64
 *.db-shm
 *.db-wal
 *.opendb
+
+#other
+/libs

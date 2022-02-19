@@ -5,9 +5,9 @@ VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simulation", "simulation\simulation.vcxproj", "{FEEB58CA-B3D3-4627-84DD-32695995513B}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "models", "models\models.pyproj", "{632F4ADB-4143-4C32-B9A7-1374EF813AC3}"
-EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "plotting", "plotting\plotting.pyproj", "{7634A9E4-B0C3-4B7E-B174-4161B8A4F348}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "DC_GAN", "models\DC_GAN\DC_GAN.pyproj", "{84731F28-2754-4AAF-B97D-11940115D5B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,18 +31,18 @@ Global
 		{FEEB58CA-B3D3-4627-84DD-32695995513B}.Release|x64.Build.0 = Release|x64
 		{FEEB58CA-B3D3-4627-84DD-32695995513B}.Release|x86.ActiveCfg = Release|Win32
 		{FEEB58CA-B3D3-4627-84DD-32695995513B}.Release|x86.Build.0 = Release|Win32
-		{632F4ADB-4143-4C32-B9A7-1374EF813AC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{632F4ADB-4143-4C32-B9A7-1374EF813AC3}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{632F4ADB-4143-4C32-B9A7-1374EF813AC3}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{632F4ADB-4143-4C32-B9A7-1374EF813AC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{632F4ADB-4143-4C32-B9A7-1374EF813AC3}.Release|x64.ActiveCfg = Release|Any CPU
-		{632F4ADB-4143-4C32-B9A7-1374EF813AC3}.Release|x86.ActiveCfg = Release|Any CPU
 		{7634A9E4-B0C3-4B7E-B174-4161B8A4F348}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7634A9E4-B0C3-4B7E-B174-4161B8A4F348}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{7634A9E4-B0C3-4B7E-B174-4161B8A4F348}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{7634A9E4-B0C3-4B7E-B174-4161B8A4F348}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7634A9E4-B0C3-4B7E-B174-4161B8A4F348}.Release|x64.ActiveCfg = Release|Any CPU
 		{7634A9E4-B0C3-4B7E-B174-4161B8A4F348}.Release|x86.ActiveCfg = Release|Any CPU
+		{84731F28-2754-4AAF-B97D-11940115D5B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84731F28-2754-4AAF-B97D-11940115D5B3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{84731F28-2754-4AAF-B97D-11940115D5B3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{84731F28-2754-4AAF-B97D-11940115D5B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84731F28-2754-4AAF-B97D-11940115D5B3}.Release|x64.ActiveCfg = Release|Any CPU
+		{84731F28-2754-4AAF-B97D-11940115D5B3}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
