@@ -38,6 +38,7 @@ def main() -> int:
     #load data
 
     path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part")
+    
 
     dataset = tf.keras.utils.image_dataset_from_directory(
          path,

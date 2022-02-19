@@ -81,7 +81,7 @@ class train_callback(keras.callbacks.Callback):
         self.latent_dim = latent_dim
 
     def on_epoch_end(self, epoch, logs=None):
-        if ( (epoch % 2) != 0 ):
+        if ( (epoch % 20) != 0 ):
             return
 
         random_latent_vectors = tf.random.normal(shape=(self.num_img, self.latent_dim))
