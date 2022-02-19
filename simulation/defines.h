@@ -5,8 +5,8 @@
 #define N_BINS   1e2	//actual data series size
 #define N_SWEEPS 1e3	//sweeps between bins
 		
-#define LX 10
-#define LY 10
+#define LX 16
+#define LY 16
 #define N LX*LY
 
 #define DATA_PATH "../data/train/"

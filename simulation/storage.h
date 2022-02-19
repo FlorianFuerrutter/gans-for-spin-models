@@ -73,3 +73,26 @@ void storeFloatData(const std::vector<std::vector<PRECISION>>& data, const std::
 		file << std::endl;
 	}
 }
+
+//data seperator space
+void storeStateData(const std::vector<std::array<int8_t, N>>& data, const std::string filename, const std::string header = "")
+{
+	//open file
+	std::ofstream file(DATA_PATH + filename);
+	if (!file.is_open())
+	{
+		std::cout << "[storeFloatData]: file not opened: " + std::string(DATA_PATH) + filename << std::endl;
+		return;
+	}
+
+	if (!header.empty())
+		file << header << std::endl;
+
+	for (int i = 0; i < data.size(); i++)
+	{
+		for (int j = 0; j < data.at(i).size(); j++)
+			file << int(data.at(i).at(j)) << " ";
+
+		file << std::endl;
+	}
+}
