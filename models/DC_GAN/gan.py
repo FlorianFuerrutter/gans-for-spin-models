@@ -1,7 +1,8 @@
+import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
 
-class gan(keras.model):
+class gan(keras.Model):
     def __init__(self, discriminator, generator, latent_dim):
         super().__init__()
         self.discriminator = discriminator
@@ -75,16 +76,21 @@ class gan(keras.model):
         return {"d_loss": self.d_loss_metric.result(), "g_loss": self.g_loss_metric.result()}
 
 class train_callback(keras.callbacks.Callback):
-    def __init__(self, num_img=3, latent_dim):
-        self.num_img    = num_img
+    def __init__(self, latent_dim):
+        self.num_img    = 4
         self.latent_dim = latent_dim
 
     def on_epoch_end(self, epoch, logs=None):
+        if ( (epoch % 2) != 0 ):
+            return
+
         random_latent_vectors = tf.random.normal(shape=(self.num_img, self.latent_dim))
         generated_images = self.model.generator(random_latent_vectors)
-        generated_images = (generated_images * 127.5) + 127.5
+        generated_images = (generated_images + 1.0) / 2.0
 
+        fig = plt.figure(figsize=(5, 5))
         for i in range(self.num_img):
-            img = generated_images[i].numpy()
-            img = keras.preprocessing.image.array_to_img(img)
-            img.save("generated_img_{i}_{epoch}.png".format(i=i, epoch=epoch))
+            plt.subplot(2, 2, i+1)
+            plt.imshow(generated_images[i].numpy())
+            plt.axis('off')
+        plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
