@@ -10,7 +10,7 @@ int main()
 {
     srand(std::time(nullptr));
 
-    PRECISION T = 1;
+    PRECISION T = 2.5;
     PRECISION J = 1;
 
     //------------------
