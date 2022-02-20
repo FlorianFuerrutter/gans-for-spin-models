@@ -77,20 +77,21 @@ class gan(keras.Model):
 
 class train_callback(keras.callbacks.Callback):
     def __init__(self, latent_dim):
-        self.num_img    = 4
         self.latent_dim = latent_dim
 
     def on_epoch_end(self, epoch, logs=None):
-        if ( (epoch % 20) != 0 ):
+        if ( (epoch % 1) != 0 ):
             return
 
-        random_latent_vectors = tf.random.normal(shape=(self.num_img, self.latent_dim))
+        images = 9
+
+        random_latent_vectors = tf.random.normal(shape=(images, self.latent_dim))
         generated_images = self.model.generator(random_latent_vectors)
         generated_images = (generated_images + 1.0) / 2.0
 
-        fig = plt.figure(figsize=(5, 5))
-        for i in range(self.num_img):
-            plt.subplot(2, 2, i+1)
-            plt.imshow(generated_images[i].numpy())
+        fig = plt.figure(figsize=(6, 6))
+        for i in range(images):
+            plt.subplot(3, 3, i+1)
             plt.axis('off')
+            plt.imshow(generated_images[i].numpy())           
         plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')

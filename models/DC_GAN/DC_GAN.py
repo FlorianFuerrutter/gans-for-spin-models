@@ -28,25 +28,48 @@ import discriminator
 def main() -> int:  
     #--------------
     #setup
+    epochs     = 100
     latent_dim = 128
+
     image_size = (64, 64, 3)
     batch_size = 410
-
-    epochs     = 20 
-
+    
     #--------------
     #load data
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part1")
 
-    path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part")
-    
+    #-----
 
-    dataset = tf.keras.utils.image_dataset_from_directory(
-         path,
-         label_mode=None, 
-         image_size=(image_size[0], image_size[1]),
-         batch_size=batch_size,
-         smart_resize=True)
-    dataset = dataset.map(lambda x: (x - 127.5) / 127.5)
+    if 0:
+        #if existing dataset, use that
+        dataset = tf.data.experimental.load(path)
+    else:
+        #create and store new dataset
+        dataset = tf.keras.utils.image_dataset_from_directory(
+                        path,
+                        label_mode=None, 
+                        image_size=(image_size[0], image_size[1]),
+                        batch_size=batch_size,
+                        smart_resize=True)
+        dataset = dataset.map(lambda x: (x - 127.5) / 127.5)    
+        tf.data.experimental.save(dataset, path) 
+
+    #-----
+
+    if 0:
+        dataset = tf.keras.utils.image_dataset_from_directory(
+            path,
+            label_mode=None, 
+            image_size=(image_size[0], image_size[1]),
+            batch_size=batch_size,
+            smart_resize=True)
+        dataset = dataset.map(lambda x: (x - 127.5) / 127.5)    
+
+        for x in dataset:
+            plt.axis("off")
+            plt.imshow(((x.numpy() + 1.0)/2.0)[0])
+            plt.show()
+            exit(0)
 
     #--------------
     #define loss and optimizer
@@ -68,6 +91,9 @@ def main() -> int:
 
     g_model   = generator.create_generator(latent_dim)
     d_model   = discriminator.create_discriminator(image_size)
+
+    #g_model.summary()
+    #d_model.summary()
 
     k = keras.losses.BinaryCrossentropy()
 
