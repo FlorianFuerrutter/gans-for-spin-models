@@ -9,7 +9,7 @@ class gan(keras.Model):
         self.generator     = generator
         self.latent_dim    = latent_dim
 
-        #fixed loss metrix here
+        #fixed loss metrics here
         self.d_loss_metric = keras.metrics.Mean(name="d_loss") 
         self.g_loss_metric = keras.metrics.Mean(name="g_loss")
 

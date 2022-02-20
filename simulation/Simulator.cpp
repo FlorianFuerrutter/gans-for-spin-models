@@ -19,7 +19,7 @@ namespace
 
 std::string Simulator::parameter_string()
 {
-    std::string tj = std::format("T/J: {}, ", m_TJ);
+    std::string tj = std::format("T/J: {}, (LX, LY): ({}, {}), ", m_TJ, LX, LY);
     return tj + m_para.to_string();
 }
 
@@ -110,7 +110,7 @@ void Simulator::run_wolff_cluster(PRECISION J)
             update_wolff_cluster(state, nnList, N);
 
             //take measurements
-            int mag_sweep = std::reduce(std::begin(state), std::end(state), 0);
+            PRECISION mag_sweep = std::reduce(std::begin(state), std::end(state), 0);
             PRECISION energy_sweep = calcStateEnergy(state, nnList, J);
 
             //prebinning
