@@ -36,10 +36,11 @@ def main() -> int:
     
     #--------------
     #load data
-    path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part1")
+    path     = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part1")
+    log_path = os.path.join(os.path.dirname(__file__), "..", "logs")
 
     #-----
-
+       
     if 0:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)
@@ -55,7 +56,7 @@ def main() -> int:
         tf.data.experimental.save(dataset, path) 
 
     #-----
-        
+
     if 0:    
         count = 1
         fig = plt.figure(figsize=(6, 6))
@@ -105,7 +106,15 @@ def main() -> int:
 
     #--------------
     #train
-    gan_model.fit(dataset, epochs=epochs,callbacks=[gan.train_callback(latent_dim=latent_dim)])
+    gan_model.fit(dataset, epochs=epochs, callbacks=[gan.train_callback(latent_dim=latent_dim), keras.callbacks.TensorBoard(log_dir=log_path)])
+ 
+    #save_path = './keras-saves/_gan_model_latest.ckpt'
+    #try:
+    #    gan_model.fit(
+    #except KeyboardInterrupt:
+        #needs implementation first!
+        #gan_model.save(save_path)
+        #print('Output saved to: "{}./*"'.format(save_path))
 
     return 0
 

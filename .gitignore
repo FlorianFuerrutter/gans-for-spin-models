@@ -21,3 +21,10 @@ x64
 /libs
 __pycache__
 *.pyc
+*.snapshot
+*.pb
+*.metadata
+/models/*/img
+sample.png
+*.bat
+logs
