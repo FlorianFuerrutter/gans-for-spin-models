@@ -14,13 +14,14 @@ Bachelor thesis of Florian Fürrutter.
 ## 1. DC_GAN
 ### faces and landscapes
 
- Trained on faces and landscapes | Image evolution
---- | ---
-![](/img/dc_gan0.png) | ![](/img/dc_gan0.gif)
-![](/img/dc_gan1.png) | ![](/img/dc_gan1.gif)
+ Train data | Generated Image | Image evolution
+--- | --- | ---
+![](/img/dc_gan_sample0.png) | ![](/img/dc_gan0.png) | ![](/img/dc_gan0.gif)
+![](/img/dc_gan_sample1.png) | ![](/img/dc_gan1.png) | ![](/img/dc_gan1.gif)
 
 
 ### spin
- Trained on spins | Image evolution
---- | ---
-![](/img/spin_dc_gan.png) | ![](/img/spin_dc_gan.gif)
+ Train data | Generated Image | Image evolution
+--- | --- | ---
+![](/img/spin_dc_gan_sample.png) | ![](/img/spin_dc_gan.png) | ![](/img/spin_dc_gan.gif)
+

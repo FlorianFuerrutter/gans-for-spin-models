@@ -54,12 +54,23 @@ def main() -> int:
 
     #-----
 
-    if 0:
+    if 1:    
+        count = 1
+        fig = plt.figure(figsize=(6, 6))
         for x in dataset:
-            plt.axis("off")
-            plt.imshow(x.numpy()[0])
-            plt.show()
-            exit(0)
+            images = x.numpy()
+            for image in images:
+                image = (image + 1.0) /2.0
+
+                plt.subplot(3, 3, count)
+                plt.axis('off')
+                plt.imshow(image)  
+
+                count +=1
+                if count > 9:
+                    plt.savefig(path + "/sample.png", bbox_inches='tight')
+                    plt.show()
+                    exit(0)
 
     #--------------
     #define loss and optimizer
