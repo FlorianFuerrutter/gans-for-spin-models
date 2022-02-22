@@ -54,7 +54,7 @@ def main() -> int:
 
     #-----
 
-    if 1:    
+    if 0:    
         count = 1
         fig = plt.figure(figsize=(6, 6))
         for x in dataset:
