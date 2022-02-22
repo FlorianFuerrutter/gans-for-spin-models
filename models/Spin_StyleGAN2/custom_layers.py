@@ -1,13 +1,12 @@
 import tensorflow as tf
 from tensorflow import keras
 from keras import backend, initializers, regularizers, constraints, activations
-#from keras.utils import conv_utils
-#from keras.engine.input_spec import InputSpec
+from keras.engine.input_spec import InputSpec
 
 #--------------------------------------------------------------------
 
 class BiasNoiseLayer(tf.keras.layers.Layer):
-    '''Combines an input x with noise and an internal bias. Input must be [x, noise]'''
+    '''Combines an input x with noise and an internal bias. Input must be [x, noise]. noise dim is channels of x'''
 
     def __init__(self, *args, **kwargs):
         super(BiasNoiseLayer, self).__init__(*args, **kwargs)
@@ -20,7 +19,8 @@ class BiasNoiseLayer(tf.keras.layers.Layer):
         self.b = self.add_weight('kernel', shape=(1, 1, 1, c), initializer=initializer, trainable=True)
 
     def call(self, inputs):
-        x, noise = inputs
+        x, noise = inputs           
+        noise = backend.expand_dims(backend.expand_dims(noise, axis = 1), axis = 1)
         return x + self.b * noise
 
 #--------------------------------------------------------------------
@@ -30,7 +30,6 @@ class Conv2DMod(tf.keras.layers.Conv2D):
 
     def __init__(self,
                 filters,
-                latent_inject,
                 kernel_size,
                 strides=(1, 1),
                 padding='valid',
@@ -122,35 +121,37 @@ class Conv2DMod(tf.keras.layers.Conv2D):
             #Add batch layer to kernel: (1, rows k, cols k, input_depth i, output_depth j)
             kernel = backend.expand_dims(kernel, axis = 0)
 
-            # Change s to (batch_size, 1, 1, scales, 1)
+            # Change s to (batch_size, 1, 1, scales=input_depth, 1)
             s = backend.expand_dims(backend.expand_dims(backend.expand_dims(inputs[1], axis = 1), axis = 1), axis = -1)
 
             #------------------------
             #Modulate, gives (batch_size, rows, cols, input_depth, output_depth)
-            kernel = kernel * (1 + s)
+            kernel = tf.multiply(kernel, s+1)
 
             #------------------------
-            #Demodulate, scale (“demodulate”) each output feature map j
+            #Demodulate, scale ("demodulate") each output feature map j
             if self.demod:
                 d = backend.epsilon() + backend.sqrt(tf.reduce_sum(tf.square(kernel), axis=[1, 2, 3], keepdims=True))
                 kernel = kernel / d
 
             #------------------------            
             #Fuse
-            x = tf.transpose(inputs[0], [0, 3, 1, 2])          #[BHWC] -> [BCHW]
-            x = tf.reshape(x, [1, -1, x.shape[2], x.shape[3]]) #[1, channels * batches, h, w]
+            x = tf.transpose(inputs[0], [0, 3, 1, 2])           #[BHWC] -> [BCHW]
+            x = tf.reshape(x, [1, -1, x.shape[2], x.shape[3]])  #[1, channels * batches, h, w]
+            x = tf.transpose(x, [0, 2, 3, 1])                   #[1, h, w, channels * batches]
 
             w = tf.transpose(kernel, [1, 2, 3, 0, 4])                                   #[rows, cols, input_depth, batches, output_depth]
             w = tf.reshape(w, [kernel.shape[1], kernel.shape[2], kernel.shape[3], -1])  #[rows, cols, input_depth, batches*output_depth]
 
-            #------------------------
+            #------------------------        
             #Convolute
-            output = default_conv_op(x, w)          
+            output = default_conv_op(x, w)  #[1, new_h, new_w, batches*output_depth]      
             
             #------------------------
             #Unfuse
-            output = tf.reshape(output, [-1, self.filters, tf.shape(x)[2], tf.shape(x)[3]]) #[batches, output_depth, h, w]
-            output = tf.transpose(output, [0, 2, 3, 1])                                     #[batches, h, w, output_depth]
+            output = tf.transpose(output, [0, 3, 1, 2])                                                 #[1, batches*output_depth, new_h, new_w] 
+            output = tf.reshape(output, [-1, self.filters, tf.shape(output)[2], tf.shape(output)[3]])   #[batches, output_depth, new_h, new_w]
+            output = tf.transpose(output, [0, 2, 3, 1])                                                 #[batches, new_h, new_w, batches*output_depth]           
             return output
                 
         #----------------------------------------------
