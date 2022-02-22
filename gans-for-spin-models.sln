@@ -11,6 +11,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "DC_GAN", "models\DC_GAN\DC_
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Spin_DC_GAN", "models\Spin_DC_GAN\Spin_DC_GAN.pyproj", "{D5B4D59E-0C7C-4216-94EC-7DF146F66E44}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Spin_StyleGAN2", "models\Spin_StyleGAN2\Spin_StyleGAN2.pyproj", "{ABB3A949-20C7-46B8-B952-543CAA2E8321}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,12 @@ Global
 		{D5B4D59E-0C7C-4216-94EC-7DF146F66E44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5B4D59E-0C7C-4216-94EC-7DF146F66E44}.Release|x64.ActiveCfg = Release|Any CPU
 		{D5B4D59E-0C7C-4216-94EC-7DF146F66E44}.Release|x86.ActiveCfg = Release|Any CPU
+		{ABB3A949-20C7-46B8-B952-543CAA2E8321}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABB3A949-20C7-46B8-B952-543CAA2E8321}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ABB3A949-20C7-46B8-B952-543CAA2E8321}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{ABB3A949-20C7-46B8-B952-543CAA2E8321}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABB3A949-20C7-46B8-B952-543CAA2E8321}.Release|x64.ActiveCfg = Release|Any CPU
+		{ABB3A949-20C7-46B8-B952-543CAA2E8321}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

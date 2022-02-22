@@ -2,26 +2,35 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import backend, initializers, regularizers, constraints, activations
 from keras.engine.input_spec import InputSpec
+from keras import layers
 
 #--------------------------------------------------------------------
+# Custom layers defined in https://arxiv.org/pdf/1912.04958.pdf
+#--------------------------------------------------------------------
 
-class BiasNoiseLayer(tf.keras.layers.Layer):
-    '''Combines an input x with noise and an internal bias. Input must be [x, noise]. noise dim is channels of x'''
+class BiasNoiseBroadcastLayer(tf.keras.layers.Layer):
+    '''Combines an input x with noise and an internal bias. Input must be x'''
 
-    def __init__(self, *args, **kwargs):
-        super(BiasNoiseLayer, self).__init__(*args, **kwargs)
+    def __init__(self, filter_size, *args, **kwargs):
+        super(BiasNoiseBroadcastLayer, self).__init__(*args, **kwargs)
+        self.filter_size = filter_size
 
     def build(self, input_shape):
-        n, h, w, c = input_shape[0]
+        n, h, w, c = input_shape
+        assert (self.filter_size == c)
+        
         initializer = keras.initializers.RandomNormal(mean=0.0, stddev=1.0)
 
         #bias for each feature map
         self.b = self.add_weight('kernel', shape=(1, 1, 1, c), initializer=initializer, trainable=True)
 
-    def call(self, inputs):
-        x, noise = inputs           
-        noise = backend.expand_dims(backend.expand_dims(noise, axis = 1), axis = 1)
-        return x + self.b * noise
+    def call(self, inputs):         
+        input_shape = inputs.shape
+        
+        noise = tf.random.normal((1, input_shape[1], input_shape[2], 1))
+        noise = layers.Dense(self.filter_size, kernel_initializer='zeros')(noise)
+
+        return inputs + tf.multiply(self.b, noise)
 
 #--------------------------------------------------------------------
 
@@ -165,3 +174,5 @@ class Conv2DMod(tf.keras.layers.Conv2D):
         #set new convolution_op and finish build
         self.convolution_op = conv2d_mod_op
         self.built = True
+
+#--------------------------------------------------------------------

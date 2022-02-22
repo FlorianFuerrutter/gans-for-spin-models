@@ -25,6 +25,9 @@
     <Compile Include="custom_layers.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="discriminator.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="generator.py">
       <SubType>Code</SubType>
     </Compile>
