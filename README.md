@@ -1,5 +1,5 @@
 # gans-for-spin-models
-Bachelor thesis of Florian Fürrutter.
+Bachelor thesis
 
 ![spin_lattice](/img/spin_lattice.png)
 
