@@ -61,6 +61,7 @@ def enc_block(enc_input, in_style, filter_size, kernel_size, kernel_initializer,
         enc = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(enc)
         enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])
         enc = BiasNoiseBroadcastLayer(filter_size)(enc)
+        enc = layers.GaussianNoise(0.1)(enc)
         enc = layers.LeakyReLU(0.2)(enc)
 
     #--------------------------------------------
@@ -69,6 +70,7 @@ def enc_block(enc_input, in_style, filter_size, kernel_size, kernel_initializer,
     
     enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])
     enc = BiasNoiseBroadcastLayer(filter_size)(enc)
+    enc = layers.GaussianNoise(0.1)(enc)
     enc = layers.LeakyReLU(0.2)(enc)
 
     #--------------------------------------------
@@ -92,8 +94,8 @@ def create_mapping_network(latent_dim, style_dim):
     out = layers.Dense(style_dim)(out)
     out = layers.LeakyReLU(0.2)(out)
 
-    #out = layers.Dense(style_dim)(out)
-    #out = layers.LeakyReLU(0.2)(out)
+    out = layers.Dense(style_dim)(out)
+    out = layers.LeakyReLU(0.2)(out)
     
     #out = layers.Dense(style_dim)(out)
     #out = layers.LeakyReLU(0.2)(out)

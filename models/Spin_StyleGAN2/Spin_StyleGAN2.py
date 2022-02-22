@@ -99,11 +99,11 @@ def main() -> int:
     #setup
 
     epochs      = 100
-    latent_dim  = 128
+    latent_dim  = 256
     style_dim   = 256 #512
 
     image_size = (64, 64, 3)
-    batch_size = 410
+    batch_size = 64
     enc_block_count = int(np.log2(image_size[0])-2)
 
 
@@ -130,8 +130,8 @@ def main() -> int:
 
     #--------------
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
-    d_optimizer = keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5, beta_2=0.9)
+    g_optimizer = keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.0, beta_2=0.99)
+    d_optimizer = keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.0, beta_2=0.99)
 
     k = keras.losses.BinaryCrossentropy()
 

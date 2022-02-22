@@ -87,6 +87,7 @@ class train_callback(keras.callbacks.Callback):
 
         random_latent_vectors = tf.random.normal(shape=(images, self.latent_dim))
         generated_images = self.model.generator(random_latent_vectors)
+        generated_images = (generated_images + 1.0) / 2.0
 
         fig = plt.figure(figsize=(6, 6))
         for i in range(images):

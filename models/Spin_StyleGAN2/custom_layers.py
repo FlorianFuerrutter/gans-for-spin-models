@@ -3,12 +3,13 @@ from tensorflow import keras
 from keras import backend, initializers, regularizers, constraints, activations
 from keras.engine.input_spec import InputSpec
 from keras import layers
+from keras.engine import base_layer
 
 #--------------------------------------------------------------------
 # Custom layers defined in https://arxiv.org/pdf/1912.04958.pdf
 #--------------------------------------------------------------------
 
-class BiasNoiseBroadcastLayer(tf.keras.layers.Layer):
+class BiasNoiseBroadcastLayer(tf.keras.layers.Layer): #(base_layer.BaseRandomLayer): #(tf.keras.layers.Layer):
     '''Combines an input x with noise and an internal bias. Input must be x'''
 
     def __init__(self, filter_size, *args, **kwargs):
@@ -25,12 +26,20 @@ class BiasNoiseBroadcastLayer(tf.keras.layers.Layer):
         self.b = self.add_weight('kernel', shape=(1, 1, 1, c), initializer=initializer, trainable=True)
 
     def call(self, inputs):         
-        input_shape = inputs.shape
+        x = inputs
         
-        noise = tf.random.normal((1, input_shape[1], input_shape[2], 1))
-        noise = layers.Dense(self.filter_size, kernel_initializer='zeros')(noise)
+        #input_shape = tf.shape(inputs)
+        #shape = (1, input_shape[1], input_shape[2], 1)
 
-        return inputs + tf.multiply(self.b, noise)
+        #noise = self._random_generator.random_normal(shape=shape,
+        #                                              mean=0.,
+        #                                              stddev=1.,
+        #                                              dtype=inputs.dtype)
+
+        ##noise = tf.random.normal((1, input_shape[1], input_shape[2], 1))
+        #noise = layers.Dense(self.filter_size, kernel_initializer='zeros')(noise)
+
+        return x + self.b #+ tf.multiply(self.b, noise)
 
 #--------------------------------------------------------------------
 

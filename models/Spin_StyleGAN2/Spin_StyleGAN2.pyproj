@@ -28,6 +28,9 @@
     <Compile Include="discriminator.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="gan.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="generator.py">
       <SubType>Code</SubType>
     </Compile>
