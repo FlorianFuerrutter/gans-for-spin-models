@@ -95,5 +95,3 @@ class train_callback(keras.callbacks.Callback):
             plt.axis('off')
             plt.imshow(generated_images[i].numpy())           
         plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
-
-

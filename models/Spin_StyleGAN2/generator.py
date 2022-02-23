@@ -61,7 +61,7 @@ def enc_block(enc_input, in_style, filter_size, kernel_size, kernel_initializer,
         enc = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(enc)
         enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])
         enc = BiasNoiseBroadcastLayer(filter_size)(enc)
-        enc = layers.GaussianNoise(0.1)(enc)
+        enc = layers.GaussianNoise(0.01)(enc)
         enc = layers.LeakyReLU(0.2)(enc)
 
     #--------------------------------------------
@@ -70,7 +70,7 @@ def enc_block(enc_input, in_style, filter_size, kernel_size, kernel_initializer,
     
     enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])
     enc = BiasNoiseBroadcastLayer(filter_size)(enc)
-    enc = layers.GaussianNoise(0.1)(enc)
+    enc = layers.GaussianNoise(0.01)(enc)
     enc = layers.LeakyReLU(0.2)(enc)
 
     #--------------------------------------------
@@ -117,17 +117,17 @@ def create_generator(enc_block_count, latent_dim, style_dim):
 
     #--------------------------------------------
     #Model
-    filter_size_start = 32
+    filter_size_start = 256
     res_start         = 8
 
     x = layers.Dense(res_start * res_start * filter_size_start, use_bias=False, activation='relu')(style_input)
     x = layers.Reshape((res_start, res_start, filter_size_start))(x) 
-    x, rgb = enc_block(x, style_input, filter_size=filter_size_start, kernel_size=3, kernel_initializer=init, first_block=True)
+    x, rgb = enc_block(x, style_input, filter_size=filter_size_start, kernel_size=(3,3), kernel_initializer=init, first_block=True)
 
     for i in range(1, enc_block_count):    
-        filter_size = filter_size_start * (2**i)
+        filter_size = filter_size_start / (2**i)
 
-        x, rgb_c = enc_block(x, style_input, filter_size=filter_size, kernel_size=3, kernel_initializer=init, first_block=False)       
+        x, rgb_c = enc_block(x, style_input, filter_size=filter_size, kernel_size=(3,3), kernel_initializer=init, first_block=False)       
         
         rgb = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(rgb)
         rgb = layers.Add()([rgb, rgb_c])        

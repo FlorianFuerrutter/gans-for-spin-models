@@ -99,11 +99,11 @@ def main() -> int:
     #setup
 
     epochs      = 100
-    latent_dim  = 256
-    style_dim   = 256 #512
+    latent_dim  = 128
+    style_dim   = 256 
 
     image_size = (64, 64, 3)
-    batch_size = 64
+    batch_size = 128
     enc_block_count = int(np.log2(image_size[0])-2)
 
 
@@ -130,8 +130,8 @@ def main() -> int:
 
     #--------------
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.0, beta_2=0.99)
-    d_optimizer = keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.0, beta_2=0.99)
+    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.99)
+    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.99)
 
     k = keras.losses.BinaryCrossentropy()
 
@@ -140,8 +140,11 @@ def main() -> int:
     g_model = generator.create_generator(enc_block_count, latent_dim, style_dim)
     d_model = discriminator.create_discriminator(image_size)
 
+    #tf.keras.utils.plot_model(g_model, "generator.png", show_shapes=True)
+    #tf.keras.utils.plot_model(d_model, "discriminator.png", show_shapes=True)
+
     #g_model.summary()
-    #d_model.summary()s
+    #d_model.summary()
 
     gan_model = gan.gan(d_model, g_model, latent_dim)
     gan_model.compile(d_optimizer, g_optimizer, k, k)
