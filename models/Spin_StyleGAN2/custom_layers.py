@@ -17,7 +17,7 @@ class BiasNoiseBroadcastLayer(tf.keras.layers.Layer): #(base_layer.BaseRandomLay
         self.filter_size = filter_size
 
     def build(self, input_shape):
-        n, h, w, c = input_shape
+        n, h, w, c = input_shape[0]
         assert (self.filter_size == c)
         
         initializer = keras.initializers.RandomNormal(mean=0.0, stddev=1.0)
@@ -26,7 +26,7 @@ class BiasNoiseBroadcastLayer(tf.keras.layers.Layer): #(base_layer.BaseRandomLay
         self.b = self.add_weight('kernel', shape=(1, 1, 1, c), initializer=initializer, trainable=True)
 
     def call(self, inputs):         
-        x = inputs
+        x, noise = inputs
         
         #input_shape = tf.shape(inputs)
         #shape = (1, input_shape[1], input_shape[2], 1)
@@ -36,10 +36,7 @@ class BiasNoiseBroadcastLayer(tf.keras.layers.Layer): #(base_layer.BaseRandomLay
         #                                              stddev=1.,
         #                                              dtype=inputs.dtype)
 
-        ##noise = tf.random.normal((1, input_shape[1], input_shape[2], 1))
-        #noise = layers.Dense(self.filter_size, kernel_initializer='zeros')(noise)
-
-        return x + self.b #+ tf.multiply(self.b, noise)
+        return x + tf.multiply(self.b, noise)
 
 #--------------------------------------------------------------------
 

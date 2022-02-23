@@ -97,15 +97,16 @@ import discriminator
 def main() -> int:  
     #--------------
     #setup
-
-    epochs      = 100
+  
     latent_dim  = 128
     style_dim   = 256 
+    batch_size  = 128
 
+    epochs      = 30
     image_size = (64, 64, 3)
-    batch_size = 128
-    enc_block_count = int(np.log2(image_size[0])-2)
-
+    
+    enc_block_count = int(np.log2(image_size[0])-1)
+    noise_image_res = image_size[0]
 
     #--------------
     #load data
@@ -114,7 +115,7 @@ def main() -> int:
 
     #--------------
     
-    if 0:
+    if 1:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)
     else:
@@ -130,28 +131,29 @@ def main() -> int:
 
     #--------------
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.99)
-    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.99)
+    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
+    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
 
     k = keras.losses.BinaryCrossentropy()
 
     #--------------
-
-    g_model = generator.create_generator(enc_block_count, latent_dim, style_dim)
+    
+    g_model = generator.create_generator(enc_block_count, latent_dim, style_dim, noise_image_res)
     d_model = discriminator.create_discriminator(image_size)
-
+  
     #tf.keras.utils.plot_model(g_model, "generator.png", show_shapes=True)
     #tf.keras.utils.plot_model(d_model, "discriminator.png", show_shapes=True)
 
     #g_model.summary()
     #d_model.summary()
 
-    gan_model = gan.gan(d_model, g_model, latent_dim)
+    gan_model = gan.gan(d_model, g_model, latent_dim, style_dim, enc_block_count, noise_image_res)
     gan_model.compile(d_optimizer, g_optimizer, k, k)
 
     #--------------
-    #train
-    gan_model.fit(dataset, epochs=epochs, callbacks=[gan.train_callback(latent_dim=latent_dim), keras.callbacks.TensorBoard(log_dir=log_path)])
+    #train   
+    callbacks = [gan.train_callback(enc_block_count, latent_dim, noise_image_res), keras.callbacks.TensorBoard(log_dir=log_path)]
+    gan_model.fit(dataset, epochs=epochs, callbacks=callbacks)
 
     return 0
 

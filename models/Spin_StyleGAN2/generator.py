@@ -50,18 +50,23 @@ def tRGB_block(inp, style, filter_size):
 
     return out
 
-def enc_block(enc_input, in_style, filter_size, kernel_size, kernel_initializer, strides=1, padding='same', first_block=False):
+def enc_block(enc_input, in_style, noise_image, filter_size, kernel_size, kernel_initializer, strides=1, padding='same', first_block=False):
     enc = enc_input
     
     #--------------------------------------------
-    #UpSample not on first_block
+    #UpSample, not on first_block
+    if not first_block:
+        enc = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(enc)
+
+    cropping = ((noise_image.shape[1]-enc.shape[1], 0), (noise_image.shape[2]-enc.shape[2], 0))
+    noise = layers.Cropping2D(cropping=cropping)(noise_image)
+    noise = layers.Dense(filter_size, kernel_initializer='zeros')(noise)
+
     if not first_block:
         style = layers.Dense(enc.shape[-1], kernel_initializer=kernel_initializer)(in_style)
-
-        enc = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(enc)
-        enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])
-        enc = BiasNoiseBroadcastLayer(filter_size)(enc)
-        enc = layers.GaussianNoise(0.01)(enc)
+        
+        enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])       
+        enc = BiasNoiseBroadcastLayer(filter_size)([enc, noise])
         enc = layers.LeakyReLU(0.2)(enc)
 
     #--------------------------------------------
@@ -69,8 +74,7 @@ def enc_block(enc_input, in_style, filter_size, kernel_size, kernel_initializer,
     style = layers.Dense(enc.shape[-1], kernel_initializer=kernel_initializer)(in_style)
     
     enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])
-    enc = BiasNoiseBroadcastLayer(filter_size)(enc)
-    enc = layers.GaussianNoise(0.01)(enc)
+    enc = BiasNoiseBroadcastLayer(filter_size)([enc, noise])
     enc = layers.LeakyReLU(0.2)(enc)
 
     #--------------------------------------------
@@ -81,20 +85,20 @@ def enc_block(enc_input, in_style, filter_size, kernel_size, kernel_initializer,
 
 #--------------------------------------------------------------------
 
-def create_mapping_network(latent_dim, style_dim):
+def create_mapping_network(latent_dim, styles_dim):
     #--------------------------------------------
     #style mapping network
     
     latent_input = layers.Input(shape=latent_dim)
 
     out = latent_input
-    out = layers.Dense(style_dim)(out)
+    out = layers.Dense(styles_dim)(out)
     out = layers.LeakyReLU(0.2)(out)
 
-    out = layers.Dense(style_dim)(out)
+    out = layers.Dense(styles_dim)(out)
     out = layers.LeakyReLU(0.2)(out)
 
-    out = layers.Dense(style_dim)(out)
+    out = layers.Dense(styles_dim)(out)
     out = layers.LeakyReLU(0.2)(out)
     
     #out = layers.Dense(style_dim)(out)
@@ -104,30 +108,45 @@ def create_mapping_network(latent_dim, style_dim):
     map_model = keras.models.Model(inputs=latent_input, outputs=out, name="mapping_network")
     return map_model
 
-def create_generator(enc_block_count, latent_dim, style_dim):
+def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res):
     init = keras.initializers.GlorotUniform()
 
-    map_net = create_mapping_network(latent_dim, style_dim)
+    mapping_model = create_mapping_network(latent_dim, styles_dim)
 
     #--------------------------------------------
-    #inputs, a mapped style for each enc_block
-    latent_input = layers.Input(shape=(latent_dim))
+    #inputs latent and noise, (a mapped style for each enc_block)
+    latent_input = []
+    style_input  = []
+    noise_image_input = []
 
-    style_input = map_net(latent_input)
+    for i in range(enc_block_count):
+        #latent convert
+        latent_input.append(layers.Input(shape=latent_dim))
+        style_input.append(mapping_model(latent_input[-1]))
+
+        #noise input
+        noise_shape = (noise_image_res, noise_image_res, 1)
+        noise_image_input.append(layers.Input(shape=noise_shape))
 
     #--------------------------------------------
     #Model
     filter_size_start = 256
-    res_start         = 8
+    res_start         = 4
 
-    x = layers.Dense(res_start * res_start * filter_size_start, use_bias=False, activation='relu')(style_input)
+    #constant for batch size
+    c1 = layers.Lambda(lambda x: x[:, :1] * 0 + 1)(style_input[0])
+    x = layers.Dense(res_start * res_start * filter_size_start, use_bias=False, activation='relu')(c1)
     x = layers.Reshape((res_start, res_start, filter_size_start))(x) 
-    x, rgb = enc_block(x, style_input, filter_size=filter_size_start, kernel_size=(3,3), kernel_initializer=init, first_block=True)
 
+    #first block
+    x, rgb = enc_block(x, style_input[0], noise_image_input[0], filter_size=filter_size_start, kernel_size=(3,3), kernel_initializer=init, first_block=True)
+
+    #--------------------------------------------
+    #scale blocks
     for i in range(1, enc_block_count):    
         filter_size = filter_size_start / (2**i)
 
-        x, rgb_c = enc_block(x, style_input, filter_size=filter_size, kernel_size=(3,3), kernel_initializer=init, first_block=False)       
+        x, rgb_c = enc_block(x, style_input[i], noise_image_input[i], filter_size=filter_size, kernel_size=(3,3), kernel_initializer=init, first_block=False)       
         
         rgb = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(rgb)
         rgb = layers.Add()([rgb, rgb_c])        
@@ -136,7 +155,7 @@ def create_generator(enc_block_count, latent_dim, style_dim):
     #Activation-layer
     output = layers.Conv2D(3, kernel_size=(5,5), strides=1, padding='same', activation=activations.tanh)(rgb)
 
-    g_model = keras.models.Model(inputs=latent_input, outputs=output, name="generator")
+    g_model = keras.models.Model(inputs=[latent_input, noise_image_input], outputs=output, name="generator")
     return g_model
 
 #--------------------------------------------------------------------

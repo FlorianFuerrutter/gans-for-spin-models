@@ -1,3 +1,4 @@
+from re import X
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, activations, initializers
@@ -51,11 +52,16 @@ def create_discriminator(image_res):
     #Structure
     image_input = layers.Input(shape=image_res) #64x64
 
+    #fRGB
+    x = layers.Conv2D(64, kernel_size=1, strides=(1,1), padding='same', kernel_initializer=init)(image_input)
+
     #-----------Decoders
-    x = dec_layer(image_input,  64, kernel_size=(3,3), drop_rate=0.0, kernel_initializer=init) #32x32
-    x = dec_layer(x          , 128, kernel_size=(3,3), drop_rate=0.0, kernel_initializer=init) #16x16
-    x = dec_layer(x          , 256, kernel_size=(3,3), drop_rate=0.0, kernel_initializer=init) #8x8
-    #x = dec_block(x          , 512, kernel_size=(3,3), drop_rate=0.0, kernel_initializer=init) #4x4
+    drop_rate = 0.2
+
+    x = dec_block(x,  64, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
+    x = dec_block(x, 128, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #16x16
+    x = dec_block(x, 256, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
+    #x = dec_block(x, 512, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #4x4
 
     #----------- Activation-layer
     x = layers.Flatten()(x)
