@@ -20,22 +20,13 @@ class BiasNoiseBroadcastLayer(tf.keras.layers.Layer): #(base_layer.BaseRandomLay
         n, h, w, c = input_shape[0]
         assert (self.filter_size == c)
         
-        initializer = keras.initializers.RandomNormal(mean=0.0, stddev=1.0)
+        #initializer = keras.initializers.RandomNormal(mean=0.0, stddev=1.0)
 
         #bias for each feature map
-        self.b = self.add_weight('kernel', shape=(1, 1, 1, c), initializer=initializer, trainable=True)
+        self.b = self.add_weight('kernel', shape=(1, 1, 1, c), initializer="zeros", trainable=True)
 
     def call(self, inputs):         
         x, noise = inputs
-        
-        #input_shape = tf.shape(inputs)
-        #shape = (1, input_shape[1], input_shape[2], 1)
-
-        #noise = self._random_generator.random_normal(shape=shape,
-        #                                              mean=0.,
-        #                                              stddev=1.,
-        #                                              dtype=inputs.dtype)
-
         return x + tf.multiply(self.b, noise)
 
 #--------------------------------------------------------------------

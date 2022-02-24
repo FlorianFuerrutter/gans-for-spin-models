@@ -1,4 +1,4 @@
-from re import X
+#from re import X
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, activations, initializers
@@ -20,7 +20,7 @@ def dec_layer(dec_input, filter_size, kernel_size, kernel_initializer, strides=2
 
     return dec
 
-def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate=0.0, padding='same'):
+def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate=0.0, padding='same', last_block=False):
     dec = dec_input
     
     #--------------------------------------------
@@ -40,7 +40,10 @@ def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate
    
     #-------
     out = layers.Add()([res, dec])  
-    out = layers.AveragePooling2D()(out)
+    out = layers.Lambda(lambda x: x *  0.707107)(out) #1/sqrt2
+
+    if not last_block:
+        out = layers.AveragePooling2D()(out)
 
     return out
 
@@ -53,15 +56,15 @@ def create_discriminator(image_res):
     image_input = layers.Input(shape=image_res) #64x64
 
     #fRGB
-    x = layers.Conv2D(64, kernel_size=1, strides=(1,1), padding='same', kernel_initializer=init)(image_input)
+    x = layers.Conv2D(32, kernel_size=1, strides=(1,1), padding='same', kernel_initializer=init)(image_input)
 
     #-----------Decoders
     drop_rate = 0.2
 
-    x = dec_block(x,  64, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
-    x = dec_block(x, 128, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #16x16
-    x = dec_block(x, 256, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
-    #x = dec_block(x, 512, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #4x4
+    x = dec_block(x,  32, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
+    x = dec_block(x,  64, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #16x16
+    x = dec_block(x, 128, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
+    x = dec_block(x, 256, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) #4x4
 
     #----------- Activation-layer
     x = layers.Flatten()(x)

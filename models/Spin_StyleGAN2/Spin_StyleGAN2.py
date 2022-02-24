@@ -98,11 +98,11 @@ def main() -> int:
     #--------------
     #setup
   
-    latent_dim  = 128
-    style_dim   = 256 
+    latent_dim  = 256
+    style_dim   = 512 
     batch_size  = 128
 
-    epochs      = 30
+    epochs      = 100
     image_size = (64, 64, 3)
     
     enc_block_count = int(np.log2(image_size[0])-1)
@@ -115,7 +115,7 @@ def main() -> int:
 
     #--------------
     
-    if 1:
+    if 0:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)
     else:
@@ -134,8 +134,8 @@ def main() -> int:
     g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
     d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
 
-    k = keras.losses.BinaryCrossentropy()
-
+    k = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
+    
     #--------------
     
     g_model = generator.create_generator(enc_block_count, latent_dim, style_dim, noise_image_res)
@@ -154,6 +154,14 @@ def main() -> int:
     #train   
     callbacks = [gan.train_callback(enc_block_count, latent_dim, noise_image_res), keras.callbacks.TensorBoard(log_dir=log_path)]
     gan_model.fit(dataset, epochs=epochs, callbacks=callbacks)
+
+    save_path = './keras-saves/_gan_model_latest.ckpt'
+    #try:
+    #    gan_model.fit(
+    #except KeyboardInterrupt:
+        #needs implementation first!
+        #gan_model.save(save_path)
+        #print('Output saved to: "{}./*"'.format(save_path))
 
     return 0
 

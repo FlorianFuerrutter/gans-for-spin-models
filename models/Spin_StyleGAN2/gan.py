@@ -20,13 +20,10 @@ def sample_generator_input(batch_size, enc_block_count, latent_dim, noise_image_
         #use single style inputs (1 style total)  
         latent_vectors = [latent_vector()] * enc_block_count
 
-    #noise styles
-    #for i in range(enc_block_count):
-    #    latent_vectors.append(latent_vector())
-
     #direct noise inputs
     noise_images   = []
     for i in range(enc_block_count):
+        #noise_images.append(tf.random.uniform(shape=(batch_size, noise_image_res, noise_image_res, 1)))
         noise_images.append(tf.random.normal(shape=(batch_size, noise_image_res, noise_image_res, 1)))
 
     return latent_vectors, noise_images

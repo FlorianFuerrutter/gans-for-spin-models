@@ -110,7 +110,7 @@ def create_mapping_network(latent_dim, styles_dim):
 
 def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res):
     init = keras.initializers.GlorotUniform()
-
+    
     mapping_model = create_mapping_network(latent_dim, styles_dim)
 
     #--------------------------------------------
@@ -130,7 +130,7 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res):
 
     #--------------------------------------------
     #Model
-    filter_size_start = 256
+    filter_size_start = 512
     res_start         = 4
 
     #constant for batch size
