@@ -2,7 +2,6 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, activations, initializers
-from custom_layers import BiasNoiseBroadcastLayer, Conv2DMod
 
 #--------------------------------------------------------------------
 
@@ -71,7 +70,7 @@ def create_discriminator(image_res):
 
     #----------- Activation-layer
     x = layers.Flatten()(x)  
-    #x = layers.Dropout(0.2)(x)
+    x = layers.Dropout(0.2)(x)
     output = layers.Dense(1, activation=activations.sigmoid)(x)
 
     #----------- Model

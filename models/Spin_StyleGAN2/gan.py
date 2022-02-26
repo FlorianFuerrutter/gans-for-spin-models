@@ -20,6 +20,7 @@ def plot_images(generated_images, images_count, epoch):
         plt.axis('off')
         plt.imshow(generated_images[i].numpy())                 
     plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
+    plt.close()
 
 def sample_generator_input(batch_size, enc_block_count, latent_dim, noise_image_res, t= 0.9):
     #latent_vectors will be mapped into styles
@@ -184,7 +185,7 @@ class train_callback(keras.callbacks.Callback):
 
         #--------------------------------------------
         #plot images
-        if (epoch % self.plot_period) == 0:           
+        if (epoch % self.plot_period) == 0:
             images_count = 16
 
             latent_vectors, noise_images = sample_generator_input(images_count, self.enc_block_count, self.latent_dim, self.noise_image_res, t=0.0)

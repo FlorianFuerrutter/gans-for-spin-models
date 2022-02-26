@@ -64,7 +64,7 @@ def main() -> int:
 
     #--------------------------------------------------------------------
     #load data
-    path     = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part0")
+    path     = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part1")
     log_path = os.path.join(os.path.dirname(__file__), "..", "logs")
 
     #--------------
@@ -86,8 +86,8 @@ def main() -> int:
     #--------------------------------------------------------------------
     #create model
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
-    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
+    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
+    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
     loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
     
     plot_period = 1 
