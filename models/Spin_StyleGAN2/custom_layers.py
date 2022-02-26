@@ -9,8 +9,8 @@ from keras.engine import base_layer
 # Custom layers defined in https://arxiv.org/pdf/1912.04958.pdf
 #--------------------------------------------------------------------
 
-class BiasNoiseBroadcastLayer(tf.keras.layers.Layer): #(base_layer.BaseRandomLayer): #(tf.keras.layers.Layer):
-    '''Combines an input x with noise and an internal bias. Input must be x'''
+class BiasNoiseBroadcastLayer(tf.keras.layers.Layer):
+    '''Combines an input x with noise image and an internal bias. Input must be [x, noise]'''
 
     def __init__(self, filter_size, *args, **kwargs):
         super(BiasNoiseBroadcastLayer, self).__init__(*args, **kwargs)
@@ -18,8 +18,8 @@ class BiasNoiseBroadcastLayer(tf.keras.layers.Layer): #(base_layer.BaseRandomLay
 
     def build(self, input_shape):
         n, h, w, c = input_shape[0]
-        assert (self.filter_size == c)
-        
+
+        assert (self.filter_size == c)       
         #initializer = keras.initializers.RandomNormal(mean=0.0, stddev=1.0)
 
         #bias for each feature map
@@ -28,6 +28,11 @@ class BiasNoiseBroadcastLayer(tf.keras.layers.Layer): #(base_layer.BaseRandomLay
     def call(self, inputs):         
         x, noise = inputs
         return x + tf.multiply(self.b, noise)
+
+    def get_config(self):
+        config = super(BiasNoiseBroadcastLayer, self).get_config()
+        config.update({"filter_size": self.filter_size})
+        return config
 
 #--------------------------------------------------------------------
 
@@ -142,9 +147,9 @@ class Conv2DMod(tf.keras.layers.Conv2D):
 
             #------------------------            
             #Fuse
-            x = tf.transpose(inputs[0], [0, 3, 1, 2])           #[BHWC] -> [BCHW]
-            x = tf.reshape(x, [1, -1, x.shape[2], x.shape[3]])  #[1, channels * batches, h, w]
-            x = tf.transpose(x, [0, 2, 3, 1])                   #[1, h, w, channels * batches]
+            x = tf.transpose(inputs[0], [0, 3, 1, 2])                   #[BHWC] -> [BCHW]
+            x = tf.reshape(x, [1, -1, tf.shape(x)[2], tf.shape(x)[3]])  #[1, channels * batches, h, w]
+            x = tf.transpose(x, [0, 2, 3, 1])                           #[1, h, w, channels * batches]
 
             w = tf.transpose(kernel, [1, 2, 3, 0, 4])                                   #[rows, cols, input_depth, batches, output_depth]
             w = tf.reshape(w, [kernel.shape[1], kernel.shape[2], kernel.shape[3], -1])  #[rows, cols, input_depth, batches*output_depth]
@@ -171,5 +176,10 @@ class Conv2DMod(tf.keras.layers.Conv2D):
         #set new convolution_op and finish build
         self.convolution_op = conv2d_mod_op
         self.built = True
+
+    def get_config(self):
+        config = super(Conv2DMod, self).get_config()
+        config.update({"demod": self.demod})
+        return config
 
 #--------------------------------------------------------------------

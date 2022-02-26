@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import gan
 
 #Tensorflow
 import tensorflow as tf
@@ -19,83 +20,36 @@ else:
 #-------------------------------------
 
 #    Model / data parameters
-#    num_classes = 10
 #    input_shape = (28, 28, 1)
-
+#
 #    # the data, split between train and test sets
 #    (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
-
+#
 #    # Scale images to the [0, 1] range
 #    x_train = x_train.astype("float32") / 255
 #    x_test = x_test.astype("float32") / 255
 #    # Make sure images have shape (28, 28, 1)
 #    x_train = np.expand_dims(x_train, -1)
 #    x_test = np.expand_dims(x_test, -1)
-#    print("x_train shape:", x_train.shape)
-#    print(x_train.shape[0], "train samples")
-#    print(x_test.shape[0], "test samples")
-
-#    # convert class vectors to binary class matrices
-#    y_train = keras.utils.to_categorical(y_train, num_classes)
-#    y_test = keras.utils.to_categorical(y_test, num_classes)
-
-
-#    image_input = layers.Input(shape=input_shape)
-#    x = layers.Dense(8, activation="softmax")(image_input)
-   
 #    #--------------------------- 
 #    outfeatures = 4#32
 #    infeatures  = 3#16
-
+#
 #    batches     = 1
 #    res         = 2    
-
+#
 #    g = Conv2DMod(outfeatures, demod=True, kernel_size=1)
 #    a = tf.constant(tf.ones((batches, res, res, infeatures)))
 #    b = tf.constant(tf.random.uniform((batches, infeatures)))
 #    u = g([a, b])
 #    #print(u)
 
-#    #-------
-    
-#    noise = layers.GaussianNoise(0.1)(x)
-#    noise = layers.Flatten()(noise)
-#    noise = layers.Dense(infeatures, activation="softmax")(noise) 
-
-#    x = layers.Dense(infeatures, activation="softmax")(x)
-#    x = Conv2DMod(outfeatures, demod=True, kernel_size=3)([x, noise])
-#    x = layers.LeakyReLU(0.2)(x)
-
-#    noise = layers.GaussianNoise(0.1)(x)
-#    noise = layers.Flatten()(noise)
-#    noise = layers.Dense(outfeatures, activation="softmax")(noise)
-#    x = BiasNoiseBroadcastLayer()([x, noise])
-
-#    #---------------------------
-
-#    x = layers.Flatten()(x)
-#    x = layers.Dropout(0.2)(x)
-#    x = layers.Dense(num_classes, activation="softmax")(x)
-#    model = keras.models.Model(inputs = image_input, outputs = x, name="discriminator")
-#    #model.summary()
-
-#    batch_size = 128
-#    model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
-#    model.fit(x_train, y_train, batch_size=batch_size, epochs=10, validation_split=0.1)
-
 #-------------------------------------
 #-------------------------------------
 
-from custom_layers import BiasNoiseBroadcastLayer, Conv2DMod
-from tensorflow import keras
-from tensorflow.keras import layers, activations
-
-import gan
-import generator
-import discriminator
 
 def main() -> int:  
-    #--------------
+    #--------------------------------------------------------------------
     #setup
   
     latent_dim  = 256
@@ -108,14 +62,14 @@ def main() -> int:
     enc_block_count = int(np.log2(image_size[0])-1)
     noise_image_res = image_size[0]
 
-    #--------------
+    #--------------------------------------------------------------------
     #load data
-    path     = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part1")
+    path     = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part0")
     log_path = os.path.join(os.path.dirname(__file__), "..", "logs")
 
     #--------------
     
-    if 0:
+    if 1:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)
     else:
@@ -129,39 +83,27 @@ def main() -> int:
         dataset = dataset.map(lambda x: (x - 127.5) / 127.5)    
         tf.data.experimental.save(dataset, path) 
 
-    #--------------
+    #--------------------------------------------------------------------
+    #create model
 
     g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
     d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
-
-    k = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
+    loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
     
-    #--------------
-    
-    g_model = generator.create_generator(enc_block_count, latent_dim, style_dim, noise_image_res)
-    d_model = discriminator.create_discriminator(image_size)
-  
-    #tf.keras.utils.plot_model(g_model, "generator.png", show_shapes=True)
-    #tf.keras.utils.plot_model(d_model, "discriminator.png", show_shapes=True)
+    plot_period = 1 
+    save_period = 10
 
-    #g_model.summary()
-    #d_model.summary()
+    gan_model = gan.gan(enc_block_count, latent_dim, style_dim, image_size, noise_image_res)
+    gan_model.compile(d_optimizer, g_optimizer, loss, loss)
 
-    gan_model = gan.gan(d_model, g_model, latent_dim, style_dim, enc_block_count, noise_image_res)
-    gan_model.compile(d_optimizer, g_optimizer, k, k)
-
-    #--------------
+    #--------------------------------------------------------------------
     #train   
-    callbacks = [gan.train_callback(enc_block_count, latent_dim, noise_image_res), keras.callbacks.TensorBoard(log_dir=log_path)]
+
+    callbacks = [gan.train_callback(enc_block_count, latent_dim, noise_image_res, plot_period=plot_period, save_period=save_period), keras.callbacks.TensorBoard(log_dir=log_path)]
     gan_model.fit(dataset, epochs=epochs, callbacks=callbacks)
 
-    save_path = './keras-saves/_gan_model_latest.ckpt'
-    #try:
-    #    gan_model.fit(
-    #except KeyboardInterrupt:
-        #needs implementation first!
-        #gan_model.save(save_path)
-        #print('Output saved to: "{}./*"'.format(save_path))
+    #store final weights
+    gan_model.save(epochs+1, only_weights=True)
 
     return 0
 

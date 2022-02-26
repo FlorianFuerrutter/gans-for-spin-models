@@ -52,23 +52,26 @@ def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate
 def create_discriminator(image_res):
     init = keras.initializers.GlorotUniform() 
 
+    start_filter_size = 16
+    drop_rate         = 0.0
+    
     #Structure
     image_input = layers.Input(shape=image_res) #64x64
 
     #fRGB
-    x = layers.Conv2D(32, kernel_size=1, strides=(1,1), padding='same', kernel_initializer=init)(image_input)
+    x = layers.Conv2D(start_filter_size, kernel_size=1, strides=(1,1), padding='same', kernel_initializer=init)(image_input)
 
-    #-----------Decoders
-    drop_rate = 0.2
+    #-----------Decoders   
+    x = dec_block(x,  start_filter_size * 1, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
+    x = dec_block(x,  start_filter_size * 2, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #16x16
+    x = dec_block(x,  start_filter_size * 4, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
+    x = dec_block(x,  start_filter_size * 6, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) #4x4
 
-    x = dec_block(x,  32, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
-    x = dec_block(x,  64, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #16x16
-    x = dec_block(x, 128, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
-    x = dec_block(x, 256, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) #4x4
+    #was 16 and *6, drop 0.0
 
     #----------- Activation-layer
-    x = layers.Flatten()(x)
-    x = layers.Dropout(0.2)(x)
+    x = layers.Flatten()(x)  
+    #x = layers.Dropout(0.2)(x)
     output = layers.Dense(1, activation=activations.sigmoid)(x)
 
     #----------- Model

@@ -1,7 +1,25 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from random import random
+
+from custom_layers import BiasNoiseBroadcastLayer, Conv2DMod
+import generator
+import discriminator
+
+#--------------------------------------------------------------------
+
+def plot_images(generated_images, images_count, epoch):
+    fig = plt.figure(figsize=(5, 5))
+    plt.subplots_adjust(left=0.0, bottom=0.0, right=1.0, top=1.0, wspace=0.0, hspace=0.0)
+
+    res = int(np.sqrt(images_count))
+    for i in range(images_count):
+        plt.subplot(res, res, i+1)
+        plt.axis('off')
+        plt.imshow(generated_images[i].numpy())                 
+    plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
 
 def sample_generator_input(batch_size, enc_block_count, latent_dim, noise_image_res, t= 0.9):
     #latent_vectors will be mapped into styles
@@ -28,17 +46,23 @@ def sample_generator_input(batch_size, enc_block_count, latent_dim, noise_image_
 
     return latent_vectors, noise_images
 
-class gan(keras.Model):
-    def __init__(self, discriminator, generator, latent_dim, style_dim, enc_block_count, noise_image_res):
-        super().__init__()
-        self.discriminator = discriminator
-        self.generator     = generator
+#--------------------------------------------------------------------
 
-        #----------
+class gan(keras.Model):
+    def __init__(self, enc_block_count, latent_dim, style_dim, image_size, noise_image_res):
+        super().__init__()
+
+        self.generator = generator.create_generator(enc_block_count, latent_dim, style_dim, noise_image_res)
+        self.discriminator = discriminator.create_discriminator(image_size)
+
+        #--------------------------------------------
+        self.enc_block_count = enc_block_count
         self.latent_dim      = latent_dim
         self.style_dim       = style_dim
-        self.enc_block_count = enc_block_count
+        self.image_size      = image_size
         self.noise_image_res = noise_image_res
+
+        self.save_path = "./model-saves/gan_" 
 
         #fixed loss metrics here
         self.d_loss_metric = keras.metrics.Mean(name="d_loss") 
@@ -60,7 +84,7 @@ class gan(keras.Model):
     def train_step(self, real_images):
         batch_size = tf.shape(real_images)[0] 
        
-        #------------------------------
+        #--------------------------------------------
         #train discriminator
 
         #latent and noise
@@ -87,7 +111,7 @@ class gan(keras.Model):
 
             self.d_optimizer.apply_gradients(zip(grads, self.discriminator.trainable_weights))
  
-        #------------------------------
+        #--------------------------------------------
         #train generator
       
         #latent and noise
@@ -106,32 +130,65 @@ class gan(keras.Model):
 
             self.g_optimizer.apply_gradients(zip(grads, self.generator.trainable_weights)) 
  
-        #------------------------------
-
+        #--------------------------------------------
         self.d_loss_metric.update_state(d_loss)
         self.g_loss_metric.update_state(g_loss)
 
         return {"d_loss": self.d_loss_metric.result(), "g_loss": self.g_loss_metric.result()}
 
+    def save(self, epoch, only_weights=True):
+        if only_weights:
+            self.generator.save_weights(self.save_path + "generator_weights_{epoch}".format(epoch=epoch))
+            self.discriminator.save_weights(self.save_path + "discriminator_weights_{epoch}".format(epoch=epoch))
+
+        else:            
+            self.generator.save(self.save_path + "generator_full_{epoch}".format(epoch=epoch))
+            self.discriminator.save(self.save_path + "discriminator_full_{epoch}".format(epoch=epoch))
+
+    def load(self, epoch, only_weights=True):
+        #custom_objects = {"Conv2DMod": Conv2DMod, "BiasNoiseBroadcastLayer": BiasNoiseBroadcastLayer}
+        #model = keras.models.model_from_json(json_config, custom_objects)
+        #model = keras.Model.from_config(config, custom_objects)
+
+        if only_weights:
+            self.generator.load_weights(self.save_path + "generator_weights_{epoch}".format(epoch=epoch))
+            self.discriminator.load_weights(self.save_path + "discriminator_weights_{epoch}".format(epoch=epoch))
+
+        else: 
+            self.generator = keras.models.load_model(self.save_path + "generator_full_{epoch}".format(epoch=epoch))
+            self.discriminator = keras.models.load_model(self.save_path + "discriminator_full_{epoch}".format(epoch=epoch))
+
+    def plot_print_model_config():
+        self.generator.summary()
+        self.discriminator.summary()
+
+        tf.keras.utils.plot_model(self.generator, "generator.png", show_shapes=True)
+        tf.keras.utils.plot_model(self.discriminator, "discriminator.png", show_shapes=True)
+
 class train_callback(keras.callbacks.Callback):
-    def __init__(self, enc_block_count, latent_dim, noise_image_res):
+    def __init__(self, enc_block_count, latent_dim, noise_image_res, plot_period=1, save_period=5):
+        super(train_callback, self).__init__()
         self.enc_block_count = enc_block_count
         self.latent_dim      = latent_dim
         self.noise_image_res = noise_image_res
 
+        self.plot_period = plot_period
+        self.save_period = save_period
+
     def on_epoch_end(self, epoch, logs=None):
-        if ( (epoch % 1) != 0 ):
-            return
+        
+        #--------------------------------------------
+        #save weights
+        if ((epoch % self.save_period) == 0) and (epoch > 2 * self.save_period):
+            self.model.save(epoch, only_weights=True)
 
-        images = 9
+        #--------------------------------------------
+        #plot images
+        if (epoch % self.plot_period) == 0:           
+            images_count = 16
 
-        latent_vectors, noise_images = sample_generator_input(images, self.enc_block_count, self.latent_dim, self.noise_image_res, t=0.0)
-        generated_images = self.model.generator([latent_vectors, noise_images])
-        generated_images = (generated_images + 1.0) / 2.0
+            latent_vectors, noise_images = sample_generator_input(images_count, self.enc_block_count, self.latent_dim, self.noise_image_res, t=0.0)
+            generated_images = self.model.generator([latent_vectors, noise_images])
+            generated_images = (generated_images + 1.0) / 2.0
 
-        fig = plt.figure(figsize=(6, 6))
-        for i in range(images):
-            plt.subplot(3, 3, i+1)
-            plt.axis('off')
-            plt.imshow(generated_images[i].numpy())           
-        plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
+            plot_images(generated_images, images_count, epoch)
