@@ -32,7 +32,7 @@ def main() -> int:
     latent_dim = 128
 
     image_size = (64, 64, 3)
-    batch_size = 410
+    batch_size = 128
     
     #--------------
     #load data
@@ -96,8 +96,8 @@ def main() -> int:
     g_model   = generator.create_generator(latent_dim)
     d_model   = discriminator.create_discriminator(image_size)
 
-    #g_model.summary()
-    #d_model.summary()
+    g_model.summary()
+    d_model.summary()
 
     k = keras.losses.BinaryCrossentropy()
 

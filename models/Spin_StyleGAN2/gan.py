@@ -8,6 +8,8 @@ from custom_layers import BiasNoiseBroadcastLayer, Conv2DMod
 import generator
 import discriminator
 
+from keras import backend as K
+
 #--------------------------------------------------------------------
 
 def plot_images(generated_images, images_count, epoch):
@@ -49,12 +51,24 @@ def sample_generator_input(batch_size, enc_block_count, latent_dim, noise_image_
 
 #--------------------------------------------------------------------
 
+def gradient_penalty(samples, output, weight):
+    gradients = K.gradients(output, samples)[0]
+    gradients_sqr = K.square(gradients)
+    gradient_penalty = K.sum(gradients_sqr, axis=np.arange(1, len(gradients_sqr.shape)))
+
+    # (weight / 2) * ||grad||^2
+    # Penalize the gradient norm
+    return K.mean(gradient_penalty) * weight
+
 class gan(keras.Model):
     def __init__(self, enc_block_count, latent_dim, style_dim, image_size, noise_image_res):
         super().__init__()
 
         self.generator = generator.create_generator(enc_block_count, latent_dim, style_dim, noise_image_res)
         self.discriminator = discriminator.create_discriminator(image_size)
+
+        #self.generator.summary()
+        #self.discriminator.summary()
 
         #--------------------------------------------
         self.enc_block_count = enc_block_count
@@ -85,6 +99,12 @@ class gan(keras.Model):
     def train_step(self, real_images):
         batch_size = tf.shape(real_images)[0] 
        
+        def wasserstein_loss(y_true, y_pred):
+            y_true = 2 * y_true - 1
+            y_pred = 2 * y_pred - 1
+            return -tf.reduce_mean(y_true * y_pred)
+        loss = wasserstein_loss
+
         #--------------------------------------------
         #train discriminator
 
@@ -106,6 +126,11 @@ class gan(keras.Model):
 
             predictions = self.discriminator(combined_images) 
             d_loss      = self.d_loss_fn(labels, predictions) 
+            
+            #fake_output = self.discriminator(generated_images) 
+            #real_output = self.discriminator(real_images) 
+            #d_loss = K.mean(K.relu(1 + real_output) + K.relu(1 - fake_output))
+            #d_loss += gradient_penalty(real_images, real_output, 10)
 
             #derivative of d_loss with respect to trainable_weights
             grads = tape.gradient(d_loss, self.discriminator.trainable_weights)
@@ -125,6 +150,8 @@ class gan(keras.Model):
         with tf.GradientTape() as tape: 
             predictions = self.discriminator(self.generator([latent_vectors, noise_images])) 
             g_loss      = self.g_loss_fn(misleading_labels, predictions) 
+
+            #g_loss = K.mean(predictions)
 
             #derivative of g_loss with respect to trainable_weights
             grads = tape.gradient(g_loss, self.generator.trainable_weights) 
@@ -159,7 +186,7 @@ class gan(keras.Model):
             self.generator = keras.models.load_model(self.save_path + "generator_full_{epoch}".format(epoch=epoch))
             self.discriminator = keras.models.load_model(self.save_path + "discriminator_full_{epoch}".format(epoch=epoch))
 
-    def plot_print_model_config():
+    def plot_print_model_config(self):
         self.generator.summary()
         self.discriminator.summary()
 

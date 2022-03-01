@@ -25,4 +25,4 @@ Bachelor thesis
 --- | --- | ---
 ![](/img/spin_dc_gan_sample.png) | ![](/img/spin_dc_gan.png) | ![](/img/spin_dc_gan.gif)
 
-## 2.StyleGAN2
+## 2. StyleGAN2

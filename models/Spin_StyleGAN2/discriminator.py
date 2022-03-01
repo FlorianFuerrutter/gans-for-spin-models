@@ -24,7 +24,7 @@ def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate
     
     #--------------------------------------------
     # Residual net block   
-    dec = layers.Conv2D(filter_size, kernel_size=1, strides=(1,1), padding=padding, kernel_initializer=kernel_initializer)(dec)   
+    dec1 = layers.Conv2D(filter_size, kernel_size=1, strides=(1,1), padding=padding, kernel_initializer=kernel_initializer)(dec)   
 
     #------- res 
     res = layers.Conv2D(filter_size, kernel_size=kernel_size, strides=(1,1), padding=padding, kernel_initializer=kernel_initializer)(dec)
@@ -38,8 +38,8 @@ def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate
         res = layers.Dropout(drop_rate)(res)
    
     #-------
-    out = layers.Add()([res, dec])  
-    out = layers.Lambda(lambda x: x *  0.707107)(out) #1/sqrt2
+    out = layers.Add()([res, dec1])  
+    out = layers.Lambda( lambda x: x * tf.math.rsqrt(2.0) )(out) #1/sqrt2
 
     if not last_block:
         out = layers.AveragePooling2D()(out)
@@ -51,7 +51,7 @@ def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate
 def create_discriminator(image_res):
     init = keras.initializers.GlorotUniform() 
 
-    start_filter_size = 16
+    start_filter_size = 16 #16 #18
     drop_rate         = 0.0
     
     #Structure
@@ -64,13 +64,11 @@ def create_discriminator(image_res):
     x = dec_block(x,  start_filter_size * 1, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
     x = dec_block(x,  start_filter_size * 2, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #16x16
     x = dec_block(x,  start_filter_size * 4, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
-    x = dec_block(x,  start_filter_size * 6, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) #4x4
-
-    #was 16 and *6, drop 0.0
+    x = dec_block(x,  start_filter_size * 6, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) 
 
     #----------- Activation-layer
     x = layers.Flatten()(x)  
-    x = layers.Dropout(0.2)(x)
+    #x = layers.Dropout(0.2)(x)
     output = layers.Dense(1, activation=activations.sigmoid)(x)
 
     #----------- Model

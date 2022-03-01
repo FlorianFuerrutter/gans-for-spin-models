@@ -1,6 +1,19 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
+import numpy as np
+
+def plot_images(generated_images, images_count, epoch):
+    fig = plt.figure(figsize=(5, 5))
+    plt.subplots_adjust(left=0.0, bottom=0.0, right=1.0, top=1.0, wspace=0.0, hspace=0.0)
+
+    res = int(np.sqrt(images_count))
+    for i in range(images_count):
+        plt.subplot(res, res, i+1)
+        plt.axis('off')
+        plt.imshow(generated_images[i].numpy())                 
+    plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
+    plt.close()
 
 class gan(keras.Model):
     def __init__(self, discriminator, generator, latent_dim):
@@ -83,15 +96,10 @@ class train_callback(keras.callbacks.Callback):
         if ( (epoch % 1) != 0 ):
             return
 
-        images = 9
+        images_count = 16
 
-        random_latent_vectors = tf.random.normal(shape=(images, self.latent_dim))
+        random_latent_vectors = tf.random.normal(shape=(images_count, self.latent_dim))
         generated_images = self.model.generator(random_latent_vectors)
         generated_images = (generated_images + 1.0) / 2.0
 
-        fig = plt.figure(figsize=(6, 6))
-        for i in range(images):
-            plt.subplot(3, 3, i+1)
-            plt.axis('off')
-            plt.imshow(generated_images[i].numpy())           
-        plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
+        plot_images(generated_images, images_count, epoch)

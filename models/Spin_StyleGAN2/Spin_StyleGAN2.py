@@ -47,6 +47,20 @@ else:
 #-------------------------------------
 #-------------------------------------
 
+def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.5.txt", amplitude=0.9):
+    #create and store new dataset 
+    file_path = os.path.join(path, name)
+    states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)
+    states = np.reshape(states, ( -1, res, res, 1))
+    print("found states:", states.shape[0])
+
+    #scale (+-)1 to (+-)amplitude
+    states = states * amplitude
+
+    dataset = tf.data.Dataset.from_tensor_slices(states)
+    dataset = dataset.batch(batch_size)
+
+    return dataset
 
 def main() -> int:  
     #--------------------------------------------------------------------
@@ -56,7 +70,7 @@ def main() -> int:
     style_dim   = 512 
     batch_size  = 128
 
-    epochs      = 100
+    epochs      = 1000
     image_size = (64, 64, 3)
     
     enc_block_count = int(np.log2(image_size[0])-1)
@@ -86,20 +100,25 @@ def main() -> int:
     #--------------------------------------------------------------------
     #create model
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
-    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
+    g_optimizer = keras.optimizers.Adam(learning_rate=2e-3, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
+    d_optimizer = keras.optimizers.Adam(learning_rate=2e-3, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
     loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
-    
+        
     plot_period = 1 
-    save_period = 10
+    save_period = 24
 
     gan_model = gan.gan(enc_block_count, latent_dim, style_dim, image_size, noise_image_res)
     gan_model.compile(d_optimizer, g_optimizer, loss, loss)
 
+    #gan_model.plot_print_model_config()
+
     #--------------------------------------------------------------------
     #train   
 
-    callbacks = [gan.train_callback(enc_block_count, latent_dim, noise_image_res, plot_period=plot_period, save_period=save_period), keras.callbacks.TensorBoard(log_dir=log_path)]
+    callbacks = []
+    callbacks.append(gan.train_callback(enc_block_count, latent_dim, noise_image_res, plot_period=plot_period, save_period=save_period))
+    #callbacks.append(keras.callbacks.TensorBoard(log_dir=log_path))
+
     gan_model.fit(dataset, epochs=epochs, callbacks=callbacks)
 
     #store final weights

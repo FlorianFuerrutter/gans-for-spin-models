@@ -101,7 +101,7 @@ def create_mapping_network(latent_dim, styles_dim):
     out = layers.Dense(styles_dim)(out)
     out = layers.LeakyReLU(0.2)(out)
     
-    #out = layers.Dense(style_dim)(out)
+    #out = layers.Dense(styles_dim)(out)
     #out = layers.LeakyReLU(0.2)(out)
 
     #--------------------------------------------
@@ -111,9 +111,11 @@ def create_mapping_network(latent_dim, styles_dim):
 def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res):
     init = keras.initializers.GlorotUniform()
     
-    filter_size_start = 256 #512
+    filter_size_const = 64
+    filter_size_start = 256 #256 #288 #312
     res_start         = 4
 
+    #create mapping operator, z->w
     mapping_model = create_mapping_network(latent_dim, styles_dim)
 
     #--------------------------------------------
@@ -136,8 +138,8 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res):
 
     #constant for batch size
     c1 = layers.Lambda(lambda x: x[:, :1] * 0 + 1)(style_input[0])
-    x = layers.Dense(res_start * res_start * filter_size_start, use_bias=False, activation='relu', kernel_initializer='zeros')(c1)
-    x = layers.Reshape((res_start, res_start, filter_size_start))(x) 
+    x = layers.Dense(res_start * res_start * filter_size_const, use_bias=False, activation='relu', kernel_initializer='zeros')(c1)
+    x = layers.Reshape((res_start, res_start, filter_size_const))(x) 
 
     #first block
     x, rgb = enc_block(x, style_input[0], noise_image_input[0], filter_size=filter_size_start, kernel_size=(3,3), kernel_initializer=init, first_block=True)
@@ -146,8 +148,7 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res):
     #scale blocks
     for i in range(1, enc_block_count):            
         #filter_size = filter_size_start / (2**i)
-        filter_size = filter_size_start - i * 56
-
+        filter_size = filter_size_start - i * 56 #56 #64 #70
 
         x, rgb_c = enc_block(x, style_input[i], noise_image_input[i], filter_size=filter_size, kernel_size=(3,3), kernel_initializer=init, first_block=False)       
         
