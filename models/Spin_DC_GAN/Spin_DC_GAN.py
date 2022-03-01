@@ -53,9 +53,9 @@ def main() -> int:
     #load data
     path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train")
 
-    if 0: 
+    if 1: 
         #create and store new dataset 
-        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.5.txt", amplitude=0.9)     
+        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.2.txt", amplitude=0.9)     
         #tf.data.experimental.save(dataset, path) 
     else:
         #if existing dataset, use that
