@@ -56,40 +56,135 @@ def binningAnalysisSingle(data, printAlreadyConvergedWarning=False):
 #-------------------------------------
 
 import sys, os.path
-model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) + "/models/Spin_StyleGAN2"
+model_path = os.path.join(os.path.dirname(__file__), "..", "models", "Spin_DC_GAN")          
 sys.path.append(model_path)
 import gan
 
-def generate_gan_data(TJ):
+plot_path  = os.path.dirname(__file__) #+ "plot"
+def savePdf(filename): 
+  plt.savefig(plot_path + "/" + filename + '.pdf', bbox_inches='tight')
+
+def generate_gan_data(TJ, images_count=1000):
+    latent_dim = 128
+    image_size = (64, 64, 1)
+
+    gan_model = gan.gan(latent_dim, image_size)
+    gan_model.save_path = os.path.join(os.path.dirname(__file__), "..", "data", "generated", "TJ_{TJ}".format(TJ=TJ), "gan_")
+
+    states_epoch = []
+    for epoch in range(20, 91, 10):
+
+        #load weights gan model for tj
+        gan_model.load(epoch)
+
+        #generate spin data
+        batch_size = 100
+
+        latent_vectors = gan.sample_generator_input(batch_size, latent_dim)
+        generated_images = (gan_model.generator(latent_vectors)).numpy()
+       
+        for i in range(images_count // batch_size - 1):
+            latent_vectors = gan.sample_generator_input(batch_size, latent_dim)
+            t = (gan_model.generator(latent_vectors)).numpy()
+            generated_images = np.concatenate((generated_images, t), axis=0)
+
+        #clip to +-1
+        images = np.where(generated_images < 0, -1, 1)
+       
+        state = np.reshape(images, (-1, image_size[0] * image_size[1] * image_size[2]))
+        states_epoch.append(state)
+    return np.array(states_epoch)
+
+def load_spin_data(TJ):
+    path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
+    file_path = os.path.join(path, "simulation_observ_TJ_{TJ}.txt".format(TJ=TJ))
+    obser = np.transpose(np.loadtxt(file_path, skiprows=1, dtype=np.float32))
+
+    energy = obser[0]
+    m2     = obser[1]
     
+    print("found data count:", energy.shape[0])
+    return energy, m2
 
-    #load gan model
-    #load weights for tj
-    #generate spin data
+#-------------------------------------
+#-------------------------------------
 
-    #clip to +-1
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams.update({
+    'text.usetex': False,
+    'font.family': 'serif',
+    'font.serif': 'cmr10',
+    'font.size': 16,
+    'mathtext.fontset': 'cm',
+    'font.family': 'STIXGeneral',
+    'axes.unicode_minus': True})
 
+def plot_comparison(TJs, means, errs, g_means, g_errs):
+    size=(12, 4.8*1.5)
+    fig = plt.figure(figsize = size, constrained_layout = True) 
+
+    plt.xlabel(r'$T/J$')                   
+    plt.xticks(TJs)
+    plt.ylabel(r"$m^2$")
+
+    plt.plot(TJs, means, "--", color="tab:blue", alpha=0.5, linewidth=0.8)
+    plt.errorbar(TJs, means, fmt='.', yerr=errs, label="Simulated", elinewidth=1, capsize=5, markersize=5)
+
+    for i in range(len(g_means[0])):
+        epoch = (i+2)*10
+
+        g_mean_epochs = g_means[:, i]
+        g_err_epochs  = g_errs[:, i]
+
+        plt.errorbar(TJs, g_mean_epochs, fmt='.', yerr=g_err_epochs, label="DC-GAN epoch: %d" % epoch, elinewidth=1, capsize=5, markersize=5)
+
+    plt.legend()
+    savePdf("comp_v1")
+    plt.savefig(plot_path + "/" + "comp_v1" + '.png', bbox_inches='tight')
+    plt.show()
+
+#-------------------------------------
+#-------------------------------------
 
 def do():
-    #do for each TJ                 -> generate data
-        generate_gan_data()
+    means = []
+    errs  = []
+    g_means = []
+    g_errs  = []
 
-       
-    #do for each TJ                 -> convert data into value
+    TJs = [1.8, 2, 2.2, 2.5]
+    for TJ in TJs:  #-> convert data into value
+        
         #load MC spin data
+        energy, m2 = load_spin_data(TJ)
+
         #compute values for MC values -> binning
-        #plot these
+        mean, err, corr = binningAnalysisSingle(m2)
+
+        means.append(mean)
+        errs.append(err)
 
         #load GAN spin data
+        generated_states = generate_gan_data(TJ, images_count=1000)
+        N = 64*64
+        g_m2 = np.square(np.sum(generated_states, axis=2)) / N**2
+
         #compute values for GAN values -> binning
-        #plot these
+        g_data = np.transpose([binningAnalysisSingle(x) for x in g_m2])
+        g_mean, g_err, g_corr = g_data[0], g_data[1], g_data[2]
 
+        g_means.append(g_mean)
+        g_errs.append(g_err)
 
+    plot_comparison(np.array(TJs), np.array(means), np.array(errs), np.array(g_means), np.array(g_errs))
+    return
 
 #-------------------------------------
 #-------------------------------------
 
-def main() -> int:   
+def main() -> int:
+    do()
     return 0
 
 if __name__ == '__main__':

@@ -28,4 +28,7 @@ __pycache__
 sample.png
 *.bat
 logs
+
+#data
 model-saves
+generated
