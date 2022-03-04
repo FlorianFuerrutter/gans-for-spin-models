@@ -28,7 +28,7 @@ def create_generator(latent_dim):
     #----------Encoder
     x = enc_layer(x,  128, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init)
     x = enc_layer(x,  256, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init)
-    x = enc_layer(x,  512, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init)
+    x = enc_layer(x,  256, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init)
 
     #------- Activation-layer
     output = layers.Conv2D(1, kernel_size=(5,5), strides=1, padding='same', activation=activations.tanh)(x)

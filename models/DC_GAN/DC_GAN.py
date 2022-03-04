@@ -32,7 +32,7 @@ def main() -> int:
     latent_dim = 128
 
     image_size = (64, 64, 3)
-    batch_size = 128
+    batch_size = 256
     
     #--------------
     #load data
@@ -44,7 +44,7 @@ def main() -> int:
     if 0:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)
-    else:
+    elif 0:
         #create and store new dataset
         dataset = tf.keras.utils.image_dataset_from_directory(
                         path,
@@ -56,6 +56,19 @@ def main() -> int:
         tf.data.experimental.save(dataset, path) 
 
     #-----
+
+    if 1:
+        #load
+        (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+                  
+        #28x28 to 64x64 with padding, (64-28)/2=18
+        x_train = np.stack((x_train,) * 3, axis=-1).astype("float32")
+        images = tf.image.pad_to_bounding_box(x_train, 18, 18, 64, 64)  
+
+        #convert to Dataset
+        dataset = tf.data.Dataset.from_tensor_slices(images)
+        dataset = dataset.map(lambda x: (x - 127.5) / 127.5)    
+        dataset = dataset.batch(batch_size)
 
     if 0:    
         count = 1

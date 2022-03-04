@@ -99,11 +99,11 @@ class gan(keras.Model):
     def train_step(self, real_images):
         batch_size = tf.shape(real_images)[0] 
        
-        def wasserstein_loss(y_true, y_pred):
-            y_true = 2 * y_true - 1
-            y_pred = 2 * y_pred - 1
-            return -tf.reduce_mean(y_true * y_pred)
-        loss = wasserstein_loss
+        #def wasserstein_loss(y_true, y_pred):
+        #    y_true = 2.0 * y_true - 1.0
+        #    y_pred = 2.0 * y_pred - 1.0
+        #    return -tf.reduce_mean(y_true * y_pred)
+        #loss = wasserstein_loss
 
         #--------------------------------------------
         #train discriminator

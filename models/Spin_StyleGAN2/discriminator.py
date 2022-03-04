@@ -64,6 +64,7 @@ def create_discriminator(image_res):
     x = dec_block(x,  start_filter_size * 1, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
     x = dec_block(x,  start_filter_size * 2, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #16x16
     x = dec_block(x,  start_filter_size * 4, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
+    #x = dec_block(x,  start_filter_size * 6, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #4x4
     x = dec_block(x,  start_filter_size * 6, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) 
 
     #----------- Activation-layer

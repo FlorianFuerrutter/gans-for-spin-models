@@ -157,7 +157,8 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res):
         
     #--------------------------------------------
     #Activation-layer
-    output = layers.Conv2D(3, kernel_size=(5,5), strides=1, padding='same', activation=activations.tanh)(rgb)
+    #output = layers.Conv2D(3, kernel_size=(5,5), strides=1, padding='same', activation=activations.tanh)(rgb)
+    output = layers.Activation(activations.tanh)(rgb)
 
     g_model = keras.models.Model(inputs=[latent_input, noise_image_input], outputs=output, name="generator")
     return g_model

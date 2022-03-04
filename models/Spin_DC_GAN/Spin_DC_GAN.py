@@ -44,10 +44,10 @@ def main() -> int:
     #--------------
     #setup
     epochs     = 100
-    latent_dim = 128
+    latent_dim = 128 
 
     image_size = (64, 64, 1)
-    batch_size = 128
+    batch_size = 128 #64 #128
     
     #--------------
     #load data
@@ -55,7 +55,7 @@ def main() -> int:
 
     if 1: 
         #create and store new dataset 
-        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.2.txt", amplitude=0.9)     
+        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.txt", amplitude=0.9)     
         #tf.data.experimental.save(dataset, path) 
     else:
         #if existing dataset, use that
@@ -63,19 +63,20 @@ def main() -> int:
 
     #-----
 
-    if 0:
-        plot_images = []
-        count = 1
-        for images in dataset:
-            for image in images:
-                image = (image + 1.0) /2.0               
-                plot_images.append(image)
+    if 1:
+        def p():
+            plot_images = []
+            count = 1
+            for images in dataset:
+                for image in images:
+                    image = (image + 1.0) /2.0               
+                    plot_images.append(image)
                 
-                count +=1
-                if count > 16:
-                    gan.plot_images(plot_images, 16, "sample")
-                    exit(0)
-       
+                    count +=1
+                    if count > 16:
+                        gan.plot_images(plot_images, 16, "sample")
+                        return
+        p()
     #--------------
     #define loss and optimizer
 

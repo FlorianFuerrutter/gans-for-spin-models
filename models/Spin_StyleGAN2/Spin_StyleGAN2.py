@@ -68,7 +68,7 @@ def main() -> int:
   
     latent_dim  = 256
     style_dim   = 512 
-    batch_size  = 128
+    batch_size  = 64 #64 #128 #256
 
     epochs      = 1000
     image_size = (64, 64, 3)
@@ -83,10 +83,10 @@ def main() -> int:
 
     #--------------
     
-    if 1:
+    if 0:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)
-    else:
+    elif 0:
         #create and store new dataset
         dataset = tf.keras.utils.image_dataset_from_directory(
                         path,
@@ -95,13 +95,39 @@ def main() -> int:
                         batch_size=batch_size,
                         smart_resize=True)
         dataset = dataset.map(lambda x: (x - 127.5) / 127.5)    
-        tf.data.experimental.save(dataset, path) 
+        #tf.data.experimental.save(dataset, path) 
+
+    if 1:
+        #load
+        (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+                  
+        #28x28 to 64x64 with padding, (64-28)/2=18
+        x_train = np.stack((x_train,) * 3, axis=-1).astype("float32")
+        images = tf.image.pad_to_bounding_box(x_train, 18, 18, 64, 64)  
+
+        #convert to Dataset
+        dataset = tf.data.Dataset.from_tensor_slices(images)
+        dataset = dataset.map(lambda x: (x - 127.5) / 127.5)    
+        dataset = dataset.batch(batch_size)
+
+    if 0:
+        plot_images = []
+        count = 1
+        for images in dataset:
+            for image in images:
+                image = (image + 1.0) /2.0               
+                plot_images.append(image)
+                
+                count +=1
+                if count > 16:
+                    gan.plot_images(plot_images, 16, "sample")
+                    exit(0)
 
     #--------------------------------------------------------------------
     #create model
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=2e-3, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
-    d_optimizer = keras.optimizers.Adam(learning_rate=2e-3, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
+    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
+    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
     loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
         
     plot_period = 1 
