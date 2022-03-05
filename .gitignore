@@ -34,3 +34,8 @@ model-saves
 model-data
 generated
 simulation_*
+
+#specific
+/models/Spin_StyleGAN2/*.png
+/plotting/*.pdf
+/plotting/*.png

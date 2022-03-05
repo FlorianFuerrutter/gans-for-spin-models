@@ -2,6 +2,7 @@ import numpy as np
 import data_helper as dh
 import matplotlib.pyplot as plt
 import matplotlib
+import model_evaluation as me
 matplotlib.rcParams.update({
     'text.usetex': False,
     'font.family': 'serif',
@@ -22,7 +23,7 @@ def savePng(filename):
 
 #--------------------------------------------------------------------
 
-def plot_performance_evaluation(TJs, mpd : dh.model_processed_data):
+def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
     Tc = 1.0 * 2.0 / np.log(1.0 + np.sqrt(2.0))
 
     #---------------------------
@@ -76,5 +77,41 @@ def plot_performance_evaluation(TJs, mpd : dh.model_processed_data):
 
     savePdf("comp_v1_" + mpd.model_name)
     savePng("comp_v1_" + mpd.model_name)
-    plt.show()
+    #plt.show()
+    return
+
+#--------------------------------------------------------------------
+
+def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
+
+    #len of TJs
+    for med in med_objs:
+
+        H_spin, H_gan, xedges, yedges = me.create_hist2D(med.m, med.energy, med.g_m, med.g_energy)
+        X, Y = np.meshgrid(xedges, yedges)
+
+        size=(12, 4.8*1.6)
+        fig = plt.figure(figsize=size, constrained_layout=True) 
+        plt.pcolormesh(X, Y, H_spin, alpha=0.6, rasterized=True, cmap="Blues", label="Simulation")
+        plt.pcolormesh(X, Y, H_gan, alpha=0.6, rasterized=True, cmap="Reds", label="GAN")
+
+        size=(12, 4.8*1.6)
+        fig = plt.figure(figsize=size, constrained_layout=True) 
+        plt.contour(X[:-1, :-1], Y[:-1, :-1], H_spin, alpha=0.6, cmap="Blues") #, label="Simulation")
+        plt.contour(X[:-1, :-1], Y[:-1, :-1], H_gan, alpha=0.6, cmap="Reds") #, label="GAN")
+        #plt.legend()
+
+        size=(12, 4.8*1.6)
+        fig = plt.figure(figsize=size, constrained_layout=True) 
+        plt.contourf(X[:-1, :-1], Y[:-1, :-1], H_spin, alpha=0.6, cmap="Blues") #, label="Simulation")
+        plt.contourf(X[:-1, :-1], Y[:-1, :-1], H_gan, alpha=0.6, cmap="Reds") #, label="GAN")
+        #plt.legend()
+
+        plt.show()
+
+        #for now only one plot!!
+        #the do one per TJ, also plot somehow the evolution with epochs !!
+        return
+
+
     return

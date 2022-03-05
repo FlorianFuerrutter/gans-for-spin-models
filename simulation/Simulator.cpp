@@ -154,7 +154,7 @@ void Simulator::run_wolff_cluster()
         memcpy(m_states[bin].data(), state, state_size);
 
         m_energy[bin] = energy;
-        m_m[bin]    = std::reduce(std::begin(state), std::end(state), 0);
+        m_m[bin]    = std::reduce(std::begin(state), std::end(state), 0) / PRECISION(N);
         m_mAbs[bin] = mAbs;
         m_m2[bin]   = m2;
         m_m4[bin]   = m4;

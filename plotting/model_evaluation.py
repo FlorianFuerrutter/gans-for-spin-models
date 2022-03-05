@@ -5,19 +5,25 @@ from numba import jit, njit, prange
 
 #--------------------------------------------------------------------
 
-bin_size_mag = 40 #in [ 0, 1]
-range_mag    = (0, 1)
+bins_per_unit = 40
 
-bin_size_eng = 80 #in [-2, 0]
-range_eng    = (-2, 0)
+bin_size_m = bins_per_unit*2 #in [ 0, 1]
+range_m    = (-1, 1)
 
+bin_size_mAbs = bins_per_unit*1 #in [ 0, 1]
+range_mAbs    = (0, 1)
+
+bin_size_eng = bins_per_unit*4 #in [-2, 2]
+range_eng    = (-2, 2)
+
+#-------- 1D ---------
 def create_hist(observable_name, data1, data2):
     bin_size = 10
     r        = (data1.min(), data1.max())
 
-    if observable_name == "mag":
-        bin_size = bin_size_mag
-        r        = range_mag
+    if observable_name == "mAbs":
+        bin_size = bin_size_mAbs
+        r        = range_mAbs
     elif observable_name == "eng":
         bin_size = bin_size_eng
         r        = range_eng
@@ -61,6 +67,50 @@ def evaluate_metric_EMD(observable_name, spin_data, gan_data):
         emd_list.append(emd)
 
     return np.array(emd_list)
+ 
+#-------- 2D ---------
+def create_hist2D(spin_data_m, spin_data_energy, gan_data_m, gan_data_energy):
+
+    #------------------------
+    #spin hist
+    x_spin = spin_data_m
+    y_spin = spin_data_energy
+
+    H_spin, xedges_spin, yedges_spin = np.histogram2d(x_spin, y_spin, bins=(bin_size_m, bin_size_eng), range=[range_m, range_eng], density=True)
+    H_spin = H_spin.T #to Cartesian 
+
+    #------------------------
+    #gan hist
+    x_gan = gan_data_m
+    y_gan = gan_data_energy
+
+    H_gan, xedges_gan, yedges_gan = np.histogram2d(x_gan, y_gan, bins=(bin_size_m, bin_size_eng), range=[range_m, range_eng], density=True)
+    H_gan = H_gan.T #to Cartesian 
+
+    #------------------------
+    assert np.allclose(xedges_spin, xedges_gan)
+    assert np.allclose(yedges_spin, yedges_gan)
+
+    return H_spin, H_gan, xedges_spin, yedges_spin
+
+def evaluate_metric_EM_phase_POL(spin_data_m, spin_data_energy, gan_data_m, gan_data_energy):
+    assert gan_data_m.shape[0] == gan_data_energy.shape[0]
+    
+    pol = []
+    for i in range(gan_data_m.shape[0]):
+
+        H_spin, H_gan, xedges, yedges = create_hist2D(spin_data_m, spin_data_energy, gan_data_m[i], gan_data_energy[i])
+   
+        #calc %OL
+        A = np.outer(np.diff(yedges), np.diff(xedges))
+
+        p1 = H_spin * A
+        p2 = H_gan  * A
+
+        pol.append(np.sum(np.minimum(p1, p2)))
+
+    return np.array(pol)
+
 
 #--------------------------------------------------------------------
 
@@ -136,18 +186,26 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         #------------------------
         #evaluate metrics of energy and abs(m)
 
-        mag_pol = evaluate_metric_POL("mag", mAbs, g_mAbs)
-        mag_emd = evaluate_metric_EMD("mag", mAbs, g_mAbs)
+        mag_pol = evaluate_metric_POL("mAbs", mAbs, g_mAbs)
+        mag_emd = evaluate_metric_EMD("mAbs", mAbs, g_mAbs)
 
         eng_pol = evaluate_metric_POL("eng", energy, g_energy)
         eng_emd = evaluate_metric_EMD("eng", energy, g_energy)
+
+        phase_POl = evaluate_metric_EM_phase_POL(m, energy, g_m, g_energy)
 
         #------------------------
         #determine best epoch !! -> check how to combine emd and pol
         best_epoch_index = np.argmax(mag_pol)
 
+        alter = np.argmax(phase_POl)
+
+        #check how to determine the BEST!!!
+
+        #------------------------
+
         best_epoch = epochs[best_epoch_index]
-        print("[evaluate_model_metrics] Model:", model_name, "TJ:", TJ, "Best epoch:", best_epoch)
+        print("[evaluate_model_metrics] Model:", model_name, "TJ:", TJ, "Best epoch:", best_epoch, "with percent OL:", mag_pol[best_epoch_index])
 
         #------------------------
         #now extract data for this best_epoch

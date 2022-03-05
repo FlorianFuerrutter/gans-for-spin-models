@@ -41,13 +41,13 @@ def main() -> int:
     #---------------------------
     model_names = np.array(["Spin_DC_GAN"])
     TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.4, 2.6, 3.4])
-    TJs = np.array([1.8])
-
-    plot_period = 1
-    save_period = 1
+    TJs = np.array([2.6])
 
     epochs      = 101
     a           = 0.9
+   
+    plot_period = 2#2 * epochs #not needed, so never
+    save_period = 10
 
     #---------------------------
     path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train")
