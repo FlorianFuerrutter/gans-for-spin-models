@@ -19,35 +19,64 @@ else:
 #-------------------------------------
 #-------------------------------------
 
-#    Model / data parameters
-#    input_shape = (28, 28, 1)
-#
-#    # the data, split between train and test sets
-#    (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
-#
-#    # Scale images to the [0, 1] range
-#    x_train = x_train.astype("float32") / 255
-#    x_test = x_test.astype("float32") / 255
-#    # Make sure images have shape (28, 28, 1)
-#    x_train = np.expand_dims(x_train, -1)
-#    x_test = np.expand_dims(x_test, -1)
-#    #--------------------------- 
-#    outfeatures = 4#32
-#    infeatures  = 3#16
-#
-#    batches     = 1
-#    res         = 2    
-#
-#    g = Conv2DMod(outfeatures, demod=True, kernel_size=1)
-#    a = tf.constant(tf.ones((batches, res, res, infeatures)))
-#    b = tf.constant(tf.random.uniform((batches, infeatures)))
-#    u = g([a, b])
-#    #print(u)
+def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size, weights_path=""):
+    if 1:
+        def sample_plot():
+            plot_images = []
+            count = 1
+            for images in dataset:
+                for image in images:
+                    image = (image + 1.0) /2.0               
+                    plot_images.append(image)
+                
+                    count +=1
+                    if count > 16:
+                        gan.plot_images(plot_images, 16, "sample")
+                        return
+    sample_plot()
+
+    #--------------------------------------------------------------------
+    #setup
+    style_dim  = 512 
+
+    enc_block_count = int(np.log2(image_size[0])-1)
+    noise_image_res = image_size[0]
+
+    #--------------------------------------------------------------------
+    #create model
+
+    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
+    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
+    loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
+
+    gan_model = gan.gan(enc_block_count, latent_dim, style_dim, image_size, noise_image_res)
+    gan_model.compile(d_optimizer, g_optimizer, loss, loss)
+
+    if (weights_path != ""):
+        gan.save_path = weights_path
+
+    #gan_model.plot_print_model_config()
+
+    #--------------------------------------------------------------------
+    #train   
+
+    callbacks = []
+    callbacks.append(gan.train_callback(enc_block_count, latent_dim, noise_image_res, plot_period=plot_period, save_period=save_period))
+    
+    #log_path = os.path.join(os.path.dirname(__file__), "..", "logs")
+    #callbacks.append(keras.callbacks.TensorBoard(log_dir=log_path))
+
+    gan_model.fit(dataset, epochs=epochs, callbacks=callbacks)
+
+    #store final weights
+    gan_model.save(epochs+1, only_weights=True)
+
+    return
 
 #-------------------------------------
 #-------------------------------------
 
-def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.5.txt", amplitude=0.9):
+def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.6.txt", amplitude=0.9):
     #create and store new dataset 
     file_path = os.path.join(path, name)
     states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)
@@ -66,26 +95,24 @@ def main() -> int:
     #--------------------------------------------------------------------
     #setup
   
-    latent_dim  = 256
-    style_dim   = 512 
-    batch_size  = 64 #64 #128 #256
+    latent_dim  = 256  
+    batch_size  = 64  #64 #128 #256
 
-    epochs      = 1000
+    epochs      = 100
     image_size = (64, 64, 3)
     
-    enc_block_count = int(np.log2(image_size[0])-1)
-    noise_image_res = image_size[0]
-
     #--------------------------------------------------------------------
     #load data
-    path     = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part1")
-    log_path = os.path.join(os.path.dirname(__file__), "..", "logs")
-
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part1")
+    
     #--------------
     
-    if 0:
+    if 1:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)
+    elif 0:
+        #spin
+        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.0.txt", amplitude=0.9) 
     elif 0:
         #create and store new dataset
         dataset = tf.keras.utils.image_dataset_from_directory(
@@ -96,8 +123,7 @@ def main() -> int:
                         smart_resize=True)
         dataset = dataset.map(lambda x: (x - 127.5) / 127.5)    
         #tf.data.experimental.save(dataset, path) 
-
-    if 1:
+    elif 0: #mnist
         #load
         (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
                   
@@ -110,46 +136,13 @@ def main() -> int:
         dataset = dataset.map(lambda x: (x - 127.5) / 127.5)    
         dataset = dataset.batch(batch_size)
 
-    if 0:
-        plot_images = []
-        count = 1
-        for images in dataset:
-            for image in images:
-                image = (image + 1.0) /2.0               
-                plot_images.append(image)
-                
-                count +=1
-                if count > 16:
-                    gan.plot_images(plot_images, 16, "sample")
-                    exit(0)
+    #--------------
+    plot_period = 1
+    save_period = 10
 
-    #--------------------------------------------------------------------
-    #create model
+    train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size)
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
-    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
-    loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
-        
-    plot_period = 1 
-    save_period = 24
-
-    gan_model = gan.gan(enc_block_count, latent_dim, style_dim, image_size, noise_image_res)
-    gan_model.compile(d_optimizer, g_optimizer, loss, loss)
-
-    #gan_model.plot_print_model_config()
-
-    #--------------------------------------------------------------------
-    #train   
-
-    callbacks = []
-    callbacks.append(gan.train_callback(enc_block_count, latent_dim, noise_image_res, plot_period=plot_period, save_period=save_period))
-    #callbacks.append(keras.callbacks.TensorBoard(log_dir=log_path))
-
-    gan_model.fit(dataset, epochs=epochs, callbacks=callbacks)
-
-    #store final weights
-    gan_model.save(epochs+1, only_weights=True)
-
+    #--------------
     return 0
 
 if __name__ == '__main__':

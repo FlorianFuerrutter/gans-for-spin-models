@@ -128,7 +128,7 @@ def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=Fals
 
 @jit(cache=True)
 def binderCumulant(m2, m4):
-    r2 = m4 / m2**2
+    r2 = m4 / (m2**2 + 1e-15)
     return 1.5 * (1.0 - r2 / 3.0)
 
 @jit(cache=True)

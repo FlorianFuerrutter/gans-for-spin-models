@@ -2,8 +2,6 @@ import sys, os.path
 import numpy as np
 import importlib
 
-from data_analysis import magSusceptibility
-
 #--------------------------------------------------------------------
 
 model_data_path = os.path.join(os.path.dirname(__file__), "..", "data", "model-data")

@@ -25,12 +25,57 @@ import discriminator
 #-------------------------------------
 #-------------------------------------
 
-def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.5.txt", amplitude=0.9):
+def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size, weights_path=""):
+    if 1:
+        def sample_plot():
+            plot_images = []
+            count = 1
+            for images in dataset:
+                for image in images:
+                    image = (image + 1.0) /2.0               
+                    plot_images.append(image)
+                
+                    count +=1
+                    if count > 16:
+                        gan.plot_images(plot_images, 16, "sample")
+                        return
+    sample_plot()
+
+    #--------------
+    #define loss and optimizer
+
+    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.5, beta_2=0.9)
+    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.5, beta_2=0.9)
+   
+    loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
+
+    #--------------
+    #create model
+   
+    gan_model = gan.gan(latent_dim, image_size)
+    gan_model.compile(d_optimizer, g_optimizer, loss, loss)
+
+    if (weights_path != ""):
+        gan_model.save_path = weights_path
+
+    #--------------
+    #train
+    callbacks = []
+    callbacks.append(gan.train_callback(latent_dim, plot_period=plot_period, save_period=save_period))
+
+    gan_model.fit(dataset, epochs=epochs,callbacks=callbacks)
+
+    return
+
+#-------------------------------------
+#-------------------------------------
+
+def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.6.txt", amplitude=0.9):
     #create and store new dataset 
     file_path = os.path.join(path, name)
     states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)
     states = np.reshape(states, ( -1, res, res, 1))
-    print("found states:", states.shape[0])
+    print("[load_spin_data] Found states:", states.shape[0])
 
     #scale (+-)1 to (+-)amplitude
     states = states * amplitude
@@ -55,54 +100,20 @@ def main() -> int:
 
     if 1: 
         #create and store new dataset 
-        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.txt", amplitude=0.9)     
+        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.0.txt", amplitude=0.9)     
         #tf.data.experimental.save(dataset, path) 
     else:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)
 
-    #-----
+    #--------------  
+    save_period = 1
+    plot_period = 1
 
-    if 1:
-        def p():
-            plot_images = []
-            count = 1
-            for images in dataset:
-                for image in images:
-                    image = (image + 1.0) /2.0               
-                    plot_images.append(image)
-                
-                    count +=1
-                    if count > 16:
-                        gan.plot_images(plot_images, 16, "sample")
-                        return
-        p()
-    #--------------
-    #define loss and optimizer
-
-    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.5, beta_2=0.9)
-    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.5, beta_2=0.9)
-   
-    loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
-           
-    plot_period = 2 
-    save_period = 10
+    train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size)
 
     #--------------
-    #create model
-   
-    gan_model = gan.gan(latent_dim, image_size)
-    gan_model.compile(d_optimizer, g_optimizer, loss, loss)
-
-    #--------------
-    #train
-    callbacks = []
-    callbacks.append(gan.train_callback(latent_dim, plot_period=plot_period, save_period=save_period))
-
-    gan_model.fit(dataset, epochs=epochs,callbacks=callbacks)
-
     return 0
-
 
 if __name__ == '__main__':
     main()
