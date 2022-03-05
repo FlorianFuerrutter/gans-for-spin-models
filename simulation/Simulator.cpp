@@ -167,7 +167,7 @@ void Simulator::store_data()
     for (int i = 0; i < m_para.nBins; i++)
         data.push_back({ m_energy.at(i), m_m.at(i), m_mAbs.at(i), m_m2.at(i), m_m4.at(i) });
 
-    std::string tj = std::format("TJ_{}", m_TJ);
+    std::string tj = std::format("TJ_{:.1f}", m_TJ);
     std::string sPara = parameter_string();
 
     storeFloatData(data    , "simulation_observ_" + tj + ".txt", "[Prebinned Observables: energy, m (not prebinned), mAbs, m2, m4] " + sPara);
@@ -176,7 +176,7 @@ void Simulator::store_data()
 
 PRECISION Simulator::calcStateEnergy(const int8_t* state, const uint16_t* nnList, PRECISION J)
 {
-    PRECISION enery = 0;
+    PRECISION energy = 0;
 
     for (int i = 0; i < N; i++)
     {
@@ -186,10 +186,10 @@ PRECISION Simulator::calcStateEnergy(const int8_t* state, const uint16_t* nnList
         local += state[nnList[i + 2]];
         local += state[nnList[i + 3]];
 
-        enery += local * state[i];
+        energy += local * state[i];
     }
 
-    return -0.5 * J * enery;
+    return -0.5 * J * energy;
 }
 
 void Simulator::precalc_monte_carlo(PRECISION* pFlips, PRECISION T, PRECISION J)

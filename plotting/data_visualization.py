@@ -41,8 +41,8 @@ def plot_performance_evaluation(TJs, mpd : dh.model_processed_data):
     ticks  = np.append(TJs, Tc) 
     empty_labels = ["" for x in ticks]
 
-    mc_data_list  = [mpd.mAbs  , mpd.energy,   list[dh.err_data], list[dh.err_data]] 
-    gan_data_list = [mpd.g_mAbs, mpd.g_energy, list[dh.err_data], list[dh.err_data]] 
+    mc_data_list  = [mpd.mAbs  , mpd.energy,   mpd.magSusc,   mpd.binderCu]
+    gan_data_list = [mpd.g_mAbs, mpd.g_energy, mpd.g_magSusc, mpd.g_binderCu] 
 
     #---------------------------
     for iy in range(2):
@@ -62,10 +62,6 @@ def plot_performance_evaluation(TJs, mpd : dh.model_processed_data):
                 plt.xticks(ticks, empty_labels)
 
             #---------------------------
-            #TODO ADD THE OTHER VARS
-            if i > 0:
-                continue
-
             mc_data  = mc_data_list[i]
             gan_data = gan_data_list[i]
 
@@ -78,7 +74,7 @@ def plot_performance_evaluation(TJs, mpd : dh.model_processed_data):
             plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5)
             plt.legend()
 
-    #savePdf("comp_v1")
-    #savePng("comp_v1")
+    savePdf("comp_v1_" + mpd.model_name)
+    savePng("comp_v1_" + mpd.model_name)
     plt.show()
     return

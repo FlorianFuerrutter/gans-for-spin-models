@@ -1,12 +1,14 @@
 import numpy as np
+from numba import jit, njit, prange
 
 #--------------------------------------------------------------------
 
+@njit(cache=True)
 def reduceIntoBin2(data):
     binnedSize = data.shape[0] // 2
     binnedData = np.zeros(binnedSize)
     
-    for j in range(binnedSize):
+    for j in prange(binnedSize):
         binnedData[j] = data[2*j] + data[2*j + 1]
 
     return binnedData * 0.5
@@ -57,7 +59,7 @@ def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=Fals
 
     N = data1.shape[0]
     if N != data2.shape[0] or N != data3.shape[0]:
-        print("binningAnalysisDouble: N != data2.shape[0] or N != data3.shape[0]")
+        print("binningAnalysisTriple: N != data2.shape[0] or N != data3.shape[0]")
     maxBinningSteps = int(np.log2(N) + 0) #so last binning has 2 elements, 1 element is useless for error
 
     mean1       = np.zeros(maxBinningSteps)
@@ -104,10 +106,10 @@ def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=Fals
     maxElement = max(np.argmax(meanErrors1), np.argmax(meanErrors2), np.argmax(meanErrors3))
     if (maxElement+1) == maxBinningSteps: 
         info = "   (elements in bin of max error: " + str(data1.shape[0] // 2**maxElement) + ")"
-        print("binningAnalysisDouble: [NOT CONVERGED]  increase dataset," + info)
+        print("binningAnalysisTriple: [NOT CONVERGED]  increase dataset," + info)
     if maxElement == 0 and printAlreadyConvergedWarning:
         info = "   (elements in bin of max error: " + str(data1.shape[0] // 2**maxElement) + ")"
-        print("binningAnalysisDouble: [Already CONVERGED]  first error is largest," + info)
+        print("binningAnalysisTriple: [Already CONVERGED]  first error is largest," + info)
  
     #bin to requested size
     binnedData1 = data1
@@ -124,10 +126,12 @@ def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=Fals
 
 #--------------------------------------------------------------------
 
+@jit(cache=True)
 def binderCumulant(m2, m4):
     r2 = m4 / m2**2
     return 1.5 * (1.0 - r2 / 3.0)
 
+@jit(cache=True)
 def mBinderCuJackknife(binnedMag2, binnedMag4):
     #for binderCumulant after binning
 
@@ -162,9 +166,11 @@ def mBinderCuJackknife(binnedMag2, binnedMag4):
 
 #--------------------------------------------------------------------
 
+@jit(cache=True)
 def magSusceptibility(mAbs, m2, N, T):
     return (N/T) * (m2 - mAbs**2)
 
+@jit(cache=True)
 def mSuscJackknife(binnedMagAbs, binnedMag2, N, T):
     #for mSuscBins after binning
 

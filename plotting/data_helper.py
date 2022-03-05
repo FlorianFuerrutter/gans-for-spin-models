@@ -2,6 +2,8 @@ import sys, os.path
 import numpy as np
 import importlib
 
+from data_analysis import magSusceptibility
+
 #--------------------------------------------------------------------
 
 model_data_path = os.path.join(os.path.dirname(__file__), "..", "data", "model-data")
@@ -33,7 +35,12 @@ def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), imag
     for epoch in np.array(epochs).astype(int):
 
         #load weights gan model for tj
-        gan_model.load(epoch)
+        try:
+            gan_model.load(epoch)
+        except:
+            print("[generate_gan_data] Not loaded:", gan_name, ", epoch:", epoch)
+            states_epoch.append(np.zeros((images_count, image_size[0] * image_size[1] * image_size[2])))
+            continue
 
         #generate spin data
         batch_size = 100
@@ -64,10 +71,13 @@ def load_spin_observables(TJ):
 
     obser = np.transpose(np.loadtxt(file_path, skiprows=1, dtype=np.float32))
     energy = obser[0]
-    m2     = obser[1]
+    m      = obser[1]
+    mAbs   = obser[2]
+    m2     = obser[3]
+    m4     = obser[4]
     
-    print("found data count:", energy.shape[0])
-    return energy, m2
+    print("[load_spin_observables] Found data count:", energy.shape[0])
+    return energy, m, mAbs, m2, m4
 
 #--------------------------------------------------------------------
 
@@ -75,15 +85,24 @@ from dataclasses import dataclass, field
 
 @dataclass
 class model_evaluation_data:
+    T : float = -1
+    N : int   = -1
+    model_name : str = ""
 
     #MC data
-    mAbs   : np.ndarray = None
     energy : np.ndarray = None
-   
+    m      : np.ndarray = None
+    mAbs   : np.ndarray = None
+    m2     : np.ndarray = None
+    m4     : np.ndarray = None
+     
     #GAN data
     g_states : np.ndarray = None
-    g_mAbs   : np.ndarray = None
     g_energy : np.ndarray = None
+    g_m      : np.ndarray = None
+    g_mAbs   : np.ndarray = None
+    g_m2     : np.ndarray = None
+    g_m4     : np.ndarray = None
       
     #metrics of best best_epoch
     best_epoch: int = -1
@@ -100,11 +119,16 @@ class err_data:
 
 @dataclass
 class model_processed_data:
-    mAbs   : list[err_data] = field(default_factory=lambda : [])
-    energy : list[err_data] = field(default_factory=lambda : [])
+    model_name : str = ""
 
-    g_mAbs   : list[err_data] = field(default_factory=lambda : [])
-    g_energy : list[err_data] = field(default_factory=lambda : [])
+    energy   : list[err_data] = field(default_factory=lambda : [])
+    mAbs     : list[err_data] = field(default_factory=lambda : [])
+    magSusc  : list[err_data] = field(default_factory=lambda : [])
+    binderCu : list[err_data] = field(default_factory=lambda : [])
 
+    g_energy   : list[err_data] = field(default_factory=lambda : [])
+    g_mAbs     : list[err_data] = field(default_factory=lambda : [])
+    g_magSusc  : list[err_data] = field(default_factory=lambda : [])
+    g_binderCu : list[err_data] = field(default_factory=lambda : [])
 
 #--------------------------------------------------------------------

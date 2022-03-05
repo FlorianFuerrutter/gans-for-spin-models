@@ -10,7 +10,8 @@ def main() -> int:
     image_size = (64, 64, 1)
 
     model_names = np.array(["Spin_DC_GAN"])
-    TJs         = np.array([1.8])
+    TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.4, 2.6, 3.4])
+    TJs = np.array([1.8])
 
     epoch_min  = 20
     epoch_max  = 90
