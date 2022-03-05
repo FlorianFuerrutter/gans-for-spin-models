@@ -31,10 +31,10 @@ void randomize_state(int8_t* state, int n)
 {
     for (int i = 0; i < n; i++)
     {
-        float rnd = float(rand()) / RAND_MAX;
+        double rnd = double(rand()) / RAND_MAX;
 
         uint8_t spin = 1;
-        if (rnd < 0.5f)
+        if (rnd < 0.5)
             spin = -1;
 
         state[i] = spin;

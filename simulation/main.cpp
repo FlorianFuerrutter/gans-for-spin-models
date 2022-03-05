@@ -9,21 +9,40 @@
 int main()
 {
     srand(std::time(nullptr));
-
-    PRECISION T = 2.2;
+ 
     PRECISION J = 1;
-
-    //------------------
+    std::array<PRECISION, 2> Ts = {3, 3.1};
 
     SimulationParameter para = { N_TERM, N_BINS, N_SWEEPS };
 
+    //------------------
+
     Simulator sim(para);
-    sim.init_simulation(T, J);
-    std::cout << "[SimulationParameter] " << sim.parameter_string() << std::endl;
 
-    //sim.run_monte_carlo(J);
-    sim.run_wolff_cluster(J);
+    for (int i = 0; i < Ts.size(); i++)
+    {
+        PRECISION T = Ts[i];
+        if (T <= 0) continue;
 
+        sim.init_simulation(T, J);
+        std::cout << "[SimulationParameter] " << sim.parameter_string() << std::endl;
+
+        //sim.run_monte_carlo();
+        sim.run_wolff_cluster();
+
+        sim.store_data();
+    }
+
+    //------------------
+
+    std::cout << std::endl << "Sample energy:" << std::endl;
+    for (int i = 0; i < 10; i++)
+        std::cout << sim.m_energy[i] << std::endl;
+
+    std::cout << "Sample mAbs:" << std::endl;
+    for (int i = 0; i < 10; i++)
+        std::cout << sim.m_mAbs[i] << std::endl;
+    
     //------------------
     //Performance test
 
@@ -33,8 +52,8 @@ int main()
         for (int i = 0; i < count; i++)
         {
             const auto t0 = std::chrono::steady_clock::now();
-            //sim.run_monte_carlo(J);
-            sim.run_wolff_cluster(J);
+            //sim.run_monte_carlo();
+            sim.run_wolff_cluster();
             mean += (std::chrono::steady_clock::now() - t0).count() * 1e-6;
         }
         mean /= count;
@@ -43,16 +62,5 @@ int main()
   
     //------------------
 
-    std::cout << "Sample m2:" << std::endl;
-    for (int i = 0; i < 10; i++)
-        std::cout << sim.m_m2[i] << std::endl;  
-    
-    std::cout << std::endl << "Sample energy:" << std::endl;
-    for (int i = 0; i < 10; i++)
-        std::cout << sim.m_energy[i] << std::endl;
-
-    //------------------
-
-    sim.store_data();
     return 0;
 }

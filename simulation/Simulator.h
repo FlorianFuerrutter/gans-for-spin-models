@@ -25,31 +25,35 @@ public:
     void init_simulation(PRECISION T, PRECISION J);    
 
     //Monte Carlo     
-    void run_monte_carlo(PRECISION J);          
+    void run_monte_carlo();          
     
     //Wolff Cluster
-    void run_wolff_cluster(PRECISION J);
+    void run_wolff_cluster();
 
     //store generated data to file
     void store_data();
     
     //------------------
     
-    //recieved data
+    //recieved data (observables)
     std::vector<std::array<int8_t, N>> m_states;    //spin states series
     std::vector<PRECISION>             m_energy;    //energy series
-    std::vector<PRECISION>             m_m2;        //magnetization squared series
+    std::vector<PRECISION>             m_m;         //magnetization
+    std::vector<PRECISION>             m_mAbs;      //abs magnetization
+    std::vector<PRECISION>             m_m2;        //squared magnetization 
+    std::vector<PRECISION>             m_m4;        //quartic magnetization 
 
     SimulationParameter m_para;
 
 private:
 
+    PRECISION calcStateEnergy(const int8_t* state, const uint16_t* nnList, PRECISION J);    //--- HAMILTON USED!! ---  
+
     //------------------
     //Monte Carlo
      
     //--- HAMILTON USED!! ---
-    void precalc_monte_carlo(PRECISION* pFlips, PRECISION T, PRECISION J);                  //--- HAMILTON USED!! ---
-    PRECISION calcStateEnergy(const int8_t* state, const uint16_t* nnList, PRECISION J);    //--- HAMILTON USED!! ---      
+    void precalc_monte_carlo(PRECISION* pFlips, PRECISION T, PRECISION J);                  //--- HAMILTON USED!! ---       
     void update_monte_carlo(int8_t* state, const uint16_t* nnList, const PRECISION* pFlips, int n); //perform updates
 
     //------------------
@@ -59,5 +63,7 @@ private:
     //------------------
     PRECISION m_pAccept = 0;
     PRECISION m_TJ = -1;
+    PRECISION m_T  = -1;
+    PRECISION m_J  = -1;
 };
 

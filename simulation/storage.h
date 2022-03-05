@@ -81,7 +81,7 @@ void storeStateData(const std::vector<std::array<int8_t, N>>& data, const std::s
 	std::ofstream file(DATA_PATH + filename);
 	if (!file.is_open())
 	{
-		std::cout << "[storeFloatData]: file not opened: " + std::string(DATA_PATH) + filename << std::endl;
+		std::cout << "[storeStateData]: file not opened: " + std::string(DATA_PATH) + filename << std::endl;
 		return;
 	}
 
