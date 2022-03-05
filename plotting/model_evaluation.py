@@ -21,18 +21,18 @@ def create_hist(observable_name, data1, data2):
         bin_size = bin_size_eng
         r        = range_eng
 
-    hist1, bin_edges1 = np.hist(data1, bin_size, range=r, density=True)
-    hist2, bin_edges2 = np.hist(data2, bin_size, range=r, density=True)
+    hist1, bin_edges1 = np.histogram(data1, bin_size, range=r, density=True)
+    hist2, bin_edges2 = np.histogram(data2, bin_size, range=r, density=True)
 
-    assert bin_edges1 == bin_edges2
+    assert np.allclose(bin_edges1, bin_edges2)
 
     return hist1, hist2, bin_edges1
 
-def evaluate_metric_POL(observable_name, data1, data2):
+def evaluate_metric_POL(observable_name, spin_data, gan_data):
 
     pol = []
-    for i in range(data1.size):
-        hist1, hist2, bin_edges = create_hist(observable_name, data1[i], data2[i])
+    for i in range(gan_data.shape[0]):
+        hist1, hist2, bin_edges = create_hist(observable_name, spin_data, gan_data[i])
     
         #calc %OL
         p1 = hist1 * np.diff(bin_edges)
@@ -42,11 +42,11 @@ def evaluate_metric_POL(observable_name, data1, data2):
 
     return np.array(pol)
 
-def evaluate_metric_EMD(observable_name, data1, data2):
+def evaluate_metric_EMD(observable_name, spin_data, gan_data):
 
     emd_list = []
-    for i in range(data1.size):
-        hist1, hist2, bin_edges = create_hist(observable_name, data1[i], data2[i])
+    for i in range(gan_data.shape[0]):
+        hist1, hist2, bin_edges = create_hist(observable_name, spin_data, gan_data[i])
 
         #calc EMD
         p1 = hist1 * np.diff(bin_edges)
@@ -98,10 +98,16 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 
         #------------------------
         #now extract data for this best_epoch
-        gan_states = states_epoch[best_epoch]
+        gan_states = states_epoch[best_epoch_index]
 
-        g_mAbs   = g_mAbs[best_epoch]
-        g_energy = None #g_energy[best_epoch]
+        g_mAbs   = g_mAbs[best_epoch_index]
+        g_energy = None #g_energy[best_epoch_index]
+
+        mag_pol = mag_pol[best_epoch_index]
+        mag_emd = mag_emd[best_epoch_index]
+
+        #eng_pol = eng_pol[best_epoch_index]
+        #eng_pol = eng_pol[best_epoch_index]
 
         #------------------------
         #set return obj
@@ -124,8 +130,8 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
         mean, err, corr = da.binningAnalysisSingle(d.mAbs)
         mpd.mAbs.append(dh.err_data(mean, err))
 
-        #mean, err, corr = da.binningAnalysisSingle(d.eng_emd)
-        #mpd.energy.append(dh.err_data(mean, err))
+        mean, err, corr = da.binningAnalysisSingle(d.energy)
+        mpd.energy.append(dh.err_data(mean, err))
 
         #XXXXX
         #TODO do triple for sucsebility and binder ratio
@@ -137,7 +143,7 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
         mean, err, corr = da.binningAnalysisSingle(d.g_mAbs)
         mpd.g_mAbs.append(dh.err_data(mean, err))
 
-        mean, err, corr = da.binningAnalysisSingle(d.g_energy)
-        mpd.g_energy.append(dh.err_data(mean, err))
+        #mean, err, corr = da.binningAnalysisSingle(d.g_energy)
+        #mpd.g_energy.append(dh.err_data(mean, err))
 
     return mpd

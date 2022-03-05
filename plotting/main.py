@@ -33,7 +33,7 @@ def main() -> int:
         mpd = model_evaluation.perform_data_processing(med_objs)
 
         #plot the data
-        data_visualization.plot_performance_evaluation(mpd)
+        data_visualization.plot_performance_evaluation(TJs, mpd)
 
     return 0
 

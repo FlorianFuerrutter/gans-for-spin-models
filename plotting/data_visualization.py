@@ -62,18 +62,23 @@ def plot_performance_evaluation(TJs, mpd : dh.model_processed_data):
                 plt.xticks(ticks, empty_labels)
 
             #---------------------------
-            mc_data  = dh.err_data(mc_data_list[i])
-            gan_data = dh.err_data(gan_data_list[i])
+            #TODO ADD THE OTHER VARS
+            if i > 0:
+                continue
 
-            plt.plot(TJs, mc_data.val, "--", color="tab:blue", alpha=0.5, linewidth=0.8)
-            plt.errorbar(TJs, mc_data.val, fmt='.', yerr=mc_data.err, label="Simulated", elinewidth=1, capsize=5, markersize=5)
+            mc_data  = mc_data_list[i]
+            gan_data = gan_data_list[i]
 
-            plt.errorbar(TJs, gan_data.val, fmt='.', yerr=gan_data.err, label="GAN", elinewidth=1, capsize=5, markersize=5)
+            mean, err     = [x.val for x in mc_data],  [x.err for x in mc_data]
+            g_mean, g_err = [x.val for x in gan_data], [x.err for x in gan_data]
 
-    plt.legend()
+            plt.plot(TJs, mean, "--", color="tab:blue", alpha=0.5, linewidth=0.8)
+            plt.errorbar(TJs, mean, fmt='.', yerr=err, label="Simulated", elinewidth=1, capsize=5, markersize=5)
+
+            plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5)
+            plt.legend()
 
     #savePdf("comp_v1")
     #savePng("comp_v1")
-
     plt.show()
     return

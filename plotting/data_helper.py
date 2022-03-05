@@ -27,10 +27,10 @@ def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), imag
     gan = importGAN(gan_name)
 
     gan_model = gan.gan(latent_dim, image_size)
-    gan_model.save_path = os.path.join(model_data_path, "gan_name","TJ_{TJ}".format(TJ=TJ), "gan_")
+    gan_model.save_path = os.path.join(model_data_path, gan_name,"TJ_{TJ}".format(TJ=TJ), "gan_")
 
     states_epoch = []
-    for epoch in epochs:
+    for epoch in np.array(epochs).astype(int):
 
         #load weights gan model for tj
         gan_model.load(epoch)
@@ -71,7 +71,7 @@ def load_spin_observables(TJ):
 
 #--------------------------------------------------------------------
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 @dataclass
 class model_evaluation_data:
@@ -100,11 +100,11 @@ class err_data:
 
 @dataclass
 class model_processed_data:
-    mAbs   : list[err_data]
-    energy : list[err_data]
+    mAbs   : list[err_data] = field(default_factory=lambda : [])
+    energy : list[err_data] = field(default_factory=lambda : [])
 
-    g_mAbs   : list[err_data]
-    g_energy : list[err_data]
+    g_mAbs   : list[err_data] = field(default_factory=lambda : [])
+    g_energy : list[err_data] = field(default_factory=lambda : [])
 
 
 #--------------------------------------------------------------------
