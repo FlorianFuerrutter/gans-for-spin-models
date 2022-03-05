@@ -60,7 +60,6 @@ void Simulator::run_monte_carlo()
     PRECISION scale_N  =  1.0 / (m_para.nSweeps * N);
     PRECISION scale_N2 =  1.0 / (m_para.nSweeps * N * N);
     PRECISION scale_N4 = (1.0 / (m_para.nSweeps * N * N)) * (1.0 / (N * N));
-
     size_t    state_size = sizeof(int8_t) * N;
 
     for (int bin = 0; bin < m_para.nBins; bin++)
@@ -76,7 +75,7 @@ void Simulator::run_monte_carlo()
             update_monte_carlo(state, nnList, pFlips, N);
 
             //take measurements
-            int mag_sweep = std::reduce(std::begin(state), std::end(state), 0);
+            PRECISION mag_sweep = std::reduce(std::begin(state), std::end(state), 0);
             PRECISION energy_sweep = calcStateEnergy(state, nnList, m_J);
 
             //prebinning
@@ -120,7 +119,6 @@ void Simulator::run_wolff_cluster()
     PRECISION scale_N  =  1.0 / (m_para.nSweeps * N);
     PRECISION scale_N2 =  1.0 / (m_para.nSweeps * N * N);
     PRECISION scale_N4 = (1.0 / (m_para.nSweeps * N * N)) * (1.0 / (N * N));
-
     size_t    state_size = sizeof(int8_t) * N;
 
     for (int bin = 0; bin < m_para.nBins; bin++)
@@ -136,7 +134,7 @@ void Simulator::run_wolff_cluster()
             update_wolff_cluster(state, nnList, N);
 
             //take measurements
-            int mag_sweep = std::reduce(std::begin(state), std::end(state), 0);
+            PRECISION mag_sweep = std::reduce(std::begin(state), std::end(state), 0);
             PRECISION energy_sweep = calcStateEnergy(state, nnList, m_J);
 
             //prebinning

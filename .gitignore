@@ -33,3 +33,4 @@ logs
 model-saves
 model-data
 generated
+simulation_*
