@@ -18,7 +18,11 @@ def plot_images(generated_images, images_count, epoch):
     for i in range(images_count):
         plt.subplot(res, res, i+1)
         plt.axis('off')
-        plt.imshow(generated_images[i].numpy())                 
+
+        generated_image = generated_images[i].numpy()
+        generated_image = np.where(generated_image < 0, -1, 1)
+        plt.imshow(generated_image)  
+        
     plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
     plt.close()
 

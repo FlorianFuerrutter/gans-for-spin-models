@@ -41,13 +41,13 @@ def main() -> int:
     #---------------------------
     model_names = np.array(["Spin_DC_GAN"])
     TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.4, 2.6, 3.4])
-    TJs = np.array([2.6])
+    #TJs = np.array([2.6])
 
-    epochs      = 101
+    epochs      = 11
     a           = 0.9
    
     plot_period = 2#2 * epochs #not needed, so never
-    save_period = 10
+    save_period = 2 #10
 
     #---------------------------
     path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train")
@@ -56,6 +56,7 @@ def main() -> int:
         gan_module = import_gan_module(model_name)
 
         for TJ in TJs:
+            print("[train_model] model_name:", model_name, ", TJ:", TJ)
 
             #--------------
             #load data

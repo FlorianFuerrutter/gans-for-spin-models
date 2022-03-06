@@ -22,8 +22,8 @@ def create_discriminator(image_res):
     image_input = layers.Input(shape=image_res)
 
     #-----------Decoder
-    x = dec_layer(image_input,  64, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init) 
-    x = dec_layer(x          , 128, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init) 
+    x = dec_layer(image_input,  32, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init) 
+    x = dec_layer(x          ,  64, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init) 
     x = dec_layer(x          , 128, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init) 
 
     #----------- Activation-layer

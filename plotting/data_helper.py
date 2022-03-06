@@ -105,10 +105,14 @@ class model_evaluation_data:
     #metrics of best best_epoch
     best_epoch: int = -1
 
-    mag_pol : float = -1
-    mag_emd : float = -1
+    m_pol   : float = -1
+    m_emd   : float = -1
+    mAbs_pol : float = -1
+    mAbs_emd : float = -1
     eng_pol : float = -1
     eng_emd : float = -1
+
+    phase_pol : float = -1
 
 @dataclass
 class err_data:
