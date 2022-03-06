@@ -3,6 +3,21 @@ Bachelor thesis
 
 ![spin_lattice](/img/spin_lattice.png)
 
+
+
+---
+## Evaluation
+**mag hist**
+![](/img/evaluation_hist_m_Spin_DC_GAN.png)
+**energy hist**
+![](/img/evaluation_hist_energy_Spin_DC_GAN.png)
+**phase hist**
+![](/img/evaluation_phaseSpin_DC_GAN.png)
+**observables**
+![](/img/evaluation_observablesSpin_DC_GAN.png)
+
+
+---
 #### Table of contents
 - [data folder](data)
 - [train data](data/train)
@@ -10,9 +25,9 @@ Bachelor thesis
 - [simulation](simulation)
 - [plotting](plotting)
 
-
-## 1. DC_GAN
-### faces and landscapes
+---
+### 1. DC_GAN
+##### faces and landscapes
 
  Train data | Generated Image | Image evolution
 --- | --- | ---
@@ -20,9 +35,9 @@ Bachelor thesis
 ![](/img/dc_gan_sample1.png) | ![](/img/dc_gan1.png) | ![](/img/dc_gan1.gif)
 
 
-### spin
+##### spin
  Train data | Generated Image | Image evolution
 --- | --- | ---
 ![](/img/spin_dc_gan_sample.png) | ![](/img/spin_dc_gan.png) | ![](/img/spin_dc_gan.gif)
 
-## 2. StyleGAN2
+### 2. StyleGAN2

@@ -13,12 +13,12 @@ def main() -> int:
     TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.4, 2.6, 3.4])
     #TJs = np.array([2.6])
 
-    epoch_min  = 4
-    epoch_max  = 10
-    epoch_step = 2
+    epoch_min  = 20
+    epoch_max  = 100
+    epoch_step = 10
 
     #data cnt taken from GAN for evaluation
-    images_count = 1000
+    images_count = 10000
 
     #-----------------------------------------------------------------
     N = image_size[0] * image_size[1]

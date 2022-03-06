@@ -223,8 +223,8 @@ def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
      
             #also plot somehow the evolution with epochs !!
 
-    savePdf("plot_performance_evaluation_phase" + med_objs[-1].model_name)
-    savePng("plot_performance_evaluation_phase" + med_objs[-1].model_name)
+    savePdf("plot_performance_evaluation_phase_" + med_objs[-1].model_name)
+    savePng("plot_performance_evaluation_phase_" + med_objs[-1].model_name)
     plt.show()
     return
 
@@ -282,7 +282,7 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
             plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5)
             plt.legend()
 
-    savePdf("plot_performance_evaluation_observables" + mpd.model_name)
-    savePng("plot_performance_evaluation_observables" + mpd.model_name)
+    savePdf("plot_performance_evaluation_observables_" + mpd.model_name)
+    savePng("plot_performance_evaluation_observables_" + mpd.model_name)
     plt.show()
     return
