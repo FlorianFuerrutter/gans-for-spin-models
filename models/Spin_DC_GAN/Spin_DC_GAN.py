@@ -25,7 +25,7 @@ import discriminator
 #-------------------------------------
 #-------------------------------------
 
-def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size, weights_path=""):
+def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size, weights_path="", plot_path=""):
     if 1:
         def sample_plot():
             plot_images = []
@@ -37,7 +37,7 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
                 
                     count +=1
                     if count > 16:
-                        gan.plot_images(plot_images, 16, "sample")
+                        gan.plot_images(plot_images, 16, "sample", plot_path)
                         return
     sample_plot()
 
@@ -57,6 +57,8 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
 
     if (weights_path != ""):
         gan_model.save_path = weights_path
+    if (plot_path != ""):
+        gan_model.plot_path = plot_path
 
     #--------------
     #train
@@ -100,8 +102,9 @@ def main() -> int:
 
     if 1: 
         #create and store new dataset 
-        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.0.txt", amplitude=0.9)     
+        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_1.8.txt", amplitude=0.9)     
         #tf.data.experimental.save(dataset, path) 
+        #exit(0)
     else:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)

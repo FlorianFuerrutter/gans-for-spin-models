@@ -19,7 +19,7 @@ else:
 #-------------------------------------
 #-------------------------------------
 
-def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size, weights_path=""):
+def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size, weights_path="", plot_path=""):
     if 1:
         def sample_plot():
             plot_images = []
@@ -31,7 +31,7 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
                 
                     count +=1
                     if count > 16:
-                        gan.plot_images(plot_images, 16, "sample")
+                        gan.plot_images(plot_images, 16, "sample", plot_path)
                         return
     sample_plot()
 
@@ -53,7 +53,9 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     gan_model.compile(d_optimizer, g_optimizer, loss, loss)
 
     if (weights_path != ""):
-        gan.save_path = weights_path
+        gan_model.save_path = weights_path
+    if (plot_path != ""):
+        gan_model.plot_path = plot_path
 
     #gan_model.plot_print_model_config()
 

@@ -15,18 +15,23 @@ def import_gan_module(gan_name=""):
 
 #-----------------------------------------------------------------
 
-def load_spin_data(batch_size, res, path, name, amplitude=0.9):
-    #create and store new dataset 
-    file_path = os.path.join(path, name)
-    states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)
-    states = np.reshape(states, ( -1, res, res, 1))
-    print("[load_spin_data] Found states:", states.shape[0])
+def load_spin_data(batch_size, res, path, name, amplitude=0.9, load_dataset=False):
 
-    #scale (+-)1 to (+-)amplitude
-    states = states * amplitude
+    if load_dataset:
+        dataset = tf.data.experimental.load(path)
+    else:
+        #create new dataset 
+        file_path = os.path.join(path, name)
+        states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)
+        states = np.reshape(states, ( -1, res, res, 1))
+        print("[load_spin_data] Found states:", states.shape[0])
 
-    dataset = tf.data.Dataset.from_tensor_slices(states)
-    dataset = dataset.batch(batch_size)
+        #scale (+-)1 to (+-)amplitude
+        states = states * amplitude
+
+        dataset = tf.data.Dataset.from_tensor_slices(states)
+        dataset = dataset.batch(batch_size)
+        #tf.data.experimental.save(dataset, path) 
 
     return dataset
 
@@ -43,11 +48,11 @@ def main() -> int:
     TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.4, 2.6, 3.4])
     #TJs = np.array([2.6])
 
-    epochs      = 11
-    a           = 0.9
+    epochs      = 101
+    a           = 0.8
    
-    plot_period = 2#2 * epochs #not needed, so never
-    save_period = 2 #10
+    plot_period = 10 #2 * epochs #not needed, so never
+    save_period = 10 #10
 
     #---------------------------
     path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train")
@@ -66,7 +71,7 @@ def main() -> int:
             # train to fixed epoch
             weights_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "model-data", model_name, "TJ_{TJ}".format(TJ=TJ), "gan_")
 
-            gan_module.train_model(dataset, epochs, save_period, plot_period, latent_dims[model_name], image_size, weights_path)
+            gan_module.train_model(dataset, epochs, save_period, plot_period, latent_dims[model_name], image_size, weights_path, plot_path=weights_path[:-5])
 
     #---------------------------
     return 0

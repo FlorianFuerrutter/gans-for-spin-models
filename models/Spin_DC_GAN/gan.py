@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from random import random
+import os
 
 import generator
 import discriminator
@@ -10,7 +11,7 @@ from keras import backend as K
 
 #--------------------------------------------------------------------
 
-def plot_images(generated_images, images_count, epoch):
+def plot_images(generated_images, images_count, epoch, plot_path=""):
     fig = plt.figure(figsize=(5, 5))
     plt.subplots_adjust(left=0.0, bottom=0.0, right=1.0, top=1.0, wspace=0.05, hspace=0.05)
 
@@ -20,10 +21,15 @@ def plot_images(generated_images, images_count, epoch):
         plt.axis('off')
 
         generated_image = generated_images[i].numpy()
-        generated_image = np.where(generated_image < 0, -1, 1)
+        generated_image = np.where(generated_image < 0.5, -1, 1)
         plt.imshow(generated_image)  
         
-    plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
+    if plot_path == "":
+        plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
+    else:
+        if not os.path.exists(plot_path):
+            os.makedirs(plot_path)
+        plt.savefig(plot_path + "/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
     plt.close()
 
 def sample_generator_input(batch_size, latent_dim,):
@@ -45,6 +51,7 @@ class gan(keras.Model):
         self.latent_dim      = latent_dim
         self.image_size      = image_size
         self.save_path = "./model-saves/gan_" 
+        self.plot_path = ""
 
         #fixed loss metrics here
         self.d_loss_metric = keras.metrics.Mean(name="d_loss") 
@@ -166,4 +173,4 @@ class train_callback(keras.callbacks.Callback):
             generated_images = self.model.generator(latent_vectors)
             generated_images = (generated_images + 1.0) / 2.0
 
-            plot_images(generated_images, images_count, epoch)
+            plot_images(generated_images, images_count, epoch, self.model.plot_path)
