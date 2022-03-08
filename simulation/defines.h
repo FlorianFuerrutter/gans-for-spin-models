@@ -2,7 +2,7 @@
 //------------------
 
 #define N_TERM   1e3	//updates until termalization
-#define N_BINS   1e4	//actual data series size
+#define N_BINS   3e4	//actual data series size
 #define N_SWEEPS 1e2	//sweeps between bins
 		
 #define LX 64
@@ -12,6 +12,8 @@
 #define DATA_PATH "../data/train/"
 
 //------------------
+
+#define PREBINNING_OBSERVABLES 0
 
 #if 0
 	#define PRECISION float

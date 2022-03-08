@@ -44,8 +44,8 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #--------------
     #define loss and optimizer
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.5, beta_2=0.9)
-    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.5, beta_2=0.9)
+    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.1, beta_2=0.9)
+    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.1, beta_2=0.9)
    
     loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
 
@@ -90,19 +90,21 @@ def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.6.txt", a
 def main() -> int:  
     #--------------
     #setup
-    epochs     = 100
-    latent_dim = 128 
+    epochs     = 101
+    latent_dim = 256 
 
     image_size = (64, 64, 1)
-    batch_size = 128 #64 #128
+    batch_size = 128
     
+    amplitude  = 0.7
+
     #--------------
     #load data
     path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train")
 
     if 1: 
         #create and store new dataset 
-        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_1.8.txt", amplitude=0.9)     
+        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.6.txt", amplitude=amplitude)     
         #tf.data.experimental.save(dataset, path) 
         #exit(0)
     else:
@@ -110,8 +112,8 @@ def main() -> int:
         dataset = tf.data.experimental.load(path)
 
     #--------------  
-    save_period = 1
-    plot_period = 1
+    save_period = 3
+    plot_period = 3
 
     train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size)
 

@@ -23,11 +23,14 @@ def importGAN(gan_name):
 
     return gan
 
-def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), images_count=1000, latent_dim=128, image_size=(64, 64, 1)):
+def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), images_count=1000, latent_dim=128, image_size=(64, 64, 1), alt_path=False):
     gan = importGAN(gan_name)
 
     gan_model = gan.gan(latent_dim, image_size)
-    gan_model.save_path = os.path.join(model_data_path, gan_name,"TJ_{TJ}".format(TJ=TJ), "gan_")
+    if alt_path:
+        gan_model.save_path = os.path.join(os.path.dirname(__file__), "..", "models", gan_name, "model-saves", "gan_")
+    else:
+        gan_model.save_path = os.path.join(model_data_path, gan_name,"TJ_{TJ}".format(TJ=TJ), "gan_")
 
     states_epoch = []
     for epoch in np.array(epochs).astype(int):

@@ -41,18 +41,18 @@ def main() -> int:
     image_size = (64, 64, 1)
 
     batch_sizes = {"Spin_DC_GAN" : 128}
-    latent_dims = {"Spin_DC_GAN" : 128}
+    latent_dims = {"Spin_DC_GAN" : 256}
 
     #---------------------------
     model_names = np.array(["Spin_DC_GAN"])
-    TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.4, 2.6, 3.4])
+    TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
     #TJs = np.array([2.6])
 
-    epochs      = 101
-    a           = 0.8
+    epochs      = 41
+    amplitude   = 0.7
    
-    plot_period = 10 #2 * epochs #not needed, so never
-    save_period = 10 #10
+    plot_period = 2 #2 * epochs -> not needed, so never
+    save_period = 2 #10
 
     #---------------------------
     path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train")
@@ -66,7 +66,7 @@ def main() -> int:
             #--------------
             #load data
             file_name = "simulation_states_TJ_{TJ}.txt".format(TJ=TJ)
-            dataset = load_spin_data(batch_sizes[model_name], image_size[0], path, name=file_name, amplitude=a)
+            dataset = load_spin_data(batch_sizes[model_name], image_size[0], path, name=file_name, amplitude=amplitude)
 
             # train to fixed epoch
             weights_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "model-data", model_name, "TJ_{TJ}".format(TJ=TJ), "gan_")

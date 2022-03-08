@@ -122,7 +122,7 @@ def plot_performance_evaluation_hist(med_objs : dh.model_evaluation_data, use_en
     t = "energy_" if use_energy_not_m else "m_"
     savePdf("plot_performance_evaluation_hist_" + t + med_objs[-1].model_name)
     savePng("plot_performance_evaluation_hist_" + t + med_objs[-1].model_name)
-    plt.show()
+    #plt.show()
     return
 
 def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
@@ -215,7 +215,7 @@ def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
             dx = np.abs(X[0,0] - X[0,1])
             dy = np.abs(Y[0,0] - Y[1,0])
 
-            plt.contour(X[:-1, :-1] + dx/2., Y[:-1, :-1] + dy/2., H_spin, cmap="gray", levels=2, linewidths=2) #, label="Simulation")
+            plt.contour(X[:-1, :-1] + dx/2., Y[:-1, :-1] + dy/2., H_spin, cmap="bone", levels=2, linewidths=2) #, label="Simulation")
             #plt.contour(X[:-1, :-1] + dx/2., Y[:-1, :-1] + dy/2., H_gan, cmap=cmap_gan, levels=2, linewidths=2.5) #, label="GAN")
 
             #plt.contourf(X[:-1, :-1] + dx/2., Y[:-1, :-1] + dy/2., H_spin, cmap=cmap_sim) #, label="Simulation")
@@ -225,7 +225,7 @@ def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
 
     savePdf("plot_performance_evaluation_phase_" + med_objs[-1].model_name)
     savePng("plot_performance_evaluation_phase_" + med_objs[-1].model_name)
-    plt.show()
+    #plt.show()
     return
 
 #--------------------------------------------------------------------
@@ -284,5 +284,5 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
 
     savePdf("plot_performance_evaluation_observables_" + mpd.model_name)
     savePng("plot_performance_evaluation_observables_" + mpd.model_name)
-    plt.show()
+    #plt.show()
     return

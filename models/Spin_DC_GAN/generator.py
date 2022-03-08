@@ -21,14 +21,16 @@ def create_generator(latent_dim):
     #Structure
     latent_input = layers.Input(shape=latent_dim)
 
-
     x = layers.Dense(8 * 8 * 128, use_bias=False)(latent_input)
     x = layers.Reshape((8, 8, 128))(x) #designed to match discriminator flatten 
 
     #----------Encoder
-    x = enc_layer(x,  128, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init)
-    x = enc_layer(x,  256, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init)
-    x = enc_layer(x,  256, kernel_size=(4,4), strides=(2,2), drop_rate=0.0, kernel_initializer=init)
+    drop_rate = 0.0
+
+    x = enc_layer(x,  128, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16
+    x = enc_layer(x,  256, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32
+    x = enc_layer(x,  256, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64
+    #x = enc_layer(x,  512, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) 
 
     #------- Activation-layer
     output = layers.Conv2D(1, kernel_size=(5,5), strides=1, padding='same', activation=activations.tanh)(x)

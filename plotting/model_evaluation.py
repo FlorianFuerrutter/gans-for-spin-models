@@ -114,7 +114,6 @@ def evaluate_metric_EM_phase_POL(spin_data_m, spin_data_energy, gan_data_m, gan_
 
     return np.array(pol)
 
-
 #--------------------------------------------------------------------
 
 #hamilton used, later load B image for energy calculation!!!!
@@ -167,7 +166,7 @@ def calc_states_epoch_energy(N, states_epoch):
 
     return np.array(epoch_energies)
 
-def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, images_count=1000, N=64*64):
+def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, images_count=1000, N=64*64, singe_eval=False):
 
     model_evaluation_data_list = []
 
@@ -178,7 +177,7 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 
         #------------------------
         #get GAN data for all epochs to determine best epoch
-        states_epoch = dh.generate_gan_data(TJ, model_name, epochs, images_count=images_count, latent_dim=latent_dim, image_size=image_size)
+        states_epoch = dh.generate_gan_data(TJ, model_name, epochs, images_count=images_count, latent_dim=latent_dim, image_size=image_size, alt_path=singe_eval)
 
         g_energy = calc_states_epoch_energy(N, states_epoch)
         g_m    = np.sum(states_epoch, axis=2) / N
@@ -202,18 +201,20 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 
         #------------------------
         #determine best epoch !! -> check how to combine emd and pol
-        #best_epoch_index = np.argmax(m_pol)
 
-        #combine m_pol+eng_pol or direclty use phase_pol
-        deval = m_pol + mAbs_pol + eng_pol
-        best_epoch_index = np.argmax(deval)
-        print("deval:", deval[best_epoch_index])
+        #combine m_pol+eng_pol or direclty use phase_pol??
+        deval = m_pol + eng_pol
 
-        #alter = np.argmax(phase_POl)
+        best_epoch_index1 = np.argmax(deval)
+        best_epoch_index2 = np.argmax(deval)
+
+        print("deval at epoch:", epochs[best_epoch_index1], "is:", deval[best_epoch_index1])
+        print("phase_POl at epoch:", epochs[best_epoch_index2], "is:", phase_pol[best_epoch_index2])
 
         #check how to determine the BEST!!!
 
         #------------------------
+        best_epoch_index = best_epoch_index2
 
         best_epoch = epochs[best_epoch_index]
         print("[evaluate_model_metrics] Model:", model_name, "TJ:", TJ, "Best epoch:", best_epoch, "with percent OL (m_pol):", m_pol[best_epoch_index])
