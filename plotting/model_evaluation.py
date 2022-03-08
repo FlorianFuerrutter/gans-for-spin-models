@@ -208,16 +208,14 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         best_epoch_index1 = np.argmax(deval)
         best_epoch_index2 = np.argmax(deval)
 
-        print("deval at epoch:", epochs[best_epoch_index1], "is:", deval[best_epoch_index1])
-        print("phase_POl at epoch:", epochs[best_epoch_index2], "is:", phase_pol[best_epoch_index2])
-
         #check how to determine the BEST!!!
-
-        #------------------------
         best_epoch_index = best_epoch_index2
 
+        #------------------------
         best_epoch = epochs[best_epoch_index]
         print("[evaluate_model_metrics] Model:", model_name, "TJ:", TJ, "Best epoch:", best_epoch, "with percent OL (m_pol):", m_pol[best_epoch_index])
+        print("[evaluate_model_metrics] deval at epoch:", epochs[best_epoch_index1], "is:", deval[best_epoch_index1])
+        print("[evaluate_model_metrics] phase_POl at epoch:", epochs[best_epoch_index2], "is:", phase_pol[best_epoch_index2])
 
         #------------------------
         #now extract data for this best_epoch
