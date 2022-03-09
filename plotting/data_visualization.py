@@ -29,7 +29,7 @@ def plot_performance_evaluation_hist(med_objs : dh.model_evaluation_data, use_en
     cnt = len(med_objs)
 
     cols = 3
-    rows = (cnt // cols)+1
+    rows = int(np.ceil(cnt / cols))
 
     #--------------------------------
     size=(12, 3.4 * rows) #TODO scale according to count
@@ -66,7 +66,7 @@ def plot_performance_evaluation_hist(med_objs : dh.model_evaluation_data, use_en
             plt.sca(axs[i])
             plt.margins(0.03) 
 
-            te = r"$T/J$ = %.1f" % med.T
+            te = r"$T/J$ = {t}".format(t=med.T)
             args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color="black")#, bbox=box)
             plt.text(0.08, 0.98 , te, args)
             
@@ -129,7 +129,7 @@ def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
     cnt = len(med_objs)
 
     cols = 3
-    rows = (cnt // cols)+1
+    rows = int(np.ceil(cnt / cols))
 
     #--------------------------------
     size=(12, 3.4 * rows) #TODO scale according to count
@@ -182,7 +182,7 @@ def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
             plt.ylim((me.range_eng[0]*off, me.range_eng[1]*off))
 
             #--------------------------------
-            te = r"$T/J$ = %.1f" % med.T
+            te = r"$T/J$ = {t}".format(t=med.T)
             args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color="white")#, bbox=box)
             plt.text(0.08, 0.98 , te, args)
 
@@ -244,9 +244,12 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
     title = [r"$\langle |m|\rangle$",  r"$\langle E\rangle$",
              r"$\chi$",                r"$U_2$"]
 
-    labels = [("%0.1f" % x) for x in TJs]
+    #labels = [("%0.1f" % x) for x in TJs]   
     #labels.append(r"$T_c$")
-    ticks = TJs #np.append(TJs, Tc) 
+    #ticks = TJs #np.append(TJs, Tc) 
+    ticks  = [1.0, 1.8, 2.0, 2.2, 2.4, 2.6, 3.4]
+    labels = [("%0.1f" % x) for x in ticks]  
+    
     empty_labels = ["" for x in ticks]
 
     mc_data_list  = [mpd.mAbs  , mpd.energy,   mpd.magSusc,   mpd.binderCu]

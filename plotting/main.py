@@ -16,16 +16,16 @@ def main() -> int:
     model_names = np.array(["Spin_DC_GAN"])
     TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
     
-    epoch_min  = 20
-    epoch_max  = 100
-    epoch_step = 10
+    epoch_min  = 6
+    epoch_max  = 51
+    epoch_step = 3
 
     #data cnt taken from GAN for evaluation
-    images_count = 1000
+    images_count = 10000
 
     #-----------------------------------------------------------------
     #set this for evaluation of a single training run of a model in their folder (not the data folder) -> used for development
-    if 1:
+    if 0:
         single_eval = True     
         TJs         = np.array([2.6])
 
