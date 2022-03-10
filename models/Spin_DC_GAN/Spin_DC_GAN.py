@@ -44,16 +44,21 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #--------------
     #define loss and optimizer
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.1, beta_2=0.9)
-    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.1, beta_2=0.9)
+    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
+    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
    
-    loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
+    #loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
+    #loss = gan.wasserstein_loss
+
+    d_loss_fn = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
+    g_loss_fn = gan.wasserstein_loss
+
 
     #--------------
     #create model
    
     gan_model = gan.gan(latent_dim, image_size)
-    gan_model.compile(d_optimizer, g_optimizer, loss, loss)
+    gan_model.compile(d_optimizer, g_optimizer, d_loss_fn, g_loss_fn)
 
     if (weights_path != ""):
         gan_model.save_path = weights_path
@@ -84,6 +89,7 @@ def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.6.txt", a
 
     dataset = tf.data.Dataset.from_tensor_slices(states)
     dataset = dataset.batch(batch_size)
+    dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
     return dataset
 
@@ -104,12 +110,13 @@ def main() -> int:
 
     if 1: 
         #create and store new dataset 
-        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.6.txt", amplitude=amplitude)     
+        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.25.txt", amplitude=amplitude)     
         #tf.data.experimental.save(dataset, path) 
         #exit(0)
     else:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)
+        dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
     #--------------  
     save_period = 3

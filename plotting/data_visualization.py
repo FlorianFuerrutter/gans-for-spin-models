@@ -32,7 +32,7 @@ def plot_performance_evaluation_hist(med_objs : dh.model_evaluation_data, use_en
     rows = int(np.ceil(cnt / cols))
 
     #--------------------------------
-    size=(12, 3.4 * rows) #TODO scale according to count
+    size=(13, 3.4 * rows) #TODO scale according to count
     fig = plt.figure(figsize=size, constrained_layout=True) 
     gs = plt.GridSpec(rows, cols, figure=fig)
 
@@ -42,9 +42,6 @@ def plot_performance_evaluation_hist(med_objs : dh.model_evaluation_data, use_en
         ticks = np.linspace(me.range_m[0], me.range_m[1], 5)
     empty_labels = ["" for x in ticks]
 
-    clr_sim = "tab:blue"
-    clr_gan = "tab:orange"
-
     #--------------------------------
     axs = np.array([])
     for y in range(rows):
@@ -53,6 +50,19 @@ def plot_performance_evaluation_hist(med_objs : dh.model_evaluation_data, use_en
                 continue
             axs = np.append(axs, fig.add_subplot(gs[y,x]))
       
+    #---------------------------
+    clr_sim = "tab:blue"
+    clr_gan = "tab:orange"
+
+    #legend
+    plt.sca(axs[2 if cnt>2 else cnt-1])
+    if med_objs[0].model_name_id == 0:
+        args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color=clr_sim, size="large")
+        plt.text(1.03, 0.96, r"Simulated", args)
+
+    args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color=clr_gan, size="large")
+    plt.text(1.03, 0.96-0.13*(med_objs[0].model_name_id+1), r"{m}".format(m=med_objs[0].model_name), args)
+
     #--------------------------------
     for iy in range(rows):
         for ix in range(cols):
@@ -234,7 +244,7 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
     Tc = 1.0 * 2.0 / np.log(1.0 + np.sqrt(2.0))
 
     #---------------------------
-    size=(12, 4.8*1.6)
+    size=(13, 4.8*1.6)
     fig = plt.figure(figsize=size, constrained_layout=True) 
     gs = plt.GridSpec(2, 2, figure=fig)
     axs = np.array([fig.add_subplot(gs[0,0]), fig.add_subplot(gs[0,1]),
@@ -254,6 +264,19 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
 
     mc_data_list  = [mpd.mAbs  , mpd.energy,   mpd.magSusc,   mpd.binderCu]
     gan_data_list = [mpd.g_mAbs, mpd.g_energy, mpd.g_magSusc, mpd.g_binderCu] 
+
+    #---------------------------
+    clr_sim = "tab:blue"
+    clr_gan = "tab:orange"
+
+    #legend
+    plt.sca(axs[1])
+    if mpd.model_name_id == 0:
+        args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color=clr_sim, size="large")
+        plt.text(1.03, 0.96, r"Simulated", args)
+
+    args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color=clr_gan, size="large")
+    plt.text(1.03, 0.96-0.13*(mpd.model_name_id+1), r"{m}".format(m=mpd.model_name), args)
 
     #---------------------------
     for iy in range(2):
@@ -279,11 +302,11 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
             mean, err     = [x.val for x in mc_data],  [x.err for x in mc_data]
             g_mean, g_err = [x.val for x in gan_data], [x.err for x in gan_data]
 
-            plt.plot(TJs, mean, "--", color="tab:blue", alpha=0.5, linewidth=0.8)
-            plt.errorbar(TJs, mean, fmt='.', yerr=err, label="Simulated", elinewidth=1, capsize=5, markersize=5)
+            plt.plot(TJs, mean, "--", color=clr_sim, alpha=0.5, linewidth=0.8)
+            plt.errorbar(TJs, mean, fmt='.', yerr=err, label="Simulated", elinewidth=1, capsize=5, markersize=5, color=clr_sim)
 
-            plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5)
-            plt.legend()
+            plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
+            #plt.legend()
 
     savePdf("plot_performance_evaluation_observables_" + mpd.model_name)
     savePng("plot_performance_evaluation_observables_" + mpd.model_name)

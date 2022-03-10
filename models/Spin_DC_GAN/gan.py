@@ -36,6 +36,27 @@ def sample_generator_input(batch_size, latent_dim,):
     return tf.random.normal(shape=(batch_size, latent_dim))
   
 #--------------------------------------------------------------------
+#    real_labels = tf.zeros((batch_size, 1)) 
+#    fake_labels = tf.ones((batch_size, 1))
+
+@tf.function
+def dis_loss(y_true, y_pred):
+    loss = -tf.math.softplus(y_true * y_pred)
+    loss = tf.reduce_mean(loss)
+    return loss
+
+@tf.function
+def gen_loss(y_true, y_pred):
+    loss = tf.math.softplus(y_pred)
+    loss = tf.reduce_mean(loss)
+    return loss
+
+@tf.function
+def wasserstein_loss(y_true, y_pred):
+    label_smooth = 1 - 0.05
+    y_true = (2.0 * label_smooth) * y_true - label_smooth
+    y_pred = (2.0 * label_smooth) * y_pred - label_smooth
+    return -tf.reduce_mean(y_true * y_pred)
 
 class gan(keras.Model):
     def __init__(self, latent_dim, image_size):
@@ -80,25 +101,44 @@ class gan(keras.Model):
         latent_vectors = sample_generator_input(batch_size, self.latent_dim)
 
         #set labels
-        labels  = tf.concat( [tf.ones((batch_size, 1)), tf.zeros((batch_size, 1))], axis=0 )   
-        labels += 0.05 * tf.random.uniform(tf.shape(labels)) 
+        #labels  = tf.concat( [tf.ones((batch_size, 1)), tf.zeros((batch_size, 1))], axis=0 )   
+        #labels += 0.05 * tf.random.uniform(tf.shape(labels)) 
+
+        real_labels = tf.zeros((batch_size, 1)) 
+        fake_labels = tf.ones((batch_size, 1))
+
+        noisy_real_labels = real_labels + 0.05 * tf.random.uniform(tf.shape(real_labels)) 
+        noisy_fake_labels = fake_labels + 0.05 * tf.random.uniform(tf.shape(fake_labels)) 
 
         #Record operations for automatic differentiation
         #all watched variables within scope
         with tf.GradientTape() as tape: 
             #fake images combined with real ones
             generated_images = self.generator(latent_vectors)
-            combined_images  = tf.concat([generated_images, real_images], axis=0)
+            #combined_images  = tf.concat([generated_images, real_images], axis=0)
 
             #--------------
 
-            predictions = self.discriminator(combined_images) 
-            d_loss      = self.d_loss_fn(labels, predictions) 
-            
-            #derivative of d_loss with respect to trainable_weights
-            grads = tape.gradient(d_loss, self.discriminator.trainable_weights)
+            fake_predictions = self.discriminator(generated_images) 
+            real_predictions = self.discriminator(real_images) 
 
-            self.d_optimizer.apply_gradients(zip(grads, self.discriminator.trainable_weights))
+            fake_loss = self.d_loss_fn(noisy_fake_labels, fake_predictions) 
+            real_loss = self.d_loss_fn(noisy_real_labels, real_predictions)
+            d_loss = fake_loss + real_loss
+
+            #loss = tf.math.softplus(fake_predictions) + tf.math.softplus(-real_predictions)
+            #loss = tf.reduce_mean(loss)
+            #d_loss = loss
+
+            #--------------
+
+            #predictions = self.discriminator(combined_images) 
+            #d_loss      = self.d_loss_fn(labels, predictions) 
+            
+        #derivative of d_loss with respect to trainable_weights
+        grads = tape.gradient(d_loss, self.discriminator.trainable_weights)
+
+        self.d_optimizer.apply_gradients(zip(grads, self.discriminator.trainable_weights))
  
         #--------------------------------------------
         #train generator
@@ -106,18 +146,16 @@ class gan(keras.Model):
         #latent and noise
         latent_vectors = sample_generator_input(batch_size, self.latent_dim)
 
-        misleading_labels = tf.zeros((batch_size, 1)) 
-
         #Record operations for automatic differentiation
         #all watched variables within scope
         with tf.GradientTape() as tape: 
             predictions = self.discriminator(self.generator(latent_vectors)) 
-            g_loss      = self.g_loss_fn(misleading_labels, predictions) 
+            g_loss      = self.g_loss_fn(real_labels, predictions) 
 
-            #derivative of g_loss with respect to trainable_weights
-            grads = tape.gradient(g_loss, self.generator.trainable_weights) 
+        #derivative of g_loss with respect to trainable_weights
+        grads = tape.gradient(g_loss, self.generator.trainable_weights) 
 
-            self.g_optimizer.apply_gradients(zip(grads, self.generator.trainable_weights)) 
+        self.g_optimizer.apply_gradients(zip(grads, self.generator.trainable_weights)) 
  
         #--------------------------------------------
         self.d_loss_metric.update_state(d_loss)

@@ -31,6 +31,7 @@ def load_spin_data(batch_size, res, path, name, amplitude=0.9, load_dataset=Fals
 
         dataset = tf.data.Dataset.from_tensor_slices(states)
         dataset = dataset.batch(batch_size)
+        dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
         #tf.data.experimental.save(dataset, path) 
 
     return dataset

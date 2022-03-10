@@ -88,7 +88,8 @@ from dataclasses import dataclass, field
 class model_evaluation_data:
     T : float = -1
     N : int   = -1
-    model_name : str = ""
+    model_name    : str = ""
+    model_name_id : int = 0
 
     #MC data
     energy : np.ndarray = None
@@ -124,7 +125,8 @@ class err_data:
 
 @dataclass
 class model_processed_data:
-    model_name : str = ""
+    model_name    : str = ""
+    model_name_id : int = 0
 
     energy   : list[err_data] = field(default_factory=lambda : [])
     mAbs     : list[err_data] = field(default_factory=lambda : [])

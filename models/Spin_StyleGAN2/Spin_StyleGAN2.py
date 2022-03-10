@@ -47,10 +47,14 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
 
     g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
     d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9, epsilon=1e-08)
-    loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
+    
+    #loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
+    d_loss_fn = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
+    g_loss_fn = gan.wasserstein_loss
+
 
     gan_model = gan.gan(enc_block_count, latent_dim, style_dim, image_size, noise_image_res)
-    gan_model.compile(d_optimizer, g_optimizer, loss, loss)
+    gan_model.compile(d_optimizer, g_optimizer, d_loss_fn, g_loss_fn)
 
     if (weights_path != ""):
         gan_model.save_path = weights_path
@@ -90,19 +94,21 @@ def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.6.txt", a
 
     dataset = tf.data.Dataset.from_tensor_slices(states)
     dataset = dataset.batch(batch_size)
+    dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
     return dataset
 
 def main() -> int:  
     #--------------------------------------------------------------------
-    #setup
-  
-    latent_dim  = 256  
-    batch_size  = 64  #64 #128 #256
+    #setup 
+    epochs     = 101
+    latent_dim = 256  
 
-    epochs      = 100
-    image_size = (64, 64, 3)
-    
+    image_size = (64, 64, 3) #1 for spin #3 for rgb
+    batch_size = 128  #64 #128 #256 
+
+    amplitude   = 0.7
+
     #--------------------------------------------------------------------
     #load data
     path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "img_align_celeba_part1")
@@ -112,9 +118,11 @@ def main() -> int:
     if 1:
         #if existing dataset, use that
         dataset = tf.data.experimental.load(path)
+        dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
     elif 0:
         #spin
-        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.0.txt", amplitude=0.9) 
+        path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train")
+        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.25.txt", amplitude=amplitude) 
     elif 0:
         #create and store new dataset
         dataset = tf.keras.utils.image_dataset_from_directory(
@@ -140,7 +148,7 @@ def main() -> int:
 
     #--------------
     plot_period = 1
-    save_period = 10
+    save_period = 300
 
     train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size)
 
