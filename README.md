@@ -8,13 +8,13 @@ Bachelor thesis
 ---
 ## Evaluation
 **mag hist**
-![](/img/evaluation_hist_m_Spin_DC_GAN.png)
+![](/img/plot_performance_evaluation_hist_m_Spin_DC_GAN.png)
 **energy hist**
-![](/img/evaluation_hist_energy_Spin_DC_GAN.png)
+![](/img/plot_performance_evaluation_hist_energy_Spin_DC_GAN.png)
 **phase hist**
-![](/img/evaluation_phaseSpin_DC_GAN.png)
+![](/img/plot_performance_evaluation_phase_Spin_DC_GAN.png)
 **observables**
-![](/img/evaluation_observablesSpin_DC_GAN.png)
+![](/img/plot_performance_evaluation_observables_Spin_DC_GAN.png)
 
 
 ---
