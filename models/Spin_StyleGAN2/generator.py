@@ -98,8 +98,8 @@ def create_mapping_network(latent_dim, styles_dim):
     out = layers.Dense(styles_dim)(out)
     out = layers.LeakyReLU(0.2)(out)
 
-    out = layers.Dense(styles_dim)(out)
-    out = layers.LeakyReLU(0.2)(out)
+    #out = layers.Dense(styles_dim)(out)
+    #out = layers.LeakyReLU(0.2)(out)
     
     #out = layers.Dense(styles_dim)(out)
     #out = layers.LeakyReLU(0.2)(out)
@@ -147,8 +147,8 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
     #--------------------------------------------
     #scale blocks
     for i in range(1, enc_block_count):            
-        #filter_size = filter_size_start / (2**i)
-        filter_size = filter_size_start - i * 56 #56 #64 #70
+        filter_size = filter_size_start / (2**i)
+        #filter_size = filter_size_start - i * 56 #56 #64 #70
 
         x, rgb_c = enc_block(x, style_input[i], noise_image_input[i], filter_size=filter_size, out_filter=out_filter, kernel_size=(3,3), kernel_initializer=init, first_block=False)       
         

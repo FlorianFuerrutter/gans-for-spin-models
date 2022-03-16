@@ -1,5 +1,50 @@
+import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers, activations
+from keras import layers, activations
+
+#--------------------------------------------------------------------
+
+class PeriodicPadding2D(keras.layers.Layer):
+    '''Pads a image with periodic conditions'''
+
+    def __init__(self, padding=2, *args, **kwargs):
+        super(PeriodicPadding2D, self).__init__(*args, **kwargs)
+        self.padding = padding
+
+    #def compute_output_shape(self, input_shape):
+    #    shape = tf.shape(input_shape)
+    #    assert shape.size == 3  
+
+    #    if shape[1] is not None:
+    #      length_h = shape[1] + 2 * self.padding         
+    #    else:
+    #      length_h = None
+
+    #    if shape[1] is not None:
+    #      length_w = shape[2] + 2 * self.padding         
+    #    else:
+    #      length_w = None
+
+    #    return tuple([shape[0], length_h, length_w])
+
+    def call(self, inputs):  
+        x    = inputs
+        size = self.padding
+
+        #pad cols
+        x = tf.concat([x[:, :, -size:], x, x[:, :, 0:size]], axis=2) 
+
+        #pad rows
+        x = tf.concat([x[:, -size:, :], x, x[:, 0:size, :]], axis=1)
+
+        return x
+
+    def get_config(self):
+        config = super(PeriodicPadding2D, self).get_config()
+        config.update({"padding": self.padding})
+        return config
+
+#--------------------------------------------------------------------
 
 def dec_layer(dec_input, filter_size, kernel_size, kernel_initializer, strides=2, drop_rate=0.0, padding='same', use_bn=False):   
     dec = dec_input
@@ -21,13 +66,18 @@ def create_discriminator(image_res):
     #Structure
     image_input = layers.Input(shape=image_res)
 
+    #Add periodic bounding conditions
+    x = PeriodicPadding2D(padding=1)(image_input)
+
     #-----------Decoder
     drop_rate = 0.0
+      
+    #good all // 1
 
-    x = dec_layer(image_input,  64, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32
-    x = dec_layer(x          , 128, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16
-    x = dec_layer(x          , 128, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #8x8
-    #x = dec_layer(x          , 256, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #4x4
+    x = dec_layer(x,  64, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init, padding='valid') #32x32
+    x = dec_layer(x,  96, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16
+    x = dec_layer(x, 128, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #8x8
+    #x = dec_layer(x, 160, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #4x4
 
     #----------- Activation-layer
     x = layers.Flatten()(x)

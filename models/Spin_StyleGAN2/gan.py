@@ -62,7 +62,7 @@ def sample_generator_input(batch_size, enc_block_count, latent_dim, noise_image_
 
 #--------------------------------------------------------------------
 
-@tf.function
+#@tf.function
 def gradient_penalty(samples, output, weight):
     gradients = K.gradients(output, samples)[0]
     gradients_sqr = K.square(gradients)
@@ -159,7 +159,8 @@ class gan(keras.Model):
 
             fake_loss = self.d_loss_fn(noisy_fake_labels, fake_predictions) 
             real_loss = self.d_loss_fn(noisy_real_labels, real_predictions)
-            d_loss = fake_loss + real_loss
+            d_loss = fake_loss + real_loss + gradient_penalty(real_images, real_predictions, 10)
+
 
             #loss = tf.math.softplus(fake_predictions) + tf.math.softplus(-real_predictions)
             #loss = tf.reduce_mean(loss)

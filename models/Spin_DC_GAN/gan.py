@@ -53,9 +53,15 @@ def gen_loss(y_true, y_pred):
 
 @tf.function
 def wasserstein_loss(y_true, y_pred):
-    label_smooth = 1 - 0.05
-    y_true = (2.0 * label_smooth) * y_true - label_smooth
-    y_pred = (2.0 * label_smooth) * y_pred - label_smooth
+    #true label smooth
+    label_smoothing = 0.05
+    y_true = y_true * (1.0 - label_smoothing) + 0.5 * label_smoothing
+
+    #convert [0,1] to [-1,1]
+    y_true = 2.0 * y_true - 1.0
+    y_pred = 2.0 * y_pred - 1.0
+
+    #calc wasserstein loss
     return -tf.reduce_mean(y_true * y_pred)
 
 class gan(keras.Model):

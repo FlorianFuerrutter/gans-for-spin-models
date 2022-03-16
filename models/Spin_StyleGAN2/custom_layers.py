@@ -137,7 +137,7 @@ class Conv2DMod(tf.keras.layers.Conv2D):
 
             #------------------------
             #Modulate, gives (batch_size, rows, cols, input_depth, output_depth)
-            kernel = tf.multiply(kernel, s+1)
+            kernel = tf.multiply(kernel, s+1.0)
 
             #------------------------
             #Demodulate, scale ("demodulate") each output feature map j

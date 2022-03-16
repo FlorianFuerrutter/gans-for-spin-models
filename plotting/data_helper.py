@@ -75,10 +75,11 @@ def load_spin_observables(TJ):
     m      = obser[1]
     mAbs   = obser[2]
     m2     = obser[3]
-    m4     = obser[4]
+    mAbs3  = obser[4]
+    m4     = obser[5]
     
     print("[load_spin_observables] Found data count:", energy.shape[0])
-    return energy, m, mAbs, m2, m4
+    return energy, m, mAbs, m2, mAbs3, m4
 
 #--------------------------------------------------------------------
 
@@ -96,6 +97,7 @@ class model_evaluation_data:
     m      : np.ndarray = None
     mAbs   : np.ndarray = None
     m2     : np.ndarray = None
+    mAbs3  : np.ndarray = None
     m4     : np.ndarray = None
      
     #GAN data
@@ -104,6 +106,7 @@ class model_evaluation_data:
     g_m      : np.ndarray = None
     g_mAbs   : np.ndarray = None
     g_m2     : np.ndarray = None
+    g_mAbs3  : np.ndarray = None
     g_m4     : np.ndarray = None
       
     #metrics of best best_epoch
@@ -132,10 +135,12 @@ class model_processed_data:
     mAbs     : list[err_data] = field(default_factory=lambda : [])
     magSusc  : list[err_data] = field(default_factory=lambda : [])
     binderCu : list[err_data] = field(default_factory=lambda : [])
+    k3       : list[err_data] = field(default_factory=lambda : [])
 
     g_energy   : list[err_data] = field(default_factory=lambda : [])
     g_mAbs     : list[err_data] = field(default_factory=lambda : [])
     g_magSusc  : list[err_data] = field(default_factory=lambda : [])
     g_binderCu : list[err_data] = field(default_factory=lambda : [])
+    g_k3       : list[err_data] = field(default_factory=lambda : [])
 
 #--------------------------------------------------------------------

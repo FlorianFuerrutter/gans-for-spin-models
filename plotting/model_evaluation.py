@@ -173,17 +173,18 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
     for TJ in TJs:
         #------------------------
         #get spin data
-        energy, m, mAbs, m2, m4 = dh.load_spin_observables(TJ)
+        energy, m, mAbs, m2, mAbs3, m4 = dh.load_spin_observables(TJ)
 
         #------------------------
         #get GAN data for all epochs to determine best epoch
         states_epoch = dh.generate_gan_data(TJ, model_name, epochs, images_count=images_count, latent_dim=latent_dim, image_size=image_size, alt_path=singe_eval)
 
         g_energy = calc_states_epoch_energy(N, states_epoch)
-        g_m    = np.sum(states_epoch, axis=2) / N
-        g_mAbs = np.abs(g_m)
-        g_m2   = np.square(g_m)
-        g_m4   = np.square(g_m2)
+        g_m     = np.sum(states_epoch, axis=2) / N
+        g_mAbs  = np.abs(g_m)
+        g_m2    = np.square(g_m)
+        g_mAbs3 = g_mAbs * g_m2
+        g_m4    = np.square(g_m2)
 
         #------------------------
         #evaluate metrics of m, energy and abs(m)
@@ -203,13 +204,13 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         #determine best epoch !! -> check how to combine emd and pol
 
         #combine m_pol+eng_pol or direclty use phase_pol??
-        deval = m_pol + eng_pol
+        deval = (mAbs_pol + 2.0*phase_pol) / 3.0
 
         best_epoch_index1 = np.argmax(deval)
-        best_epoch_index2 = np.argmax(deval)
+        best_epoch_index2 = np.argmax(phase_pol)
 
         #check how to determine the BEST!!!
-        best_epoch_index = best_epoch_index2
+        best_epoch_index = best_epoch_index1
 
         #------------------------
         best_epoch = epochs[best_epoch_index]
@@ -221,10 +222,59 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         #now extract data for this best_epoch
         gan_states = states_epoch[best_epoch_index]
 
+        if 0:
+            import matplotlib.pyplot as plt
+            import os
+
+            #-----
+            dark_image_grey1 = np.reshape(gan_states, (-1,64,64))
+            dark_image_grey_fourier1 = np.fft.fftshift(np.fft.fft2(dark_image_grey1), axes=(1,2))        
+            #plt.figure(figsize=(8, 6), dpi=80)
+            #plt.imshow(np.log(abs(dark_image_grey_fourier1[0])), cmap='gray')
+
+            #-----
+            print("loadtxt")
+            path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
+            file_path = os.path.join(path, "simulation_states_TJ_2.25.txt")
+            states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)[:1000]
+            states = np.reshape(states, ( -1, 64, 64, 1))
+
+            dark_image_grey2 = np.reshape(states, (-1,64,64))
+            dark_image_grey_fourier2 = np.fft.fftshift(np.fft.fft2(dark_image_grey2), axes=(1,2))        
+            #plt.figure(figsize=(8, 6), dpi=80)
+            #plt.imshow(np.log(abs(dark_image_grey_fourier2[0])), cmap='gray')
+
+            #----- ftt, mul, sum
+            mult_time = abs(dark_image_grey_fourier1 * dark_image_grey_fourier2)
+            #plt.figure(figsize=(8, 6), dpi=80)
+            #plt.imshow(np.log(abs(mult_time[0])), cmap='gray')
+            sim = np.sum(mult_time, axis=(1,2)) / 4096.0
+            sim_max = np.amax(sim)
+            print("freq mult: ", sim_max)
+
+            #----- ftt, min, sum
+            mult_time2 = np.minimum(abs(dark_image_grey_fourier1), abs(dark_image_grey_fourier2))
+            #plt.figure(figsize=(8, 6), dpi=80)
+            #plt.imshow(np.log(abs(mult_time2[0])), cmap='gray')
+            sim = np.sum(mult_time2, axis=(1,2)) / 4096.0
+            sim_max = np.amax(sim)
+            print("freq min: ", sim_max)
+
+            #----- mul, fft
+            mult_space = dark_image_grey1 * dark_image_grey2
+            dark_image_grey_fourier_mult_space = np.fft.fftshift(np.fft.fft2(mult_space), axes=(1,2))  
+            #plt.figure(figsize=(8, 6), dpi=80)
+            #plt.imshow(np.log(abs(dark_image_grey_fourier_mult_space[0])), cmap='gray')
+
+            #plt.show()
+
+        #------------------------
+
         g_energy = g_energy[best_epoch_index]
         g_m      = g_m[best_epoch_index]
         g_mAbs   = g_mAbs[best_epoch_index]
         g_m2     = g_m2[best_epoch_index]
+        g_mAbs3  = g_mAbs3[best_epoch_index]
         g_m4     = g_m4[best_epoch_index]
 
         m_pol   = m_pol[best_epoch_index]
@@ -246,12 +296,14 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         d.m      = m
         d.mAbs   = mAbs
         d.m2     = m2
+        d.mAbs3  = mAbs3
         d.m4     = m4
 
         d.g_energy = g_energy
         d.g_m      = g_m
         d.g_mAbs   = g_mAbs
         d.g_m2     = g_m2
+        d.g_mAbs3  = g_mAbs3
         d.g_m4     = g_m4
         
         d.best_epoch = best_epoch
@@ -277,6 +329,8 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
     for d in med_objs:
         
         #----------------------------------------
+        #----------------------------------------
+        #----------------------------------------
         #compute values for MC values -> binning
 
         #-------------------
@@ -292,12 +346,20 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
         #-------------------
         meanMAbs, errorMAbs, meanM2, errorM2, meanM4, errorM4, corr, binMAbs, binM2, binM4 = da.binningAnalysisTriple(d.mAbs, d.m2, d.m4)
 
-        meanMagSusc, errorMagSusc   = da.mSuscJackknife(binMAbs, binM2, d.N, d.T)
+        meanMagSusc, errorMagSusc = da.mSuscJackknife(binMAbs, binM2, d.N, d.T)
         mpd.magSusc.append(dh.err_data(meanMagSusc, errorMagSusc))
         
         meanBinderCu, errorBinderCu = da.mBinderCuJackknife(binM2, binM4)
         mpd.binderCu.append(dh.err_data(meanBinderCu, errorBinderCu))
 
+        #-------------------
+        meanMAbs, errorMAbs, meanM2, errorM2, meanMAbs3, errorMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(d.mAbs, d.m2, d.mAbs3)
+
+        meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3)
+        mpd.k3.append(dh.err_data(meanK3, errorK3))
+
+        #----------------------------------------
+        #----------------------------------------
         #----------------------------------------
         #compute values for GAN values -> binning
 
@@ -314,10 +376,16 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
         #-------------------
         meanMAbs, errorMAbs, meanM2, errorM2, meanM4, errorM4, corr, binMAbs, binM2, binM4 = da.binningAnalysisTriple(d.g_mAbs, d.g_m2, d.g_m4)
 
-        meanMagSusc, errorMagSusc   = da.mSuscJackknife(binMAbs, binM2, d.N, d.T)
+        meanMagSusc, errorMagSusc = da.mSuscJackknife(binMAbs, binM2, d.N, d.T)
         mpd.g_magSusc.append(dh.err_data(meanMagSusc, errorMagSusc))
         
         meanBinderCu, errorBinderCu = da.mBinderCuJackknife(binM2, binM4)
         mpd.g_binderCu.append(dh.err_data(meanBinderCu, errorBinderCu))
+
+        #-------------------
+        meanMAbs, errorMAbs, meanM2, errorM2, meanMAbs3, errorMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(d.g_mAbs, d.g_m2, d.g_mAbs3)
+
+        meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3)
+        mpd.g_k3.append(dh.err_data(meanK3, errorK3))
 
     return mpd

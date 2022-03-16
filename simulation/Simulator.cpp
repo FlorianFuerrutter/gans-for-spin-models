@@ -50,6 +50,7 @@ void Simulator::run_monte_carlo()
     m_m.resize(m_para.nBins);
     m_mAbs.resize(m_para.nBins);
     m_m2.resize(m_para.nBins);
+    m_mAbs3.resize(m_para.nBins);
     m_m4.resize(m_para.nBins);
 
     //termalization
@@ -60,10 +61,12 @@ void Simulator::run_monte_carlo()
     #if PREBINNING_OBSERVABLES
         PRECISION scale_N = 1.0 / (m_para.nSweeps * N);
         PRECISION scale_N2 = 1.0 / (m_para.nSweeps * N * N);
+        PRECISION scale_N3 = (1.0 / (m_para.nSweeps * N * N)) * (1.0 / (N));
         PRECISION scale_N4 = (1.0 / (m_para.nSweeps * N * N)) * (1.0 / (N * N));
     #else
         PRECISION scale_N = 1.0 / (N);
         PRECISION scale_N2 = 1.0 / (N * N);
+        PRECISION scale_N3 = (1.0 / (N * N)) * (1.0 / (N));
         PRECISION scale_N4 = (1.0 / (N * N)) * (1.0 / (N * N));
     #endif // PREBINNING_OBSERVABLES
 
@@ -72,10 +75,11 @@ void Simulator::run_monte_carlo()
     for (int bin = 0; bin < m_para.nBins; bin++)
     {
         #if PREBINNING_OBSERVABLES
-            PRECISION energy = 0;
-            PRECISION mAbs = 0;
-            PRECISION m2 = 0;
-            PRECISION m4 = 0;
+                PRECISION energy = 0;
+                PRECISION mAbs = 0;
+                PRECISION m2 = 0;
+                PRECISION mAbs3 = 0;
+                PRECISION m4 = 0;
         #endif // PREBINNING_OBSERVABLES
 
         //sweeps per bin (prebinning)
@@ -92,6 +96,7 @@ void Simulator::run_monte_carlo()
                 energy += energy_sweep;
                 mAbs += abs(mag_sweep);
                 m2 += (mag_sweep * mag_sweep);
+                mAbs3 += (mAbs * mAbs * mAbs);
                 m4 += (mag_sweep * mag_sweep * mag_sweep * mag_sweep);
             #endif // PREBINNING_OBSERVABLES
         }
@@ -101,20 +106,23 @@ void Simulator::run_monte_carlo()
             energy *= scale_N;
             mAbs *= scale_N;
             m2 *= scale_N2;
+            mAbs3 *= scale_N3;
             m4 *= scale_N4;
 
             m_energy[bin] = energy;
-            m_m[bin]      = std::reduce(std::begin(state), std::end(state), 0) / PRECISION(N);
-            m_mAbs[bin]   = mAbs;
-            m_m2[bin]     = m2;
-            m_m4[bin]     = m4;
+            m_m[bin] = std::reduce(std::begin(state), std::end(state), 0) / PRECISION(N);
+            m_mAbs[bin] = mAbs;
+            m_m2[bin] = m2;
+            m_mAbs3[bin] = mAbs3;
+            m_m4[bin] = m4;
         #else
             PRECISION m = std::reduce(std::begin(state), std::end(state), 0);
 
-            m_energy[bin] = scale_N * calcStateEnergy(state, nnList, m_J);;
+            m_energy[bin] = scale_N * calcStateEnergy(state, nnList, m_J);
             m_m[bin]      = scale_N * m;
             m_mAbs[bin]   = scale_N * abs(m);
             m_m2[bin]     = scale_N2 * m * m;
+            m_mAbs3[bin]  = scale_N3 * abs(m * m * m);
             m_m4[bin]     = scale_N4 * m * m * m * m;
         #endif // PREBINNING_OBSERVABLES
 
@@ -130,20 +138,27 @@ void Simulator::run_wolff_cluster()
     m_m.resize(m_para.nBins);
     m_mAbs.resize(m_para.nBins);
     m_m2.resize(m_para.nBins);
+    m_mAbs3.resize(m_para.nBins);
     m_m4.resize(m_para.nBins);
 
+    //modify updates respecting m_TJ in [1, 3.4], this is bcs the clusters will get smaller with m_TJ
+    int nTherm  = m_para.nTherm  * m_TJ;
+    int nSweeps = m_para.nSweeps * m_TJ * m_TJ;
+
     //termalization
-    for (int i = 0; i < m_para.nTherm; i++)
+    for (int i = 0; i < nTherm; i++)
         update_wolff_cluster(state, nnList, N);
 
     //simulation
     #if PREBINNING_OBSERVABLES
         PRECISION scale_N = 1.0 / (m_para.nSweeps * N);
         PRECISION scale_N2 = 1.0 / (m_para.nSweeps * N * N);
+        PRECISION scale_N3 = (1.0 / (m_para.nSweeps * N * N)) * (1.0 / (N));
         PRECISION scale_N4 = (1.0 / (m_para.nSweeps * N * N)) * (1.0 / (N * N));
     #else
         PRECISION scale_N = 1.0 / (N);
         PRECISION scale_N2 = 1.0 / (N * N);
+        PRECISION scale_N3 = (1.0 / (N * N)) * (1.0 / (N));
         PRECISION scale_N4 = (1.0 / (N * N)) * (1.0 / (N * N));
     #endif // PREBINNING_OBSERVABLES
 
@@ -151,15 +166,19 @@ void Simulator::run_wolff_cluster()
 
     for (int bin = 0; bin < m_para.nBins; bin++)
     {
+        if (bin % (2<<9) == 0)
+            std::cout << int((float(bin) / m_para.nBins) * 100.f) << " %" << std::endl;
+
         #if PREBINNING_OBSERVABLES
             PRECISION energy = 0;
             PRECISION mAbs = 0;
             PRECISION m2 = 0;
+            PRECISION mAbs3 = 0;
             PRECISION m4 = 0;
         #endif // PREBINNING_OBSERVABLES
 
         //sweeps per bin (prebinning)
-        for (int sweep = 0; sweep < m_para.nSweeps; sweep++)
+        for (int sweep = 0; sweep < nSweeps; sweep++)
         {
             update_wolff_cluster(state, nnList, N);
 
@@ -172,6 +191,7 @@ void Simulator::run_wolff_cluster()
                 energy += energy_sweep;
                 mAbs   += abs(mag_sweep);
                 m2     += (mag_sweep * mag_sweep);
+                mAbs3  += (mAbs * mAbs * mAbs);
                 m4     += (mag_sweep * mag_sweep * mag_sweep * mag_sweep);
             #endif // PREBINNING_OBSERVABLES
         }
@@ -181,20 +201,23 @@ void Simulator::run_wolff_cluster()
             energy *= scale_N;
             mAbs *= scale_N;
             m2 *= scale_N2;
+            mAbs3 *= scale_N3;
             m4 *= scale_N4;
 
             m_energy[bin] = energy;
             m_m[bin] = std::reduce(std::begin(state), std::end(state), 0) / PRECISION(N);
             m_mAbs[bin] = mAbs;
             m_m2[bin] = m2;
+            m_mAbs3[bin] = mAbs3;
             m_m4[bin] = m4;
         #else
             PRECISION m = std::reduce(std::begin(state), std::end(state), 0);
 
-            m_energy[bin] = scale_N * calcStateEnergy(state, nnList, m_J);
-            m_m[bin]      = scale_N * m;
-            m_mAbs[bin]   = scale_N * abs(m);
+            m_energy[bin] = scale_N  * calcStateEnergy(state, nnList, m_J);
+            m_m[bin]      = scale_N  * m;
+            m_mAbs[bin]   = scale_N  * abs(m);
             m_m2[bin]     = scale_N2 * m * m;
+            m_mAbs3[bin]  = scale_N3 * abs(m * m * m);
             m_m4[bin]     = scale_N4 * m * m * m * m;
         #endif // PREBINNING_OBSERVABLES
 
@@ -207,13 +230,19 @@ void Simulator::store_data()
 {
     std::vector<std::vector<PRECISION>> data;
     for (int i = 0; i < m_para.nBins; i++)
-        data.push_back({ m_energy.at(i), m_m.at(i), m_mAbs.at(i), m_m2.at(i), m_m4.at(i) });
+        data.push_back({ m_energy.at(i), m_m.at(i), m_mAbs.at(i), m_m2.at(i), m_mAbs3.at(i), m_m4.at(i) });
 
     std::string tj = std::format("TJ_{}", m_TJ); //:.1f
     std::string sPara = parameter_string();
+   
+    #if PREBINNING_OBSERVABLES
+        std::string header = "[Prebinned Observables: energy, m (not prebinned), mAbs, m2, mAbs3, m4] ";
+    #else
+        std::string header = "[(not prebinned) Observables: energy, m , mAbs, m2, mAbs3, m4] ";
+    #endif // PREBINNING_OBSERVABLES
 
-    storeFloatData(data    , "simulation_observ_" + tj + ".txt", "[Prebinned Observables: energy, m (not prebinned), mAbs, m2, m4] " + sPara);
-    storeStateData(m_states, "simulation_states_" + tj + ".txt", "[Spin states] "             + sPara);
+    storeFloatData(data    , "simulation_observ_" + tj + ".txt", header + sPara);
+    storeStateData(m_states, "simulation_states_" + tj + ".txt", "[Spin states] " + sPara);
 }
 
 PRECISION Simulator::calcStateEnergy(const int8_t* state, const uint16_t* nnList, PRECISION J)

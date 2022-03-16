@@ -204,3 +204,40 @@ def mSuscJackknife(binnedMagAbs, binnedMag2, N, T):
     return mean, error
 
 #--------------------------------------------------------------------
+
+@jit(cache=True)
+def k3(mAbs, m2, mAbs3):
+    return mAbs3 - 3.0 * m2 * mAbs + 2.0 * mAbs**3
+
+@jit(cache=True)
+def mK3Jackknife(binnedMagAbs, binnedMag2, binnedMagAbs3):
+    #for k3 after binning
+
+    #init U0
+    size = binnedMagAbs.shape[0] 
+    arr  = np.zeros(size) 
+    for i in range(size):
+        arr[i] = k3(binnedMagAbs[i], binnedMag2[i], binnedMagAbs3[i])
+    U0 = np.mean(arr)
+
+    #cutting
+    cutArr = np.zeros(size - 1)
+    U      = np.zeros(size)
+
+    for skip in range(size):    
+        index = 0
+        for i in range(size):
+            if i == skip:
+                continue
+            
+            cutArr[index] = k3(binnedMagAbs[i], binnedMag2[i], binnedMagAbs3[i])
+            index += 1
+        
+        U[skip] = np.sum(cutArr) / (size - 1)
+    
+    Uq = np.mean(U)
+
+    mean = U0 - (size - 1) * (Uq - U0)
+    error = np.std(U) * np.sqrt(size-1)
+
+    return mean, error

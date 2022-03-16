@@ -12,7 +12,7 @@ struct SimulationParameter
     int nBins   = 1000;      //actual data series size
     int nSweeps = 1000;      //sweeps between bins
 
-    std::string to_string() {return std::format("nTherm: {}, nBins: {}, nSweeps: {}", nTherm, nBins, nSweeps);}
+    std::string to_string() {return std::format("nTherm (at T/J=1): {}, nBins: {}, nSweeps (at T/J=1): {}", nTherm, nBins, nSweeps);}
 };
 
 class Simulator
@@ -41,6 +41,7 @@ public:
     std::vector<PRECISION>             m_m;         //magnetization
     std::vector<PRECISION>             m_mAbs;      //abs magnetization
     std::vector<PRECISION>             m_m2;        //squared magnetization 
+    std::vector<PRECISION>             m_mAbs3;        //cubed magnetization 
     std::vector<PRECISION>             m_m4;        //quartic magnetization 
 
     SimulationParameter m_para;

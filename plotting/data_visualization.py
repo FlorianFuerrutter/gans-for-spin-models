@@ -252,7 +252,7 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
         
     #---------------------------
     title = [r"$\langle |m|\rangle$",  r"$\langle E\rangle$",
-             r"$\chi$",                r"$U_2$"]
+             r"$\chi$",                r"$\kappa_3$"] #r"$U_2$"
 
     #labels = [("%0.1f" % x) for x in TJs]   
     #labels.append(r"$T_c$")
@@ -262,8 +262,8 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
     
     empty_labels = ["" for x in ticks]
 
-    mc_data_list  = [mpd.mAbs  , mpd.energy,   mpd.magSusc,   mpd.binderCu]
-    gan_data_list = [mpd.g_mAbs, mpd.g_energy, mpd.g_magSusc, mpd.g_binderCu] 
+    mc_data_list  = [mpd.mAbs  , mpd.energy,   mpd.magSusc,   mpd.k3] #mpd.binderCu]
+    gan_data_list = [mpd.g_mAbs, mpd.g_energy, mpd.g_magSusc, mpd.g_k3] #mpd.g_binderCu] 
 
     #---------------------------
     clr_sim = "tab:blue"
