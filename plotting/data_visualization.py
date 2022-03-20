@@ -105,26 +105,44 @@ def plot_performance_evaluation_hist(med_objs : dh.model_evaluation_data, use_en
 
             #--------------------------------
             #Simulation
-            if use_energy_not_m:
-                plt.hist(med.energy, bins=me.bin_size_eng, range=me.range_eng, density=True, label="Simulation E", alpha=0.5, color=clr_sim)
-            else:
-                plt.hist(med.m, bins=me.bin_size_m, range=me.range_m, density=True, label="Simulation m", alpha=0.5, color=clr_sim)
+            data   = med.m           
+            bins   = me.bin_size_m
+            b_range = me.range_m
+            label  = "Simulation m"
 
-            #density_sim = gaussian_kde(med.m, bw_method=lambda x: 0.25)
-            #xs = np.linspace(me.range_m[0], me.range_m[1], 500)
-            #plt.plot(xs, density_sim(xs), color=clr_sim)
+            if use_energy_not_m:
+                data  = med.energy              
+                bins  = me.bin_size_eng
+                b_range = me.range_eng
+                label = "Simulation E"
+
+            plt.hist(data, bins=bins, range=b_range, density=True, label=label, alpha=0.5, color=clr_sim)
+
+            if 0:
+                density_sim = gaussian_kde(data, bw_method=lambda x: 0.25)
+                xs = np.linspace(b_range[0], b_range[1], 500)
+                plt.plot(xs, density_sim(xs), color=clr_sim)
 
             
             #--------------------------------
             #GAN
-            if use_energy_not_m:
-                plt.hist(med.g_energy, bins=me.bin_size_eng, range=me.range_eng, density=True, label="GAN E", alpha=0.5, color=clr_gan)
-            else:
-                plt.hist(med.g_m, bins=me.bin_size_m, range=me.range_m, density=True, label="GAN m", alpha=0.5, color=clr_gan)
+            data  = med.g_m           
+            bins  = me.bin_size_m
+            b_range = me.range_m
+            label = "GAN m"
 
-            #density_gan = gaussian_kde(med.g_m, bw_method=lambda x: 0.25)
-            #xs = np.linspace(me.range_m[0], me.range_m[1], 500)
-            #plt.plot(xs, density_gan(xs), color=clr_gan)
+            if use_energy_not_m:
+                data  = med.g_energy           
+                bins  = me.bin_size_eng
+                b_range = me.range_eng
+                label = "GAN E"
+
+            plt.hist(data, bins=bins, range=b_range, density=True, label=label, alpha=0.5, color=clr_gan)
+
+            if 0: 
+                density_gan = gaussian_kde(med.g_m, bw_method=lambda x: 0.25)
+                xs = np.linspace(b_range[0], b_range[1], 500)
+                plt.plot(xs, density_gan(xs), color=clr_gan)
 
             #--------------------------------
             #plt.legend()
@@ -152,17 +170,20 @@ def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
     y_ticks = np.linspace(me.range_eng[0], me.range_eng[1], 6)
     y_empty_labels = ["" for y in y_ticks]
 
-    alpha    = 1
+    alpha_min = 0.2
+    alpha_max = 1
     #--------------------------------
     cmap_sim = plt.get_cmap("Blues")
-    cmap_sim_lin       = cmap_sim(np.arange(cmap_sim.N))
-    cmap_sim_lin[:,-1] = np.linspace(0, alpha, cmap_sim.N)
+    cmap_sim_lin        = cmap_sim(np.arange(cmap_sim.N))
+    cmap_sim_lin[:,-1]  = np.linspace(alpha_min, alpha_max, cmap_sim.N)
+    cmap_sim_lin[0, -1] = 0
     cmap_sim = matplotlib.colors.LinearSegmentedColormap.from_list("", cmap_sim_lin)
 
     #--------------------------------
     cmap_gan = plt.get_cmap("Oranges")   
     cmap_gan_lin       = cmap_gan(np.arange(cmap_gan.N))
-    cmap_gan_lin[:,-1] = np.linspace(0, alpha, cmap_gan.N)
+    cmap_gan_lin[:,-1] = np.linspace(alpha_min, alpha_max, cmap_gan.N)
+    cmap_gan_lin[0, -1] = 0
     cmap_gan = matplotlib.colors.LinearSegmentedColormap.from_list("", cmap_gan_lin)
 
     #--------------------------------
@@ -307,6 +328,21 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
 
             plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
             #plt.legend()
+
+            if i==3 and 0:
+                plt.sca(axs[i].twinx())
+
+                mc_data  = mpd.binderCu
+                gan_data = mpd.g_binderCu
+
+                mean, err     = [x.val for x in mc_data],  [x.err for x in mc_data]
+                g_mean, g_err = [x.val for x in gan_data], [x.err for x in gan_data]
+
+                plt.plot(TJs, mean, "--", color=clr_sim, alpha=0.5, linewidth=0.8)
+                plt.errorbar(TJs, mean, fmt='.', yerr=err, label="Simulated", elinewidth=1, capsize=5, markersize=5, color=clr_sim)
+
+                plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
+
 
     savePdf("plot_performance_evaluation_observables_" + mpd.model_name)
     savePng("plot_performance_evaluation_observables_" + mpd.model_name)

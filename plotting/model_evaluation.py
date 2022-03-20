@@ -202,21 +202,36 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 
         #------------------------
         #determine best epoch !! -> check how to combine emd and pol
-
         #combine m_pol+eng_pol or direclty use phase_pol??
         deval = (mAbs_pol + 2.0*phase_pol) / 3.0
 
+        print("\n")
+        print("[evaluate_model_metrics] m_pol at epoch:", epochs[np.argmax(m_pol)])
+        print("[evaluate_model_metrics] mAbs_pol at epoch:", epochs[np.argmax(mAbs_pol)])
+        print("[evaluate_model_metrics] eng_pol at epoch:", epochs[np.argmax(eng_pol)])
+        print("[evaluate_model_metrics] phase_pol at epoch:", epochs[np.argmax(phase_pol)])
+        print("[evaluate_model_metrics] deval at epoch:", epochs[np.argmax(deval)])
+        print("\n")
+        print("[evaluate_model_metrics] m_emd at epoch:", epochs[np.argmin(m_emd)])
+        print("[evaluate_model_metrics] mAbs_emd at epoch:", epochs[np.argmin(mAbs_emd)])
+        print("[evaluate_model_metrics] eng_emd at epoch:", epochs[np.argmin(eng_emd)])
+        print("\n")
+
+
         best_epoch_index1 = np.argmax(deval)
         best_epoch_index2 = np.argmax(phase_pol)
+        best_epoch_index3 = np.argmax(eng_pol)
+        best_epoch_index4 = np.argmax(mAbs_pol)
+        best_epoch_index5 = np.argmin(eng_emd)
 
         #check how to determine the BEST!!!
         best_epoch_index = best_epoch_index1
-
+      
         #------------------------
         best_epoch = epochs[best_epoch_index]
         print("[evaluate_model_metrics] Model:", model_name, "TJ:", TJ, "Best epoch:", best_epoch, "with percent OL (m_pol):", m_pol[best_epoch_index])
-        print("[evaluate_model_metrics] deval at epoch:", epochs[best_epoch_index1], "is:", deval[best_epoch_index1])
-        print("[evaluate_model_metrics] phase_POl at epoch:", epochs[best_epoch_index2], "is:", phase_pol[best_epoch_index2])
+        print("[evaluate_model_metrics] deval at epoch:", epochs[best_epoch_index], "is:", deval[best_epoch_index])
+        print("[evaluate_model_metrics] phase_POl at epoch:", epochs[best_epoch_index], "is:", phase_pol[best_epoch_index])
 
         #------------------------
         #now extract data for this best_epoch
@@ -355,7 +370,7 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
         #-------------------
         meanMAbs, errorMAbs, meanM2, errorM2, meanMAbs3, errorMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(d.mAbs, d.m2, d.mAbs3)
 
-        meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3)
+        meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3, d.N, d.T)
         mpd.k3.append(dh.err_data(meanK3, errorK3))
 
         #----------------------------------------
@@ -385,7 +400,7 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
         #-------------------
         meanMAbs, errorMAbs, meanM2, errorM2, meanMAbs3, errorMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(d.g_mAbs, d.g_m2, d.g_mAbs3)
 
-        meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3)
+        meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3, d.N, d.T)
         mpd.g_k3.append(dh.err_data(meanK3, errorK3))
 
     return mpd
