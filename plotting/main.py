@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 def main() -> int:
   #-----------------------------------------------------------------
     
-    latent_dims = {"Spin_DC_GAN" : 128}
+    latent_dims = {"Spin_DC_GAN" : 256}
     image_size = (64, 64, 1)
 
     model_names = np.array(["Spin_DC_GAN"])
@@ -31,7 +31,7 @@ def main() -> int:
 
         epoch_step  = 3
         epoch_min   = 2*epoch_step
-        epoch_max   = 150
+        epoch_max   = 999 
         
     else:
         single_eval = False     

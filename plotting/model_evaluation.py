@@ -116,6 +116,58 @@ def evaluate_metric_EM_phase_POL(spin_data_m, spin_data_energy, gan_data_m, gan_
 
 #--------------------------------------------------------------------
 
+def evaluate_metric_OOL(energy, m, mAbs, m2, mAbs3, m4, g_energy, g_m, g_mAbs, g_m2, g_mAbs3, g_m4, N, T): #observable overlap
+    ''' doing for m, E, susc, k3, U2 '''
+
+    #-----------------------------
+    #calc MC values
+    data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3 = perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T) 
+
+    #-----------------------------
+    #calc GAN epoch values
+
+    gan_eng  = []
+    gan_mAbs = []
+    gan_susc = []
+    gan_bind = []
+    gan_k3   = []
+    for i in range(g_energy.shape[0]):
+        g_data_energy, g_data_mAbs, g_data_magSusc, g_data_binderCu, g_data_k3 = perform_observable_calculation(g_energy[i], g_m[i], g_mAbs[i], g_m2[i], g_mAbs3[i], g_m4[i], N, T) 
+
+        gan_eng.append(g_data_energy)
+        gan_mAbs.append(g_data_mAbs)
+        gan_susc.append(g_data_magSusc)
+        gan_bind.append(g_data_binderCu)
+        gan_k3.append(g_data_k3)
+ 
+    #-----------------------------
+    #calc the metric -> here the gan mean distance in units of the error to the MC mean
+    # metric is then the mean distance over the obs for one epoch
+
+    eps = 1e-14 #for numerical reasons
+    distances = []
+    for i in range(g_energy.shape[0]):
+        
+        d1 = ( gan_eng[i].val  - data_energy.val   ) / ( gan_eng[i].err  + eps )
+        d2 = ( gan_mAbs[i].val - data_mAbs.val     ) / ( gan_mAbs[i].err + eps )
+        d3 = ( gan_susc[i].val - data_magSusc.val  ) / ( gan_susc[i].err + eps )
+        d4 = ( gan_bind[i].val - data_binderCu.val ) / ( gan_bind[i].err + eps )
+        d5 = ( gan_k3[i].val   - data_k3.val       ) / ( gan_k3[i].err   + eps )
+
+        if 0:
+            print("gan_eng[i].val", gan_eng[i].val)
+            print("data_energy.val", data_energy.val)
+            print("distance gan_eng", d1)
+            print("\n")
+
+        distances.append(np.square([d1, d2, d3, d4, d5]))
+
+    metric = np.sqrt(np.mean(distances, axis=1))
+
+    return metric
+
+#--------------------------------------------------------------------
+
 #hamilton used, later load B image for energy calculation!!!!
 def calc_states_epoch_energy(N, states_epoch):
     J = 1
@@ -186,6 +238,8 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         g_mAbs3 = g_mAbs * g_m2
         g_m4    = np.square(g_m2)
 
+        obs_dist = evaluate_metric_OOL(energy, m, mAbs, m2, mAbs3, m4, g_energy, g_m, g_mAbs, g_m2, g_mAbs3, g_m4, N, TJ)
+
         #------------------------
         #evaluate metrics of m, energy and abs(m)
 
@@ -199,7 +253,7 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         eng_emd = evaluate_metric_EMD("eng", energy, g_energy)
 
         phase_pol = evaluate_metric_EM_phase_POL(m, energy, g_m, g_energy)
-
+       
         #------------------------
         #determine best epoch !! -> check how to combine emd and pol
         #combine m_pol+eng_pol or direclty use phase_pol??
@@ -224,8 +278,10 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         best_epoch_index4 = np.argmax(mAbs_pol)
         best_epoch_index5 = np.argmin(eng_emd)
 
+        best_epoch_index6 = np.argmin(obs_dist)
+
         #check how to determine the BEST!!!
-        best_epoch_index = best_epoch_index1
+        best_epoch_index = best_epoch_index6
       
         #------------------------
         best_epoch = epochs[best_epoch_index]
@@ -336,71 +392,62 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 
 #--------------------------------------------------------------------
 
+def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):  
+    mean, err, corr = da.binningAnalysisSingle(energy)
+    data_energy = dh.err_data(mean, err)
+
+    #mean, err, corr = da.binningAnalysisSingle(m)
+    #data_m = dh.err_data(mean, err)
+
+    mean, err, corr = da.binningAnalysisSingle(mAbs)
+    data_mAbs = dh.err_data(mean, err)
+
+    #-------------------
+    meanMAbs, errorMAbs, meanM2, errorM2, meanM4, errorM4, corr, binMAbs, binM2, binM4 = da.binningAnalysisTriple(mAbs, m2, m4)
+
+    meanMagSusc, errorMagSusc = da.mSuscJackknife(binMAbs, binM2, N, T)
+    data_magSusc = dh.err_data(meanMagSusc, errorMagSusc)
+
+    meanBinderCu, errorBinderCu = da.mBinderCuJackknife(binM2, binM4)
+    data_binderCu = dh.err_data(meanBinderCu, errorBinderCu)
+
+    #-------------------
+    meanMAbs, errorMAbs, meanM2, errorM2, meanMAbs3, errorMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(mAbs, m2, mAbs3)
+
+    meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3, N, T)
+    data_k3 = dh.err_data(meanK3, errorK3)
+
+    return data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3
+
+
 def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
     mpd = dh.model_processed_data()
     mpd.model_name = med_objs[-1].model_name
 
     #has same len as TJs
     for d in med_objs:
-        
-        #----------------------------------------
-        #----------------------------------------
         #----------------------------------------
         #compute values for MC values -> binning
 
-        #-------------------
-        mean, err, corr = da.binningAnalysisSingle(d.energy)
-        mpd.energy.append(dh.err_data(mean, err))
+        data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3 = perform_observable_calculation(d.energy, d.m, d.mAbs, d.m2, d.mAbs3, d.m4, d.N, d.T)
 
-        #mean, err, corr = da.binningAnalysisSingle(d.m)
-        #mpd.m.append(dh.err_data(mean, err))
-     
-        mean, err, corr = da.binningAnalysisSingle(d.mAbs)
-        mpd.mAbs.append(dh.err_data(mean, err))
+        mpd.energy.append(data_energy)
+        #mpd._m.append(data_m)
+        mpd.mAbs.append(data_mAbs)
+        mpd.magSusc.append(data_magSusc)
+        mpd.binderCu.append(data_binderCu)
+        mpd.k3.append(data_k3)
 
-        #-------------------
-        meanMAbs, errorMAbs, meanM2, errorM2, meanM4, errorM4, corr, binMAbs, binM2, binM4 = da.binningAnalysisTriple(d.mAbs, d.m2, d.m4)
-
-        meanMagSusc, errorMagSusc = da.mSuscJackknife(binMAbs, binM2, d.N, d.T)
-        mpd.magSusc.append(dh.err_data(meanMagSusc, errorMagSusc))
-        
-        meanBinderCu, errorBinderCu = da.mBinderCuJackknife(binM2, binM4)
-        mpd.binderCu.append(dh.err_data(meanBinderCu, errorBinderCu))
-
-        #-------------------
-        meanMAbs, errorMAbs, meanM2, errorM2, meanMAbs3, errorMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(d.mAbs, d.m2, d.mAbs3)
-
-        meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3, d.N, d.T)
-        mpd.k3.append(dh.err_data(meanK3, errorK3))
-
-        #----------------------------------------
-        #----------------------------------------
         #----------------------------------------
         #compute values for GAN values -> binning
 
-        #-------------------
-        mean, err, corr = da.binningAnalysisSingle(d.g_energy)
-        mpd.g_energy.append(dh.err_data(mean, err))
-        
-        #mean, err, corr = da.binningAnalysisSingle(d.g_m)
-        #mpd.g_m.append(dh.err_data(mean, err))
+        g_data_energy, g_data_mAbs, g_data_magSusc, g_data_binderCu, g_data_k3 = perform_observable_calculation(d.g_energy, d.g_m, d.g_mAbs, d.g_m2, d.g_mAbs3, d.g_m4, d.N, d.T)
 
-        mean, err, corr = da.binningAnalysisSingle(d.g_mAbs)
-        mpd.g_mAbs.append(dh.err_data(mean, err))
-
-        #-------------------
-        meanMAbs, errorMAbs, meanM2, errorM2, meanM4, errorM4, corr, binMAbs, binM2, binM4 = da.binningAnalysisTriple(d.g_mAbs, d.g_m2, d.g_m4)
-
-        meanMagSusc, errorMagSusc = da.mSuscJackknife(binMAbs, binM2, d.N, d.T)
-        mpd.g_magSusc.append(dh.err_data(meanMagSusc, errorMagSusc))
-        
-        meanBinderCu, errorBinderCu = da.mBinderCuJackknife(binM2, binM4)
-        mpd.g_binderCu.append(dh.err_data(meanBinderCu, errorBinderCu))
-
-        #-------------------
-        meanMAbs, errorMAbs, meanM2, errorM2, meanMAbs3, errorMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(d.g_mAbs, d.g_m2, d.g_mAbs3)
-
-        meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3, d.N, d.T)
-        mpd.g_k3.append(dh.err_data(meanK3, errorK3))
+        mpd.g_energy.append(g_data_energy)
+        #mpd.g_m.append(g_data_m)
+        mpd.g_mAbs.append(g_data_mAbs)
+        mpd.g_magSusc.append(g_data_magSusc)
+        mpd.g_binderCu.append(g_data_binderCu)
+        mpd.g_k3.append(g_data_k3)
 
     return mpd

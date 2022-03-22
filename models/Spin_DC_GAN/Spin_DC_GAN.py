@@ -44,8 +44,8 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #--------------
     #define loss and optimizer
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9) 
-    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
+    g_optimizer = keras.optimizers.Adam(learning_rate=5e-4, beta_1=0.0, beta_2=0.9) 
+    d_optimizer = keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.0, beta_2=0.9)
    
     #loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
     #loss = gan.wasserstein_loss
@@ -79,7 +79,7 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
 def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.6.txt", amplitude=0.9):
     #create and store new dataset 
     file_path = os.path.join(path, name)
-    states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)
+    states = np.loadtxt(file_path, skiprows=1, dtype=np.float16) #float32
     states = np.reshape(states, ( -1, res, res, 1))
     print("[load_spin_data] Found states:", states.shape[0])
 
@@ -95,11 +95,11 @@ def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.6.txt", a
 def main() -> int:  
     #--------------
     #setup
-    epochs     = 101
-    latent_dim = 256 
+    epochs     = 1002
+    latent_dim = 256 #256
 
     image_size = (64, 64, 1)
-    batch_size = 128
+    batch_size = 128 #128
     
     amplitude  = 0.7 
 

@@ -41,8 +41,8 @@ def load_spin_data(batch_size, res, path, name, amplitude=0.9, load_dataset=Fals
 def main() -> int:
     image_size = (64, 64, 1)
 
-    batch_sizes = {"Spin_DC_GAN" : 128}
-    latent_dims = {"Spin_DC_GAN" : 256}
+    batch_sizes = {"Spin_DC_GAN" : 64}
+    latent_dims = {"Spin_DC_GAN" : 128}
 
     #---------------------------
     model_names = np.array(["Spin_DC_GAN"])
