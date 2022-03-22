@@ -29,7 +29,7 @@ def create_generator(latent_dim):
 
     x = enc_layer(x,  128//4, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16   128 //2
     x = enc_layer(x,  256//4, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2
-    x = enc_layer(x,  384//4, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2
+    x = enc_layer(x,  512//4, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2
     #x = enc_layer(x,  256, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init)
 
     # bad : 128, 160, 192
