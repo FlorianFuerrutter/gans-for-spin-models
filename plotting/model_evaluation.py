@@ -270,7 +270,8 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         print("[evaluate_model_metrics] mAbs_emd at epoch:", epochs[np.argmin(mAbs_emd)])
         print("[evaluate_model_metrics] eng_emd at epoch:", epochs[np.argmin(eng_emd)])
         print("\n")
-
+        print("[evaluate_model_metrics] obs_dist at epoch:", epochs[np.argmin(obs_dist)], " = ", obs_dist[np.argmin(obs_dist)])
+        print("\n")
 
         best_epoch_index1 = np.argmax(deval)
         best_epoch_index2 = np.argmax(phase_pol)
@@ -354,7 +355,9 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         mAbs_emd = mAbs_emd[best_epoch_index]
         eng_pol = eng_pol[best_epoch_index]
         eng_emd = eng_emd[best_epoch_index]
+        
         phase_pol = phase_pol[best_epoch_index]
+        obs_dist  = obs_dist[best_epoch_index]
 
         #------------------------
         #set return obj
@@ -384,7 +387,9 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         d.mAbs_emd = mAbs_emd
         d.eng_pol = eng_pol
         d.eng_emd = eng_emd
+        
         d.phase_pol = phase_pol
+        d.obs_dist  = obs_dist
 
         model_evaluation_data_list.append(d)
 
@@ -422,7 +427,9 @@ def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):
 
 def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
     mpd = dh.model_processed_data()
-    mpd.model_name = med_objs[-1].model_name
+    mpd.model_name    = med_objs[-1].model_name
+    mpd.model_name_id = med_objs[-1].model_name_id
+    mpd.obs_dist      = med_objs[-1].obs_dist
 
     #has same len as TJs
     for d in med_objs:

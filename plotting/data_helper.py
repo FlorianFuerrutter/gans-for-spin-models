@@ -120,6 +120,7 @@ class model_evaluation_data:
     eng_emd : float = -1
 
     phase_pol : float = -1
+    obs_dist  : float = -1
 
 @dataclass
 class err_data:
@@ -130,6 +131,7 @@ class err_data:
 class model_processed_data:
     model_name    : str = ""
     model_name_id : int = 0
+    obs_dist      : float = -1
 
     energy   : list[err_data] = field(default_factory=lambda : [])
     mAbs     : list[err_data] = field(default_factory=lambda : [])

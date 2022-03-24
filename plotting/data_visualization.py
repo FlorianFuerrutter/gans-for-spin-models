@@ -25,6 +25,10 @@ def savePng(filename):
 
 #--------------------------------------------------------------------
 
+#def plot_performance_evaluation_
+
+#--------------------------------------------------------------------
+
 def plot_performance_evaluation_hist(med_objs : dh.model_evaluation_data, use_energy_not_m=False):
     cnt = len(med_objs)
 
@@ -297,7 +301,8 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
         plt.text(1.03, 0.96, r"Simulated", args)
 
     args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color=clr_gan, size="large")
-    plt.text(1.03, 0.96-0.13*(mpd.model_name_id+1), r"{m}".format(m=mpd.model_name), args)
+    plt.text(1.03, 0.96-0.20*(mpd.model_name_id+1),      r"{m}".format(m=mpd.model_name), args)
+    plt.text(1.03, 0.96-0.20*(mpd.model_name_id+1)-0.10, r"OOP: %.2f" % mpd.obs_dist, args)
 
     #---------------------------
     for iy in range(2):

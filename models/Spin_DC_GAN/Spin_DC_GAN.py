@@ -44,7 +44,7 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #--------------
     #define loss and optimizer
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=4e-4, beta_1=0.0, beta_2=0.9) 
+    g_optimizer = keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.0, beta_2=0.9) 
     d_optimizer = keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.0, beta_2=0.9)
    
     #loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
@@ -99,7 +99,7 @@ def main() -> int:
     latent_dim = 256 #256
 
     image_size = (64, 64, 1)
-    batch_size = 128 #128
+    batch_size = 64 #128
     
     amplitude  = 0.7 
 

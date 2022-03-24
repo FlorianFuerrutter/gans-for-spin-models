@@ -21,16 +21,16 @@ def create_generator(latent_dim):
     #Structure
     latent_input = layers.Input(shape=latent_dim)
 
-    x = layers.Dense(8 * 8 * 128//4, use_bias=False)(latent_input)
-    x = layers.Reshape((8, 8, 128//4))(x) #designed to match discriminator flatten  128 //2
+    x = layers.Dense(8 * 8 * 128//2, use_bias=False)(latent_input)
+    x = layers.Reshape((8, 8, 128//2))(x) #designed to match discriminator flatten  128 //2
 
     #----------Encoder
     drop_rate = 0.0
 
-    x = enc_layer(x,  128//4, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16   128 //2
-    x = enc_layer(x,  256//4, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2
-    x = enc_layer(x,  512//4, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2
-    #x = enc_layer(x,  256, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init)
+    x = enc_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16   128 //2
+    x = enc_layer(x,  192//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2
+    x = enc_layer(x,  256//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2
+    #x = enc_layer(x,  1024//4, kernel_size=(4,4), strides=(1,1), drop_rate=drop_rate, kernel_initializer=init)
 
     # bad : 128, 160, 192
 
