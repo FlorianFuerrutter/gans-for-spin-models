@@ -31,6 +31,8 @@ class PeriodicPadding2D(keras.layers.Layer):
         x    = inputs
         size = self.padding
 
+        #assumes channel last format!
+
         #pad cols
         x = tf.concat([x[:, :, -size:], x, x[:, :, 0:size]], axis=2) 
 

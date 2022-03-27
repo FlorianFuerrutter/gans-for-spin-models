@@ -32,12 +32,17 @@ def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), imag
     else:
         gan_model.save_path = os.path.join(model_data_path, gan_name,"TJ_{TJ}".format(TJ=TJ), "gan_")
 
+    last_loaded_epoch_index = -1
     states_epoch = []
-    for epoch in np.array(epochs).astype(int):
+    epochs       = np.array(epochs).astype(int)
+
+    for epoch_index in range(epochs.shape[0]):
+        epoch = epochs[epoch_index]
 
         #load weights gan model for tj
         try:
             gan_model.load(epoch)
+            last_loaded_epoch_index = epoch_index
         except:
             print("[generate_gan_data] Not loaded:", gan_name, ", epoch:", epoch)
             states_epoch.append(np.zeros((images_count, image_size[0] * image_size[1] * image_size[2])))
@@ -62,7 +67,7 @@ def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), imag
 
         states_epoch.append(images)
 
-    return np.array(states_epoch)
+    return np.array(states_epoch), last_loaded_epoch_index
 
 #--------------------------------------------------------------------
 

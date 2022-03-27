@@ -144,15 +144,17 @@ def evaluate_metric_OOL(energy, m, mAbs, m2, mAbs3, m4, g_energy, g_m, g_mAbs, g
     #calc the metric -> here the gan mean distance in units of the error to the MC mean
     # metric is then the mean distance over the obs for one epoch
 
-    eps = 1e-14 #for numerical reasons
+    #eps = 1e-14 #for numerical reasons
+    L = np.sqrt(N)
+
     distances = []
     for i in range(g_energy.shape[0]):
         
-        d1 = ( gan_eng[i].val  - data_energy.val   ) / ( gan_eng[i].err  + eps )
-        d2 = ( gan_mAbs[i].val - data_mAbs.val     ) / ( gan_mAbs[i].err + eps )
-        d3 = ( gan_susc[i].val - data_magSusc.val  ) / ( gan_susc[i].err + eps )
-        d4 = ( gan_bind[i].val - data_binderCu.val ) / ( gan_bind[i].err + eps )
-        d5 = ( gan_k3[i].val   - data_k3.val       ) / ( gan_k3[i].err   + eps )
+        d1 = ( gan_eng[i].val  - data_energy.val   ) / ( L * data_energy.err   )  #+ eps )
+        d2 = ( gan_mAbs[i].val - data_mAbs.val     ) / ( L * data_mAbs.err     ) #+ eps )
+        d3 = ( gan_susc[i].val - data_magSusc.val  ) / ( L * data_magSusc.err  ) #+ eps )
+        d4 = ( gan_bind[i].val - data_binderCu.val ) / ( L * data_binderCu.err ) #+ eps )
+        d5 = ( gan_k3[i].val   - data_k3.val       ) / ( L * data_k3.err       )   #+ eps )
 
         if 0:
             print("gan_eng[i].val", gan_eng[i].val)
@@ -229,7 +231,7 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 
         #------------------------
         #get GAN data for all epochs to determine best epoch
-        states_epoch = dh.generate_gan_data(TJ, model_name, epochs, images_count=images_count, latent_dim=latent_dim, image_size=image_size, alt_path=singe_eval)
+        states_epoch, last_loaded_epoch_index = dh.generate_gan_data(TJ, model_name, epochs, images_count=images_count, latent_dim=latent_dim, image_size=image_size, alt_path=singe_eval)
 
         g_energy = calc_states_epoch_energy(N, states_epoch)
         g_m     = np.sum(states_epoch, axis=2) / N
@@ -254,6 +256,10 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 
         phase_pol = evaluate_metric_EM_phase_POL(m, energy, g_m, g_energy)
        
+        if 1:
+            import data_visualization
+            data_visualization.plot_metrics_history(epochs, last_loaded_epoch_index, model_name, m_pol, mAbs_pol, eng_pol, m_emd, mAbs_emd, eng_emd, phase_pol, obs_dist)
+
         #------------------------
         #determine best epoch !! -> check how to combine emd and pol
         #combine m_pol+eng_pol or direclty use phase_pol??

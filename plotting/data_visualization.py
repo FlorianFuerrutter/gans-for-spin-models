@@ -25,7 +25,82 @@ def savePng(filename):
 
 #--------------------------------------------------------------------
 
-#def plot_performance_evaluation_
+def plot_metrics_history(epochs, last_loaded_epoch_index, model_name, m_pol, mAbs_pol, eng_pol, m_emd, mAbs_emd, eng_emd, phase_pol, obs_dist):
+
+    epochs = epochs[:last_loaded_epoch_index+0]
+    m_pol = m_pol[:last_loaded_epoch_index+0]
+    mAbs_pol = mAbs_pol[:last_loaded_epoch_index+0]
+    eng_pol = eng_pol[:last_loaded_epoch_index+0]
+    m_emd = m_emd[:last_loaded_epoch_index+0]
+    mAbs_emd = mAbs_emd[:last_loaded_epoch_index+0]
+    eng_emd = eng_emd[:last_loaded_epoch_index+0]
+    phase_pol = phase_pol[:last_loaded_epoch_index+0]
+    obs_dist = obs_dist[:last_loaded_epoch_index+0]
+
+    #---------------------------
+    size=(13, 4.8*1.8)
+    fig = plt.figure(figsize=size, constrained_layout=True) 
+    gs = plt.GridSpec(3, 1, figure=fig)
+    #axs = np.array([fig.add_subplot(gs[0]), fig.add_subplot(gs[1]), fig.add_subplot(gs[2]), fig.add_subplot(gs[3])])
+    axs = np.array([fig.add_subplot(gs[0]), fig.add_subplot(gs[1]), fig.add_subplot(gs[2]) ])
+
+    ticks  = np.arange(0, epochs[-1], 50 if epochs[-1]<=250 else 100)
+    labels = [("%d" % x) for x in ticks]    
+    empty_labels = ["" for x in ticks]
+
+    #---------------------------
+    plt.sca(axs[0])
+    plt.margins(0.03)
+    plt.ylabel("%OL")
+    plt.xticks(ticks, empty_labels)
+
+    plt.plot(epochs, m_pol, "-", label="m_pol")
+    plt.plot(epochs, mAbs_pol, "-", label="mAbs_pol")
+    plt.plot(epochs, eng_pol, "-", label="eng_pol")
+    plt.plot(epochs, phase_pol, "-", label="phase_pol")
+    plt.legend()
+
+    #---------------------------
+    plt.sca(axs[1])
+    plt.margins(0.03)
+    plt.ylabel("EMD")
+    plt.yscale('log')
+    plt.xticks(ticks, empty_labels)
+    #plt.ylim([0, 5])
+
+    plt.plot(epochs, m_emd, "-", label="m_emd")
+    plt.plot(epochs, mAbs_emd, "-", label="mAbs_emd")
+    plt.plot(epochs, eng_emd, "-", label="eng_emd")
+    plt.legend()
+
+    #---------------------------
+    plt.sca(axs[2])
+    plt.margins(0.03)
+    plt.ylabel("Obs distance")
+    plt.xlabel("Epoch")
+    plt.xticks(ticks, labels)
+    plt.yscale('log') 
+    #plt.ylim([0, 1.5])
+
+    plt.plot(epochs, obs_dist, "-", label="obs_dist")
+    plt.legend()
+
+    #---------------------------
+    #plt.sca(axs[3])
+    #plt.margins(0.03)
+    #plt.ylabel("Obs distance")
+    #plt.xlabel("Epoch")
+    #plt.ylim([1, 10])
+
+    #plt.plot(epochs, obs_dist, "-", label="obs_dist")
+    #plt.legend()
+  
+    #---------------------------
+    #plt.show()
+    savePdf("plot_metrics_history_" + model_name)
+    savePng("plot_metrics_history_" + model_name)
+    #exit(0)
+    return
 
 #--------------------------------------------------------------------
 

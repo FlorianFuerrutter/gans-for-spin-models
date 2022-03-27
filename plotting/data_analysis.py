@@ -241,3 +241,23 @@ def mK3Jackknife(binnedMagAbs, binnedMag2, binnedMagAbs3, N, T):
     error = np.std(U) * np.sqrt(size-1)
 
     return mean, error
+
+#--------------------------------------------------------------------
+
+def calc_spin_spin_corr(state):
+    corr = -1
+
+    #calc <sigma>^2
+
+    #for each r (max L):
+    #calc corr
+    #<si sj>
+
+    #fit A*epx(-r/zeta)
+
+
+    #do this for gan and mc data
+
+    
+
+    return corr

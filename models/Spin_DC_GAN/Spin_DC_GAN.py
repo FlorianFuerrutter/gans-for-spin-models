@@ -44,9 +44,16 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #--------------
     #define loss and optimizer
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.0, beta_2=0.9) 
-    d_optimizer = keras.optimizers.Adam(learning_rate=1e-4, beta_1=0.0, beta_2=0.9)
+    g_optimizer = keras.optimizers.Adam(learning_rate=3.0e-4, beta_1=0.0, beta_2=0.9) #1.5e-4
+    d_optimizer = keras.optimizers.Adam(learning_rate=3.0e-4, beta_1=0.0, beta_2=0.9) #1.25e-4
    
+    #[test 1.5 1.5 -> 0.35(162) ]    [test 2.0 1.5 -> 0.4(200)]    [test 2.0 2.0 -> bad, 1.2]      [test 2.0 1.75 ->  0.43(138) baad]
+    
+    #[test 1.5 1.25 ->  0.33(153)]    [test 1.25 1.25 ->  diverged 8]    [test 1.25 1.0 ->  0.38(12)]    [test 1.5 1.0 ->  until 87 bad]   [test 1.0 1.0 ->  ]
+    #[test 1.5 1.25 ->  0.46(87)]
+
+    # so 1.0 1.0 good after long time,   what 1.5 1.25
+
     #loss = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
     #loss = gan.wasserstein_loss
 
