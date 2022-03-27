@@ -44,13 +44,27 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #--------------
     #define loss and optimizer
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=3.0e-4, beta_1=0.0, beta_2=0.9) #1.5e-4
-    d_optimizer = keras.optimizers.Adam(learning_rate=3.0e-4, beta_1=0.0, beta_2=0.9) #1.25e-4
+    #[469.0 * 40, 2e-4, 0.5  -> diverge] 
+
+    #[469.0 * 50.0, 2e-4, 0.5  -> 0.28(54), 0.26(60),   ]   -> best !!!!!!!!!!!!!!!!!!!!
+
+    #[469.0 * 57.5.0, 2e-4, 0.5  -> 0.57(60)] bad
+    #[469.0 * 75.0, 2e-4, 0.5  -> 0.31(114) vergy good m and E !!]
+    
+  
+    decay_steps = 469.0 * 50.0  #steps/epochs -> ca bei 30 auf 1e-4
+
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
+                                                              decay_steps=decay_steps,
+                                                              decay_rate=0.5)
+
+    g_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule, beta_1=0.0, beta_2=0.9) #1.5e-4
+    d_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule, beta_1=0.0, beta_2=0.9) #1.25e-4
    
     #[test 1.5 1.5 -> 0.35(162) ]    [test 2.0 1.5 -> 0.4(200)]    [test 2.0 2.0 -> bad, 1.2]      [test 2.0 1.75 ->  0.43(138) baad]
     
     #[test 1.5 1.25 ->  0.33(153)]    [test 1.25 1.25 ->  diverged 8]    [test 1.25 1.0 ->  0.38(12)]    [test 1.5 1.0 ->  until 87 bad]   [test 1.0 1.0 ->  ]
-    #[test 1.5 1.25 ->  0.46(87)]
+    #[test 1.5 1.25 ->  0.46(87)]         [test 5  5 ->  0.89(12)]
 
     # so 1.0 1.0 good after long time,   what 1.5 1.25
 

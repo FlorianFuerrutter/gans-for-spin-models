@@ -42,14 +42,13 @@ def main() -> int:
     image_size = (64, 64, 1)
 
     batch_sizes = {"Spin_DC_GAN" : 64}
-    latent_dims = {"Spin_DC_GAN" : 128}
+    latent_dims = {"Spin_DC_GAN" : 256}
 
     #---------------------------
     model_names = np.array(["Spin_DC_GAN"])
     TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
-    #TJs = np.array([2.6])
 
-    epochs      = 52
+    epochs      = 81
     amplitude   = 0.7
    
     plot_period = 3 #2 * epochs -> not needed, so never

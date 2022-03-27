@@ -129,8 +129,9 @@ class model_evaluation_data:
 
 @dataclass
 class err_data:
-    val : float = 0
-    err : float = 0
+    val : float
+    err : float 
+    std : float
 
 @dataclass
 class model_processed_data:

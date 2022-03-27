@@ -22,11 +22,13 @@ def binningAnalysisSingle(data, printAlreadyConvergedWarning=False):
 
     mean       = np.zeros(maxBinningSteps)
     meanErrors = np.zeros(maxBinningSteps)
+    stds       = np.zeros(maxBinningSteps)
 
     #starting data
     binnedData    = data
     mean[0]       = np.mean(data)
     meanErrors[0] = np.std(data) / np.sqrt(N)
+    stds[0]       = np.std(data)
 
     #binning  up to maxBinningSteps
     for i in range(1, maxBinningSteps):
@@ -39,6 +41,7 @@ def binningAnalysisSingle(data, printAlreadyConvergedWarning=False):
         #new error, mean
         mean[i]       = np.mean(binnedData)
         meanErrors[i] = np.std(binnedData) / np.sqrt(N)
+        stds[i]       = np.std(binnedData)
 
     maxElement = np.argmax(meanErrors)
     if (maxElement+1) == maxBinningSteps: 
@@ -50,7 +53,7 @@ def binningAnalysisSingle(data, printAlreadyConvergedWarning=False):
 
     #print("max error at binstep=%d, binsize=%d" % (mi, 2**mi))  
     corrSize = 2**maxElement
-    return mean[maxElement], meanErrors[maxElement], corrSize
+    return mean[maxElement], meanErrors[maxElement], stds[maxElement], corrSize
 
 def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=False):
     #algo find max of errors -> use this binsize
@@ -64,12 +67,15 @@ def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=Fals
 
     mean1       = np.zeros(maxBinningSteps)
     meanErrors1 = np.zeros(maxBinningSteps)
+    stds1       = np.zeros(maxBinningSteps)
 
     mean2       = np.zeros(maxBinningSteps)
     meanErrors2 = np.zeros(maxBinningSteps)
+    stds2       = np.zeros(maxBinningSteps)
 
     mean3       = np.zeros(maxBinningSteps)
     meanErrors3 = np.zeros(maxBinningSteps)
+    stds3       = np.zeros(maxBinningSteps)
 
     #starting data
     binnedData1    = data1
@@ -78,10 +84,15 @@ def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=Fals
 
     mean1[0]       = np.mean(data1)
     meanErrors1[0] = np.std(data1) / np.sqrt(N)
+    stds1[0]       = np.std(data1)
+
     mean2[0]       = np.mean(data2)
     meanErrors2[0] = np.std(data2) / np.sqrt(N)
+    stds2[0]       = np.std(data2)
+
     mean3[0]       = np.mean(data3)
     meanErrors3[0] = np.std(data3) / np.sqrt(N)
+    stds3[0]       = np.std(data3)
 
     #binning  up to maxBinningSteps
     for i in range(1, maxBinningSteps):
@@ -96,10 +107,15 @@ def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=Fals
         #new error, mean
         mean1[i]       = np.mean(binnedData1)
         meanErrors1[i] = np.std(binnedData1) / np.sqrt(N)
+        stds1[i]       = np.std(binnedData1)
+
         mean2[i]       = np.mean(binnedData2)
         meanErrors2[i] = np.std(binnedData2) / np.sqrt(N)
+        stds2[i]       = np.std(binnedData2)
+
         mean3[i]       = np.mean(binnedData3)
         meanErrors3[i] = np.std(binnedData3) / np.sqrt(N)
+        stds3[i]       = np.std(binnedData3)
 
     #take the binsize of the larger one
     #maxElement == 0 means the init data is used
@@ -122,7 +138,7 @@ def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=Fals
 
     #return
     corrSize = 2**maxElement
-    return mean1[maxElement], meanErrors1[maxElement], mean2[maxElement], meanErrors2[maxElement], mean3[maxElement], meanErrors3[maxElement], corrSize, binnedData1, binnedData2, binnedData3
+    return mean1[maxElement], meanErrors1[maxElement], stds1[maxElement], mean2[maxElement], meanErrors2[maxElement], stds2[maxElement], mean3[maxElement], meanErrors3[maxElement], stds3[maxElement], corrSize, binnedData1, binnedData2, binnedData3
 
 #--------------------------------------------------------------------
 

@@ -145,16 +145,15 @@ def evaluate_metric_OOL(energy, m, mAbs, m2, mAbs3, m4, g_energy, g_m, g_mAbs, g
     # metric is then the mean distance over the obs for one epoch
 
     #eps = 1e-14 #for numerical reasons
-    L = np.sqrt(N)
 
     distances = []
     for i in range(g_energy.shape[0]):
         
-        d1 = ( gan_eng[i].val  - data_energy.val   ) / ( L * data_energy.err   )  #+ eps )
-        d2 = ( gan_mAbs[i].val - data_mAbs.val     ) / ( L * data_mAbs.err     ) #+ eps )
-        d3 = ( gan_susc[i].val - data_magSusc.val  ) / ( L * data_magSusc.err  ) #+ eps )
-        d4 = ( gan_bind[i].val - data_binderCu.val ) / ( L * data_binderCu.err ) #+ eps )
-        d5 = ( gan_k3[i].val   - data_k3.val       ) / ( L * data_k3.err       )   #+ eps )
+        d1 = ( gan_eng[i].val  - data_energy.val   ) / ( data_energy.std   )  #+ eps )
+        d2 = ( gan_mAbs[i].val - data_mAbs.val     ) / ( data_mAbs.std     ) #+ eps )
+        d3 = ( gan_susc[i].val - data_magSusc.val  ) / ( data_magSusc.std  ) #+ eps )
+        d4 = ( gan_bind[i].val - data_binderCu.val ) / ( data_binderCu.std ) #+ eps )
+        d5 = ( gan_k3[i].val   - data_k3.val       ) / ( data_k3.std       )   #+ eps )
 
         if 0:
             print("gan_eng[i].val", gan_eng[i].val)
@@ -256,7 +255,7 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 
         phase_pol = evaluate_metric_EM_phase_POL(m, energy, g_m, g_energy)
        
-        if 1:
+        if (TJs.size == 1):
             import data_visualization
             data_visualization.plot_metrics_history(epochs, last_loaded_epoch_index, model_name, m_pol, mAbs_pol, eng_pol, m_emd, mAbs_emd, eng_emd, phase_pol, obs_dist)
 
@@ -404,29 +403,29 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 #--------------------------------------------------------------------
 
 def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):  
-    mean, err, corr = da.binningAnalysisSingle(energy)
-    data_energy = dh.err_data(mean, err)
+    mean, err, std, corr = da.binningAnalysisSingle(energy)
+    data_energy = dh.err_data(mean, err, std)
 
     #mean, err, corr = da.binningAnalysisSingle(m)
     #data_m = dh.err_data(mean, err)
 
-    mean, err, corr = da.binningAnalysisSingle(mAbs)
-    data_mAbs = dh.err_data(mean, err)
+    mean, err, std, corr = da.binningAnalysisSingle(mAbs)
+    data_mAbs = dh.err_data(mean, err, std)
 
     #-------------------
-    meanMAbs, errorMAbs, meanM2, errorM2, meanM4, errorM4, corr, binMAbs, binM2, binM4 = da.binningAnalysisTriple(mAbs, m2, m4)
+    meanMAbs, errorMAbs, stdMAbs, meanM2, errorM2, stdM2, meanM4, errorM4, stdM4, corr, binMAbs, binM2, binM4 = da.binningAnalysisTriple(mAbs, m2, m4)
 
     meanMagSusc, errorMagSusc = da.mSuscJackknife(binMAbs, binM2, N, T)
-    data_magSusc = dh.err_data(meanMagSusc, errorMagSusc)
+    data_magSusc = dh.err_data(meanMagSusc, errorMagSusc, errorMagSusc)
 
     meanBinderCu, errorBinderCu = da.mBinderCuJackknife(binM2, binM4)
-    data_binderCu = dh.err_data(meanBinderCu, errorBinderCu)
+    data_binderCu = dh.err_data(meanBinderCu, errorBinderCu, errorBinderCu)
 
     #-------------------
-    meanMAbs, errorMAbs, meanM2, errorM2, meanMAbs3, errorMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(mAbs, m2, mAbs3)
+    meanMAbs, errorMAbs, stdMAbs, meanM2, errorM2, stdM2, meanMAbs3, errorMAbs3, stdMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(mAbs, m2, mAbs3)
 
     meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3, N, T)
-    data_k3 = dh.err_data(meanK3, errorK3)
+    data_k3 = dh.err_data(meanK3, errorK3, errorK3)
 
     return data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3
 
