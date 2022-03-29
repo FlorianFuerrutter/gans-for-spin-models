@@ -127,6 +127,12 @@ class model_evaluation_data:
     phase_pol : float = -1
     obs_dist  : float = -1
 
+    xi          : float = -1
+    xi_err      : float = -1
+    g_xi        : float = -1
+    g_xi_err    : float = -1
+    
+
 @dataclass
 class err_data:
     val : float
@@ -137,18 +143,24 @@ class err_data:
 class model_processed_data:
     model_name    : str = ""
     model_name_id : int = 0
-    obs_dist      : float = -1
+
+    obs_dist     : float = -1
+    obs_dist_std : float = -1
+    obs_dist_min : float = -1
+    obs_dist_max : float = -1
 
     energy   : list[err_data] = field(default_factory=lambda : [])
     mAbs     : list[err_data] = field(default_factory=lambda : [])
     magSusc  : list[err_data] = field(default_factory=lambda : [])
     binderCu : list[err_data] = field(default_factory=lambda : [])
     k3       : list[err_data] = field(default_factory=lambda : [])
+    xi       : list[err_data] = field(default_factory=lambda : [])
 
     g_energy   : list[err_data] = field(default_factory=lambda : [])
     g_mAbs     : list[err_data] = field(default_factory=lambda : [])
     g_magSusc  : list[err_data] = field(default_factory=lambda : [])
     g_binderCu : list[err_data] = field(default_factory=lambda : [])
     g_k3       : list[err_data] = field(default_factory=lambda : [])
+    g_xi       : list[err_data] = field(default_factory=lambda : [])
 
 #--------------------------------------------------------------------

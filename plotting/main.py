@@ -30,8 +30,8 @@ def main() -> int:
         TJs         = np.array([2.25])
 
         epoch_step  = 3
-        epoch_min   = 2*epoch_step
-        epoch_max   = 999 
+        epoch_min   = epoch_step * 2
+        epoch_max   = epoch_step * 100  #999 
         
     else:
         single_eval = False     

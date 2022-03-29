@@ -1,5 +1,6 @@
 import numpy as np
 from numba import jit, njit, prange
+from scipy.odr import ODR, Model, Data, RealData
 
 #--------------------------------------------------------------------
 
@@ -260,20 +261,65 @@ def mK3Jackknife(binnedMagAbs, binnedMag2, binnedMagAbs3, N, T):
 
 #--------------------------------------------------------------------
 
-def calc_spin_spin_corr(state):
-    corr = -1
+def fit_spin_spin_correlation(rs, gc_r):    
+    data = RealData(rs, gc_r)
 
-    #calc <sigma>^2
+    def f(beta, x):
+        a, xi = beta
+        return a * np.exp(-x/xi)
 
-    #for each r (max L):
-    #calc corr
-    #<si sj>
+    model = Model(f)
+    odr = ODR(data, model, [1,1])
+    odr.set_job(fit_type=2)       
 
-    #fit A*epx(-r/zeta)
+    output = odr.run()
+    a, xi         = output.beta
+    a_err, xi_err = output.sd_beta
 
+    return a, a_err, xi, xi_err, f
 
-    #do this for gan and mc data
+#--------------------------------------------------------------------
 
+def calc_spin_spin_correlation(states, N):
+    L = int(np.sqrt(N))
+
+    s = np.reshape(states, (-1, L, L))
+
+    sk = np.fft.fft2(s, axes=(-2, -1))
+
+    gc_k = np.square(np.abs(sk)) / N
+
+    #adjust m2 offset
+    gc_k[:, 0, 0] = 0
+
+    #do average here to speed up the inverse fft (N logN * count ;vs; N * count)
+    gc_k_mean = np.mean(gc_k, axis=0)
+
+    #inverse fft
+    gc_rvec = np.fft.ifft2(gc_k_mean, axes=(-2, -1))
+
+    #remove numerical imaginary parts
+    #gc_rvec = np.abs(gc_rvec)
+    gc_rvec = np.real(gc_rvec)
+
+    #average over r=abs(rvec)
+    #we take rvec in only 4 directions to simplify the r evaluation
+
+    gc_r = np.zeros(L//2 + 1)
+    for r in range(0, L//2 + 1):
+
+        g1 = gc_rvec[0, r]
+        g2 = gc_rvec[r, 0]
+
+        gc_r[r] = np.mean([g1, g2])
     
+    #fit exp over (gc_r, r)
+    rs = np.linspace(0, L//2, L//2 + 1)    
 
-    return corr
+    a, a_err, xi, xi_err, fit_func = fit_spin_spin_correlation(rs, gc_r)
+
+    if 1:
+        import data_visualization as dv
+        dv.plot_correlation_fit(rs, gc_r, fit_func, (a, xi))
+
+    return xi, xi_err

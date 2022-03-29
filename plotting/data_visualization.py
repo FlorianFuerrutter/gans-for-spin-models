@@ -104,6 +104,30 @@ def plot_metrics_history(epochs, last_loaded_epoch_index, model_name, m_pol, mAb
 
 #--------------------------------------------------------------------
 
+def plot_correlation_fit(x, y, fit_func, best_vals):
+    size=(12, 4.8*1.0)
+    fig = plt.figure(figsize = size, constrained_layout = True) 
+    plt.xlabel(r"$r$")
+    plt.ylabel(r"$G_c(r)$")
+
+    #data
+    plt.plot(x, y, ".", linewidth=2, ms=5)
+
+    #fit
+    off = 0.04 * ( np.max(x) - np.min(x) ) 
+    x_fit = np.linspace(np.min(x) - off, np.max(x) + off, num = len(x) * 30 + 1, endpoint = True) #x[0] - off
+    y_fit = fit_func(best_vals, x_fit) 
+    plt.plot(x_fit, y_fit, "--")
+
+    args = dict(horizontalalignment='left',verticalalignment='top',transform = plt.gca().transAxes)
+    xkor, ykor, space = 1.02, 0.98, 0.12 
+    plt.text(xkor, ykor - 0*space, r"$a$  = %.3f" % best_vals[0], args)
+    plt.text(xkor, ykor - 1*space, r"$\xi$  = %.3f" % best_vals[1], args)
+
+    return
+
+#--------------------------------------------------------------------
+
 def plot_performance_evaluation_hist(med_objs : dh.model_evaluation_data, use_energy_not_m=False):
     cnt = len(med_objs)
 
@@ -344,15 +368,17 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
     Tc = 1.0 * 2.0 / np.log(1.0 + np.sqrt(2.0))
 
     #---------------------------
-    size=(13, 4.8*1.6)
+    size=(13, 4.8*1.8)
     fig = plt.figure(figsize=size, constrained_layout=True) 
-    gs = plt.GridSpec(2, 2, figure=fig)
+    gs = plt.GridSpec(3, 2, figure=fig)
     axs = np.array([fig.add_subplot(gs[0,0]), fig.add_subplot(gs[0,1]),
-                    fig.add_subplot(gs[1,0]), fig.add_subplot(gs[1,1])])
+                    fig.add_subplot(gs[1,0]), fig.add_subplot(gs[1,1]),
+                    fig.add_subplot(gs[2,0]), fig.add_subplot(gs[2,1])])
         
     #---------------------------
     title = [r"$\langle |m|\rangle$",  r"$\langle E\rangle$",
-             r"$\chi$",                r"$\kappa_3$"] #r"$U_2$"
+             r"$\chi$",                r"$\kappa_3$",
+             r"$U_2$",                r"$\xi$"]
 
     #labels = [("%0.1f" % x) for x in TJs]   
     #labels.append(r"$T_c$")
@@ -362,8 +388,8 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
     
     empty_labels = ["" for x in ticks]
 
-    mc_data_list  = [mpd.mAbs  , mpd.energy,   mpd.magSusc,   mpd.k3] #mpd.binderCu]
-    gan_data_list = [mpd.g_mAbs, mpd.g_energy, mpd.g_magSusc, mpd.g_k3] #mpd.g_binderCu] 
+    mc_data_list  = [mpd.mAbs  , mpd.energy,   mpd.magSusc,   mpd.k3, mpd.binderCu, mpd.xi]
+    gan_data_list = [mpd.g_mAbs, mpd.g_energy, mpd.g_magSusc, mpd.g_k3, mpd.g_binderCu, mpd.g_xi] 
 
     #---------------------------
     clr_sim = "tab:blue"
@@ -377,10 +403,10 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
 
     args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color=clr_gan, size="large")
     plt.text(1.03, 0.96-0.20*(mpd.model_name_id+1),      r"{m}".format(m=mpd.model_name), args)
-    plt.text(1.03, 0.96-0.20*(mpd.model_name_id+1)-0.10, r"OOP: %.2f" % mpd.obs_dist, args)
+    plt.text(1.03, 0.96-0.20*(mpd.model_name_id+1)-0.10, r"OOP: $(%.1f \pm %0.1f)$" % (mpd.obs_dist, mpd.obs_dist_std), args)
 
     #---------------------------
-    for iy in range(2):
+    for iy in range(3):
         for ix in range(2):
             i = iy * 2 + ix
 
@@ -390,7 +416,7 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
             plt.axvline(Tc, color="gray", linestyle="--")
             plt.ylabel(title[i])
 
-            if iy > 0:
+            if iy > 1:
                 plt.xlabel(r'$T/J$')
                 plt.xticks(ticks, labels)
             else:
@@ -400,13 +426,15 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
             mc_data  = mc_data_list[i]
             gan_data = gan_data_list[i]
 
-            mean, err     = [x.val for x in mc_data],  [x.err for x in mc_data]
-            g_mean, g_err = [x.val for x in gan_data], [x.err for x in gan_data]
+            mean, err, std       = [x.val for x in mc_data], [x.err for x in mc_data], [x.std for x in mc_data]
+            g_mean, g_err, g_std = [x.val for x in gan_data], [x.err for x in gan_data], [x.std for x in gan_data]
 
             plt.plot(TJs, mean, "--", color=clr_sim, alpha=0.5, linewidth=0.8)
             plt.errorbar(TJs, mean, fmt='.', yerr=err, label="Simulated", elinewidth=1, capsize=5, markersize=5, color=clr_sim)
+            plt.errorbar(TJs, mean, fmt='.', yerr=std, label="Simulated_std", elinewidth=1, capsize=2, markersize=5, color=clr_sim)
 
             plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
+            plt.errorbar(TJs, g_mean, fmt='.', yerr=g_std, label="GAN_std", elinewidth=1, capsize=2, markersize=5, color=clr_gan)
             #plt.legend()
 
             if i==3 and 0:

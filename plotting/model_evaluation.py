@@ -256,8 +256,8 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         phase_pol = evaluate_metric_EM_phase_POL(m, energy, g_m, g_energy)
        
         if (TJs.size == 1):
-            import data_visualization
-            data_visualization.plot_metrics_history(epochs, last_loaded_epoch_index, model_name, m_pol, mAbs_pol, eng_pol, m_emd, mAbs_emd, eng_emd, phase_pol, obs_dist)
+            import data_visualization as dv
+            dv.plot_metrics_history(epochs, last_loaded_epoch_index, model_name, m_pol, mAbs_pol, eng_pol, m_emd, mAbs_emd, eng_emd, phase_pol, obs_dist)
 
         #------------------------
         #determine best epoch !! -> check how to combine emd and pol
@@ -298,6 +298,22 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         #------------------------
         #now extract data for this best_epoch
         gan_states = states_epoch[best_epoch_index]
+
+        if 1:
+            import os
+            import matplotlib.pyplot as plt
+
+            print("loadtxt")
+            path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
+            file_path = os.path.join(path, "simulation_states_TJ_{TJ}.txt".format(TJ=TJ))
+
+            states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)
+            xi, xi_err = da.calc_spin_spin_correlation(states, N)
+
+            g_xi, g_xi_err = da.calc_spin_spin_correlation(gan_states, N)
+
+            #plt.show()
+            #aasd = 1
 
         if 0:
             import matplotlib.pyplot as plt
@@ -396,6 +412,11 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
         d.phase_pol = phase_pol
         d.obs_dist  = obs_dist
 
+        d.xi       = xi
+        d.xi_err   = xi_err
+        d.g_xi     = g_xi
+        d.g_xi_err = g_xi_err
+
         model_evaluation_data_list.append(d)
 
     return model_evaluation_data_list    
@@ -434,7 +455,12 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
     mpd = dh.model_processed_data()
     mpd.model_name    = med_objs[-1].model_name
     mpd.model_name_id = med_objs[-1].model_name_id
-    mpd.obs_dist      = med_objs[-1].obs_dist
+
+    arr = [x.obs_dist for x in med_objs]
+    mpd.obs_dist     = np.mean(arr)
+    mpd.obs_dist_std = np.std(arr)
+    mpd.obs_dist_min = np.amin(arr)
+    mpd.obs_dist_max = np.amax(arr)
 
     #has same len as TJs
     for d in med_objs:
@@ -461,5 +487,10 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data]):
         mpd.g_magSusc.append(g_data_magSusc)
         mpd.g_binderCu.append(g_data_binderCu)
         mpd.g_k3.append(g_data_k3)
+
+        #----------------------------------------
+        mpd.xi.append(dh.err_data(d.xi, d.xi_err, d.xi_err))
+        mpd.g_xi.append(dh.err_data(d.g_xi, d.g_xi_err, d.g_xi_err))
+        
 
     return mpd

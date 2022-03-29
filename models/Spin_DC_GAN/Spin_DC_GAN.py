@@ -52,11 +52,11 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #[469.0 * 75.0, 2e-4, 0.5  -> 0.31(114) vergy good m and E !!]
     
   
-    decay_steps = 469.0 * 50.0  #steps/epochs -> ca bei 30 auf 1e-4
+    decay_steps = 469.0 * 25.0  #steps/epochs -> ca bei 30 auf 1e-4
 
-    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
+    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.5e-4,
                                                               decay_steps=decay_steps,
-                                                              decay_rate=0.5)
+                                                              decay_rate=0.9)
 
     g_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule, beta_1=0.0, beta_2=0.9) #1.5e-4
     d_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule, beta_1=0.0, beta_2=0.9) #1.25e-4
