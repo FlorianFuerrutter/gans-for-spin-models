@@ -307,7 +307,15 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
             path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
             file_path = os.path.join(path, "simulation_states_TJ_{TJ}.txt".format(TJ=TJ))
 
-            states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)
+            #states = np.loadtxt(file_path, skiprows=1, dtype=np.short) #np.float32)
+
+            #np.save(path+"/zz", states)
+
+            #gg = np.load(path+"/zz.npy")
+
+
+            states = np.load(file_path[:-3]+"npy")
+
             xi, xi_err = da.calc_spin_spin_correlation(states, N)
 
             g_xi, g_xi_err = da.calc_spin_spin_correlation(gan_states, N)

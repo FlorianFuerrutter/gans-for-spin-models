@@ -22,8 +22,12 @@ def load_spin_data(batch_size, res, path, name, amplitude=0.9, load_dataset=Fals
     else:
         #create new dataset 
         file_path = os.path.join(path, name)
-        states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)
+        
+        #states = np.loadtxt(file_path, skiprows=1, dtype=np.float32)
+        states = np.load(file_path[:-3]+"npy")
+
         states = np.reshape(states, ( -1, res, res, 1))
+        
         print("[load_spin_data] Found states:", states.shape[0])
 
         #scale (+-)1 to (+-)amplitude
@@ -48,7 +52,7 @@ def main() -> int:
     model_names = np.array(["Spin_DC_GAN"])
     TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
 
-    epochs      = 81
+    epochs      = 100
     amplitude   = 0.7
    
     plot_period = 3 #2 * epochs -> not needed, so never

@@ -383,7 +383,8 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
     #labels = [("%0.1f" % x) for x in TJs]   
     #labels.append(r"$T_c$")
     #ticks = TJs #np.append(TJs, Tc) 
-    ticks  = [1.0, 1.8, 2.0, 2.2, 2.4, 2.6, 3.4]
+    ticks  = [1.0, 1.8, 2.2, 2.6, 3.4]
+    #ticks  = [1.0, 1.8, 2.0, 2.2, 2.4, 2.6, 3.4]
     labels = [("%0.1f" % x) for x in ticks]  
     
     empty_labels = ["" for x in ticks]

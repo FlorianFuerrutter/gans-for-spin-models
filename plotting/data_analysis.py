@@ -287,7 +287,7 @@ def calc_spin_spin_correlation(states, N):
 
     sk = np.fft.fft2(s, axes=(-2, -1))
 
-    gc_k = np.square(np.abs(sk)) / N
+    gc_k = np.square(np.abs(sk)) / L
 
     #adjust m2 offset
     gc_k[:, 0, 0] = 0

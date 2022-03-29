@@ -75,7 +75,9 @@ def load_spin_observables(TJ):
     path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
     file_path = os.path.join(path, "simulation_observ_TJ_{TJ}.txt".format(TJ=TJ))
 
-    obser = np.transpose(np.loadtxt(file_path, skiprows=1, dtype=np.float32))
+    obser = np.transpose(np.load(file_path[:-3]+"npy"))
+    #obser = np.transpose(np.loadtxt(file_path, skiprows=1, dtype=np.float32))
+
     energy = obser[0]
     m      = obser[1]
     mAbs   = obser[2]

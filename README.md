@@ -21,7 +21,6 @@ Bachelor thesis
 #### Table of contents
 - [data folder](data)
 - [train data](data/train)
-- [generated data](data/generated)
 - [simulation](simulation)
 - [plotting](plotting)
 
