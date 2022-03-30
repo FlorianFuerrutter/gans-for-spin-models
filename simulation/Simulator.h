@@ -48,18 +48,18 @@ public:
 
 private:
 
-    PRECISION calcStateEnergy(const int8_t* state, const uint16_t* nnList, PRECISION J);    //--- HAMILTON USED!! ---  
+    PRECISION calcStateEnergy(const int8_t* state, const uint32_t* nnList, PRECISION J);    //--- HAMILTON USED!! ---  
 
     //------------------
     //Monte Carlo
      
     //--- HAMILTON USED!! ---
     void precalc_monte_carlo(PRECISION* pFlips, PRECISION T, PRECISION J);                  //--- HAMILTON USED!! ---       
-    void update_monte_carlo(int8_t* state, const uint16_t* nnList, const PRECISION* pFlips, int n); //perform updates
+    void update_monte_carlo(int8_t* state, const uint32_t* nnList, const PRECISION* pFlips, int n); //perform updates
 
     //------------------
     //Wolff Cluster
-    void update_wolff_cluster(int8_t* state, const uint16_t* nnList, int n); //perform updates
+    void update_wolff_cluster(int8_t* state, const uint32_t* nnList, int n); //perform updates
 
     //------------------
     PRECISION m_pAccept = 0;

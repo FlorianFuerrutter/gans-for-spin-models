@@ -11,7 +11,7 @@ namespace
 {
     //compile time for max performance
     static   int8_t  state[N];        //actual system state, spins +-1
-    static uint16_t  nnList[N * 4];   //nn list
+    static uint32_t  nnList[N * 4];   //nn list
     static PRECISION pFlips[9];       //precalculated monte carlo values
 }
 
@@ -245,7 +245,7 @@ void Simulator::store_data()
     storeStateData(m_states, "simulation_states_" + tj + ".txt", "[Spin states] " + sPara);
 }
 
-PRECISION Simulator::calcStateEnergy(const int8_t* state, const uint16_t* nnList, PRECISION J)
+PRECISION Simulator::calcStateEnergy(const int8_t* state, const uint32_t* nnList, PRECISION J)
 {
     PRECISION energy = 0;
 
@@ -270,7 +270,7 @@ void Simulator::precalc_monte_carlo(PRECISION* pFlips, PRECISION T, PRECISION J)
     for (int8_t m = -4; m < 5; m += 2)
         pFlips[m + 4] = exp(preFactor * m);
 }
-void Simulator::update_monte_carlo(int8_t* state, const uint16_t* nnList, const PRECISION* pFlips, int n)
+void Simulator::update_monte_carlo(int8_t* state, const uint32_t* nnList, const PRECISION* pFlips, int n)
 {
     for (int i = 0; i < n; i++)
     {
@@ -297,7 +297,7 @@ void Simulator::update_monte_carlo(int8_t* state, const uint16_t* nnList, const 
     }
 }
 
-void Simulator::update_wolff_cluster(int8_t* state, const uint16_t* nnList, int n)
+void Simulator::update_wolff_cluster(int8_t* state, const uint32_t* nnList, int n)
 {
     //starting position
     int init_pos      = rand() % n;

@@ -287,7 +287,7 @@ def calc_spin_spin_correlation(states, N):
 
     sk = np.fft.fft2(s, axes=(-2, -1))
 
-    gc_k = np.square(np.abs(sk)) / L
+    gc_k = np.square(np.abs(sk)) / N
 
     #adjust m2 offset
     gc_k[:, 0, 0] = 0
@@ -299,8 +299,8 @@ def calc_spin_spin_correlation(states, N):
     gc_rvec = np.fft.ifft2(gc_k_mean, axes=(-2, -1))
 
     #remove numerical imaginary parts
-    #gc_rvec = np.abs(gc_rvec)
-    gc_rvec = np.real(gc_rvec)
+    gc_rvec = np.abs(gc_rvec)
+    #gc_rvec = np.real(gc_rvec)
 
     #average over r=abs(rvec)
     #we take rvec in only 4 directions to simplify the r evaluation
@@ -311,14 +311,17 @@ def calc_spin_spin_correlation(states, N):
         g1 = gc_rvec[0, r]
         g2 = gc_rvec[r, 0]
 
-        gc_r[r] = np.mean([g1, g2])
-    
+        g3 = gc_rvec[0, -r]
+        g4 = gc_rvec[-r, 0]
+
+        gc_r[r] = np.mean([g1, g2, g3, g4])
+           
     #fit exp over (gc_r, r)
     rs = np.linspace(0, L//2, L//2 + 1)    
 
     a, a_err, xi, xi_err, fit_func = fit_spin_spin_correlation(rs, gc_r)
 
-    if 1:
+    if 0:
         import data_visualization as dv
         dv.plot_correlation_fit(rs, gc_r, fit_func, (a, xi))
 

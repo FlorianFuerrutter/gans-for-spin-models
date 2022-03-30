@@ -111,7 +111,7 @@ def plot_correlation_fit(x, y, fit_func, best_vals):
     plt.ylabel(r"$G_c(r)$")
 
     #data
-    plt.plot(x, y, ".", linewidth=2, ms=5)
+    plt.plot(x, y, ".", ms=16)
 
     #fit
     off = 0.04 * ( np.max(x) - np.min(x) ) 
@@ -368,7 +368,7 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
     Tc = 1.0 * 2.0 / np.log(1.0 + np.sqrt(2.0))
 
     #---------------------------
-    size=(13, 4.8*1.8)
+    size=(13, 4.8*1.9)
     fig = plt.figure(figsize=size, constrained_layout=True) 
     gs = plt.GridSpec(3, 2, figure=fig)
     axs = np.array([fig.add_subplot(gs[0,0]), fig.add_subplot(gs[0,1]),
@@ -434,8 +434,8 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
             plt.errorbar(TJs, mean, fmt='.', yerr=err, label="Simulated", elinewidth=1, capsize=5, markersize=5, color=clr_sim)
             plt.errorbar(TJs, mean, fmt='.', yerr=std, label="Simulated_std", elinewidth=1, capsize=2, markersize=5, color=clr_sim)
 
-            plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
-            plt.errorbar(TJs, g_mean, fmt='.', yerr=g_std, label="GAN_std", elinewidth=1, capsize=2, markersize=5, color=clr_gan)
+            #plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
+            #plt.errorbar(TJs, g_mean, fmt='.', yerr=g_std, label="GAN_std", elinewidth=1, capsize=2, markersize=5, color=clr_gan)
             #plt.legend()
 
             if i==3 and 0:
@@ -451,7 +451,6 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
                 plt.errorbar(TJs, mean, fmt='.', yerr=err, label="Simulated", elinewidth=1, capsize=5, markersize=5, color=clr_sim)
 
                 plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
-
 
     savePdf("plot_performance_evaluation_observables_" + mpd.model_name)
     savePng("plot_performance_evaluation_observables_" + mpd.model_name)

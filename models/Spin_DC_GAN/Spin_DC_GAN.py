@@ -52,14 +52,18 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #[469.0 * 75.0, 2e-4, 0.5  -> 0.31(114) vergy good m and E !!]
     
   
-    decay_steps = 469.0 * 25.0  #steps/epochs -> ca bei 30 auf 1e-4
+    decay_steps = 469.0 * 35.0  #steps/epochs -> ca bei 30 auf 1e-4
 
-    lr_schedule = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.5e-4,
+    lr_schedule_gen = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.5e-4,
                                                               decay_steps=decay_steps,
                                                               decay_rate=0.9)
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule, beta_1=0.0, beta_2=0.9) #1.5e-4
-    d_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule, beta_1=0.0, beta_2=0.9) #1.25e-4
+    lr_schedule_dis = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.3e-4,
+                                                              decay_steps=decay_steps,
+                                                              decay_rate=0.9)
+
+    g_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule_gen, beta_1=0.0, beta_2=0.9) #1.5e-4
+    d_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule_dis, beta_1=0.0, beta_2=0.9) #1.25e-4
    
     #[test 1.5 1.5 -> 0.35(162) ]    [test 2.0 1.5 -> 0.4(200)]    [test 2.0 2.0 -> bad, 1.2]      [test 2.0 1.75 ->  0.43(138) baad]
     
@@ -100,7 +104,10 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
 def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.6.txt", amplitude=0.9):
     #create and store new dataset 
     file_path = os.path.join(path, name)
-    states = np.loadtxt(file_path, skiprows=1, dtype=np.float16) #float32
+    
+    #states = np.loadtxt(file_path, skiprows=1, dtype=np.float16) #float32
+    states = np.load(file_path[:-3]+"npy")
+
     states = np.reshape(states, ( -1, res, res, 1))
     print("[load_spin_data] Found states:", states.shape[0])
 
@@ -130,7 +137,7 @@ def main() -> int:
 
     if 1: 
         #create and store new dataset 
-        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.25.txt", amplitude=amplitude)    
+        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_1.8.txt", amplitude=amplitude)    
         #tf.data.experimental.save(dataset, path) 
         #exit(0)
     else:

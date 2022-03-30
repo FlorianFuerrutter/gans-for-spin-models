@@ -8,10 +8,10 @@ namespace
     inline int positive_modulo(int i, int n) { return (i % n + n) % n; }
 }
 
-void generate_2D_NNList(int xL, int yL, uint16_t* nnList)
+void generate_2D_NNList(int xL, int yL, uint32_t* nnList)
 { 
-    if (xy_to_index(xL, yL, yL) > UINT16_MAX)
-        throw std::runtime_error("xL * yL > UINT8_MAX");
+    if (xL * yL * 4 > UINT32_MAX)
+        throw std::runtime_error("xL * yL * 4 > UINT32_MAX");
 
     for (int y = 0; y < yL; y++)
     {

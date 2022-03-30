@@ -68,7 +68,7 @@ def create_discriminator(image_res):
     #Structure
     image_input = layers.Input(shape=image_res)
 
-    x = layers.GaussianNoise(0.01)(image_input)
+    x = layers.GaussianNoise(0.005)(image_input)
 
     #Add periodic bounding conditions
     x = PeriodicPadding2D(padding=1)(x)

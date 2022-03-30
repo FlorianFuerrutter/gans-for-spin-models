@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>7634a9e4-b0c3-4b7e-b174-4161b8a4f348</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>main.py</StartupFile>
+    <StartupFile>simulation_evaluation.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -33,6 +33,9 @@
     </Compile>
     <Compile Include="main.py" />
     <Compile Include="model_evaluation.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="simulation_evaluation.py">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
