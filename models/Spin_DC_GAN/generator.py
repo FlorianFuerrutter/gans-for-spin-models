@@ -22,7 +22,7 @@ def create_generator(latent_dim):
     latent_input = layers.Input(shape=latent_dim)
 
     x = layers.Dense(8 * 8 * 128//2, use_bias=False)(latent_input)
-    x = layers.Reshape((8, 8, 128//2))(x) #designed to match discriminator flatten  128 //2
+    x = layers.Reshape((8, 8, 128//2))(x)
 
     #----------Encoder
     drop_rate = 0.0
@@ -31,15 +31,6 @@ def create_generator(latent_dim):
     x = enc_layer(x,  192//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2
     x = enc_layer(x,  256//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2
     #x = enc_layer(x,  1024//4, kernel_size=(4,4), strides=(1,1), drop_rate=drop_rate, kernel_initializer=init)
-
-    # bad : 128, 160, 192
-
-    # best: 128, 192, 256 
-
-    # bad obs with 3e4, 4e-4 gen  : 128, 256, 384
-    #   dis 1e-4   gen 5e-5
-
-    # bad : 128, 256, 512      dis 1e-4   gen 5e-5
 
     #------- Activation-layer
     output = layers.Conv2D(1, kernel_size=(5,5), strides=1, padding='same', activation=activations.tanh)(x)

@@ -429,6 +429,160 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 
     return model_evaluation_data_list    
 
+def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, image_size, images_count=1000, N=64*64):
+
+    model_evaluation_data_list = []
+
+    for TJ in TJs:
+        #------------------------
+        #get spin data
+        energy, m, mAbs, m2, mAbs3, m4 = dh.load_spin_observables(TJ)
+
+        #------------------------
+        #get GAN data for all epochs to determine best epoch
+        states_epoch, last_loaded_epoch_index = dh.generate_gan_data(TJ, model_name, epochs, images_count=images_count, latent_dim=latent_dim, image_size=image_size, alt_path=singe_eval)
+
+        g_energy = calc_states_epoch_energy(N, states_epoch)
+        g_m     = np.sum(states_epoch, axis=2) / N
+        g_mAbs  = np.abs(g_m)
+        g_m2    = np.square(g_m)
+        g_mAbs3 = g_mAbs * g_m2
+        g_m4    = np.square(g_m2)
+
+        obs_dist = evaluate_metric_OOL(energy, m, mAbs, m2, mAbs3, m4, g_energy, g_m, g_mAbs, g_m2, g_mAbs3, g_m4, N, TJ)
+
+        #------------------------
+        #evaluate metrics of m, energy and abs(m)
+
+        m_pol = evaluate_metric_POL("m", m, g_m)
+        m_emd = evaluate_metric_EMD("m", m, g_m)
+
+        mAbs_pol = evaluate_metric_POL("mAbs", mAbs, g_mAbs)
+        mAbs_emd = evaluate_metric_EMD("mAbs", mAbs, g_mAbs)
+
+        eng_pol = evaluate_metric_POL("eng", energy, g_energy)
+        eng_emd = evaluate_metric_EMD("eng", energy, g_energy)
+
+        phase_pol = evaluate_metric_EM_phase_POL(m, energy, g_m, g_energy)
+       
+        if (TJs.size == 1):
+            pass
+        #------------------------
+        #determine best epoch !! -> check how to combine emd and pol
+        #combine m_pol+eng_pol or direclty use phase_pol??
+        deval = (mAbs_pol + 2.0*phase_pol) / 3.0
+
+        print("\n")
+        print("[evaluate_model_metrics] m_pol at epoch:", epochs[np.argmax(m_pol)])
+        print("[evaluate_model_metrics] mAbs_pol at epoch:", epochs[np.argmax(mAbs_pol)])
+        print("[evaluate_model_metrics] eng_pol at epoch:", epochs[np.argmax(eng_pol)])
+        print("[evaluate_model_metrics] phase_pol at epoch:", epochs[np.argmax(phase_pol)])
+        print("[evaluate_model_metrics] deval at epoch:", epochs[np.argmax(deval)])
+        print("\n")
+        print("[evaluate_model_metrics] m_emd at epoch:", epochs[np.argmin(m_emd)])
+        print("[evaluate_model_metrics] mAbs_emd at epoch:", epochs[np.argmin(mAbs_emd)])
+        print("[evaluate_model_metrics] eng_emd at epoch:", epochs[np.argmin(eng_emd)])
+        print("\n")
+        print("[evaluate_model_metrics] obs_dist at epoch:", epochs[np.argmin(obs_dist)], " = ", obs_dist[np.argmin(obs_dist)])
+        print("\n")
+
+        best_epoch_index1 = np.argmax(deval)
+        best_epoch_index2 = np.argmax(phase_pol)
+        best_epoch_index3 = np.argmax(eng_pol)
+        best_epoch_index4 = np.argmax(mAbs_pol)
+        best_epoch_index5 = np.argmin(eng_emd)
+
+        best_epoch_index6 = np.argmin(obs_dist)
+
+        #check how to determine the BEST!!!
+        best_epoch_index = best_epoch_index6
+      
+        #------------------------
+        best_epoch = epochs[best_epoch_index]
+        print("[evaluate_model_metrics] Model:", model_name, "TJ:", TJ, "Best epoch:", best_epoch, "with percent OL (m_pol):", m_pol[best_epoch_index])
+        print("[evaluate_model_metrics] deval at epoch:", epochs[best_epoch_index], "is:", deval[best_epoch_index])
+        print("[evaluate_model_metrics] phase_POl at epoch:", epochs[best_epoch_index], "is:", phase_pol[best_epoch_index])
+
+        #------------------------
+        #now extract data for this best_epoch
+        gan_states = states_epoch[best_epoch_index]
+
+        if 1:
+            import os
+
+            print("loadtxt")
+            path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
+            file_path = os.path.join(path, "simulation_states_TJ_{TJ}.txt".format(TJ=TJ))
+            states = np.load(file_path[:-3]+"npy")
+
+            xi, xi_err = da.calc_spin_spin_correlation(states, N)
+            g_xi, g_xi_err = da.calc_spin_spin_correlation(gan_states, N)
+  
+
+        g_energy = g_energy[best_epoch_index]
+        g_m      = g_m[best_epoch_index]
+        g_mAbs   = g_mAbs[best_epoch_index]
+        g_m2     = g_m2[best_epoch_index]
+        g_mAbs3  = g_mAbs3[best_epoch_index]
+        g_m4     = g_m4[best_epoch_index]
+
+        m_pol   = m_pol[best_epoch_index]
+        m_emd   = m_emd[best_epoch_index]
+        mAbs_pol = mAbs_pol[best_epoch_index]
+        mAbs_emd = mAbs_emd[best_epoch_index]
+        eng_pol = eng_pol[best_epoch_index]
+        eng_emd = eng_emd[best_epoch_index]
+        
+        phase_pol = phase_pol[best_epoch_index]
+        obs_dist  = obs_dist[best_epoch_index]
+
+        #------------------------
+        #set return obj
+        d = dh.model_evaluation_data()
+        d.T = TJ
+        d.N = N
+        d.model_name = model_name
+
+        d.energy = energy
+        d.m      = m
+        d.mAbs   = mAbs
+        d.m2     = m2
+        d.mAbs3  = mAbs3
+        d.m4     = m4
+
+        d.g_energy = g_energy
+        d.g_m      = g_m
+        d.g_mAbs   = g_mAbs
+        d.g_m2     = g_m2
+        d.g_mAbs3  = g_mAbs3
+        d.g_m4     = g_m4
+        
+        d.best_epoch = best_epoch
+        d.m_pol   = m_pol
+        d.m_emd   = m_emd
+        d.mAbs_pol = mAbs_pol
+        d.mAbs_emd = mAbs_emd
+        d.eng_pol = eng_pol
+        d.eng_emd = eng_emd
+        
+        d.phase_pol = phase_pol
+        d.obs_dist  = obs_dist
+
+        d.xi       = xi
+        d.xi_err   = xi_err
+        d.g_xi     = g_xi
+        d.g_xi_err = g_xi_err
+
+        model_evaluation_data_list.append(d)
+
+    #------ eval here the epochs over all TJs, 
+
+    import data_visualization as dv
+    dv.plot_metrics_history(epochs, last_loaded_epoch_index, model_name, m_pol, mAbs_pol, eng_pol, m_emd, mAbs_emd, eng_emd, phase_pol, obs_dist)
+
+
+    return model_evaluation_data_list  
+
 #--------------------------------------------------------------------
 
 def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):  

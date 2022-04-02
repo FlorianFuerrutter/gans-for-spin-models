@@ -124,6 +124,7 @@ def plot_correlation_fit(x, y, fit_func, best_vals):
     plt.text(xkor, ykor - 0*space, r"$a$  = %.3f" % best_vals[0], args)
     plt.text(xkor, ykor - 1*space, r"$\xi$  = %.3f" % best_vals[1], args)
 
+    #plt.show()
     return
 
 #--------------------------------------------------------------------
@@ -434,8 +435,8 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
             plt.errorbar(TJs, mean, fmt='.', yerr=err, label="Simulated", elinewidth=1, capsize=5, markersize=5, color=clr_sim)
             plt.errorbar(TJs, mean, fmt='.', yerr=std, label="Simulated_std", elinewidth=1, capsize=2, markersize=5, color=clr_sim)
 
-            #plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
-            #plt.errorbar(TJs, g_mean, fmt='.', yerr=g_std, label="GAN_std", elinewidth=1, capsize=2, markersize=5, color=clr_gan)
+            plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
+            plt.errorbar(TJs, g_mean, fmt='.', yerr=g_std, label="GAN_std", elinewidth=1, capsize=2, markersize=5, color=clr_gan)
             #plt.legend()
 
             if i==3 and 0:

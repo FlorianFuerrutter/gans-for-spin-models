@@ -1,6 +1,8 @@
 import sys, os.path
 import numpy as np
 import importlib
+from dataclasses import dataclass, field
+
 
 #--------------------------------------------------------------------
 
@@ -27,6 +29,7 @@ def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), imag
     gan = importGAN(gan_name)
 
     gan_model = gan.gan(latent_dim, image_size)
+
     if alt_path:
         gan_model.save_path = os.path.join(os.path.dirname(__file__), "..", "models", gan_name, "model-saves", "gan_")
     else:
@@ -60,7 +63,71 @@ def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), imag
             generated_images = np.concatenate((generated_images, t), axis=0)
 
         #clip to +-1
-        images = np.where(generated_images < 0, -1, 1)
+        images = np.where(generated_images < 0.0, -1.0, 1.0)
+       
+        if image_size is not None:
+            images = np.reshape(images, (-1, image_size[0] * image_size[1] * image_size[2]))
+
+        states_epoch.append(images)
+
+    return np.array(states_epoch), last_loaded_epoch_index
+
+#--------------------------------------------------------------------
+
+def importConditionalGAN(gan_name):
+    model_path = os.path.join(os.path.dirname(__file__), "..", "models", gan_name)
+       
+    if ("conditional_gan" in sys.modules):
+        #check if imported
+        sys.path.pop() #remove last path, this only works if no other path changes were done
+        sys.path.append(model_path)
+        conditional_gan = importlib.reload(sys.modules["conditional_gan"])
+    else:
+        #else import it
+        sys.path.append(model_path)
+        import conditional_gan
+
+    return conditional_gan
+
+def generate_conditional_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), images_count=1000, latent_dim=128, conditional_dim=1, image_size=(64, 64, 1), alt_path=False):
+    conditional_gan = importConditionalGAN(gan_name)
+
+    gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
+
+    if alt_path:
+        gan_model.save_path = os.path.join(os.path.dirname(__file__), "..", "models", gan_name, "model-saves", "gan_")
+    else:
+        gan_model.save_path = os.path.join(model_data_path, gan_name,"c_gan", "gan_")
+
+    last_loaded_epoch_index = -1
+    states_epoch = []
+    epochs       = np.array(epochs).astype(int)
+
+    for epoch_index in range(epochs.shape[0]):
+        epoch = epochs[epoch_index]
+
+        #load weights gan model for tj
+        try:
+            gan_model.load(epoch)
+            last_loaded_epoch_index = epoch_index
+        except:
+            print("[generate_gan_data] Not loaded:", gan_name, ", epoch:", epoch)
+            states_epoch.append(np.zeros((images_count, image_size[0] * image_size[1] * image_size[2])))
+            continue
+
+        #generate spin data
+        batch_size = 100
+
+        latent_vectors = gan.sample_generator_input(batch_size, latent_dim)
+        generated_images = (gan_model.generator(latent_vectors)).numpy()
+       
+        for i in range((images_count // batch_size) - 1):
+            latent_vectors = gan.sample_generator_input(batch_size, latent_dim)
+            t = (gan_model.generator(latent_vectors)).numpy()
+            generated_images = np.concatenate((generated_images, t), axis=0)
+
+        #clip to +-1
+        images = np.where(generated_images < 0.0, -1.0, 1.0)
        
         if image_size is not None:
             images = np.reshape(images, (-1, image_size[0] * image_size[1] * image_size[2]))
@@ -89,8 +156,6 @@ def load_spin_observables(TJ):
     return energy, m, mAbs, m2, mAbs3, m4
 
 #--------------------------------------------------------------------
-
-from dataclasses import dataclass, field
 
 @dataclass
 class model_evaluation_data:
@@ -134,7 +199,6 @@ class model_evaluation_data:
     g_xi        : float = -1
     g_xi_err    : float = -1
     
-
 @dataclass
 class err_data:
     val : float

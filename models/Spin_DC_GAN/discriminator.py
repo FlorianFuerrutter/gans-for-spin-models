@@ -68,22 +68,18 @@ def create_discriminator(image_res):
     #Structure
     image_input = layers.Input(shape=image_res)
 
-    x = layers.GaussianNoise(0.005)(image_input)
+    #x = layers.GaussianNoise(0.01)(image_input)
 
     #Add periodic bounding conditions
-    x = PeriodicPadding2D(padding=1)(x)
+    x = PeriodicPadding2D(padding=1)(image_input)
 
     #-----------Decoder
     drop_rate = 0.0
       
-    #good all // 1
-
     x = dec_layer(x,   64//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init, padding='valid') #32x32  #64//2
     x = dec_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16                   #128//2
     x = dec_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #8x8                     #128//2
     #x = dec_layer(x, 128, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #4x4
-
-    #64//2 #96//2 #128//2, best
 
     #----------- Activation-layer
     x = layers.Flatten()(x)

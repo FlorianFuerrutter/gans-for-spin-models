@@ -1,4 +1,14 @@
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams.update({
+    'text.usetex': False,
+    'font.family': 'serif',
+    'font.serif': 'cmr10',
+    'font.size': 13,
+    'mathtext.fontset': 'cm',
+    'font.family': 'STIXGeneral',
+    'axes.unicode_minus': True})
+
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -11,7 +21,7 @@ from keras import backend as K
 
 #--------------------------------------------------------------------
 
-def plot_images(generated_images, images_count, epoch, plot_path=""):
+def plot_images(generated_images, labels, images_count, epoch, plot_path=""):
     fig = plt.figure(figsize=(5, 5))
     plt.subplots_adjust(left=0.0, bottom=0.0, right=1.0, top=1.0, wspace=0.05, hspace=0.05)
 
@@ -23,7 +33,10 @@ def plot_images(generated_images, images_count, epoch, plot_path=""):
         generated_image = generated_images[i].numpy()
         generated_image = np.where(generated_image < 0.5, -1, 1)
         plt.imshow(generated_image)  
-        
+
+        args = dict(horizontalalignment='left',verticalalignment='top',transform = plt.gca().transAxes, color="black",bbox=dict(facecolor='white', alpha=1, boxstyle="round", pad=0.1))
+        plt.text(0.05, 0.95, r"%.2f" % labels[i, 0], args)
+
     if plot_path == "":
         plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
     else:
@@ -51,19 +64,23 @@ def wasserstein_loss(y_true, y_pred):
     #calc wasserstein loss
     return -tf.reduce_mean(y_true * y_pred)
 
-class gan(keras.Model):
-    def __init__(self, latent_dim, image_size):
+class conditional_gan(keras.Model):
+    def __init__(self, latent_dim, conditional_dim, image_size):
         super().__init__()
 
-        self.generator = generator.create_generator(latent_dim)
-        self.discriminator = discriminator.create_discriminator(image_size)
+        self.generator = generator.create_generator(latent_dim + conditional_dim)
+
+        dis_input_shape = (image_size[0], image_size[1], image_size[2] + conditional_dim)
+        self.discriminator = discriminator.create_discriminator(dis_input_shape)
 
         #self.generator.summary()
         #self.discriminator.summary()
 
         #--------------------------------------------
         self.latent_dim      = latent_dim
-        self.image_size      = image_size
+        self.conditional_dim = conditional_dim
+        self.dis_input_shape = dis_input_shape
+
         self.save_path = "./model-saves/gan_" 
         self.plot_path = ""
 
@@ -72,7 +89,7 @@ class gan(keras.Model):
         self.g_loss_metric = keras.metrics.Mean(name="g_loss")
 
     def compile(self, d_optimizer, g_optimizer, d_loss_fn, g_loss_fn):
-        super(gan, self).compile()
+        super(conditional_gan, self).compile()
         self.d_optimizer = d_optimizer
         self.g_optimizer = g_optimizer
 
@@ -84,14 +101,30 @@ class gan(keras.Model):
     def metrics(self):
         return [self.d_loss_metric, self.g_loss_metric]
 
-    def train_step(self, real_images):
-        batch_size = tf.shape(real_images)[0] 
-      
+    def train_step(self, data):
+        #------#unpack train data
+        real_images, conditional_labels = data
+
+        shape = tf.shape(real_images)
+        batch_size = shape[0] 
+        h          = shape[1]
+        w          = shape[2]
+        c          = tf.shape(conditional_labels)[-1]
+
+        conditional_channel = conditional_labels[:, :, None, None]
+        conditional_channel = tf.repeat(conditional_channel, repeats=[h * w])
+        conditional_channel = tf.reshape(conditional_channel, (-1, h, w, c))
+    
+        real_conditional_images = tf.concat([real_images, conditional_channel], -1)
+
+        #conditional_labels_f32 = tf.dtypes.cast(conditional_labels, tf.float32)
+
         #--------------------------------------------
         #train discriminator
 
-        #latent and noise
-        latent_vectors = sample_generator_input(batch_size, self.latent_dim)
+        #latent and noise     
+        random_vectors = sample_generator_input(batch_size, self.latent_dim)
+        latent_vectors = tf.concat([random_vectors, conditional_labels], axis=1)
 
         #set labels
         real_labels = tf.zeros((batch_size, 1)) 
@@ -103,9 +136,10 @@ class gan(keras.Model):
         with tf.GradientTape() as tape: 
 
             generated_images = self.generator(latent_vectors)
+            generated_conditional_images = tf.concat([generated_images, conditional_channel], -1)
 
-            fake_predictions = self.discriminator(generated_images) 
-            real_predictions = self.discriminator(real_images) 
+            fake_predictions = self.discriminator(generated_conditional_images) 
+            real_predictions = self.discriminator(real_conditional_images) 
 
             fake_loss = self.d_loss_fn(noisy_fake_labels, fake_predictions) 
             real_loss = self.d_loss_fn(noisy_real_labels, real_predictions)
@@ -120,13 +154,17 @@ class gan(keras.Model):
         #--------------------------------------------
         #train generator
       
-        #latent and noise
-        latent_vectors = sample_generator_input(batch_size, self.latent_dim)
+        #latent and noise     
+        random_vectors = sample_generator_input(batch_size, self.latent_dim)
+        latent_vectors = tf.concat([random_vectors, conditional_labels], axis=1)
 
         #Record operations for automatic differentiation, all watched variables within scope
         with tf.GradientTape() as tape: 
 
-            predictions = self.discriminator(self.generator(latent_vectors)) 
+            generated_images = self.generator(latent_vectors)
+            generated_conditional_images = tf.concat([generated_images, conditional_channel], -1)
+
+            predictions = self.discriminator(generated_conditional_images) 
             g_loss      = self.g_loss_fn(real_labels, predictions) 
 
             #--------------
@@ -185,8 +223,18 @@ class train_callback(keras.callbacks.Callback):
         if (epoch % self.plot_period) == 0:
             images_count = 16
 
-            latent_vectors = sample_generator_input(images_count, self.latent_dim)
+            #-------------         
+            #for now test discrete
+            TJs = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
+
+            conditional_labels = np.random.choice(TJs, (images_count, 1))
+
+            #-------------
+            random_vectors = sample_generator_input(images_count, self.latent_dim)
+            latent_vectors = tf.concat([random_vectors, conditional_labels], axis=1)
+
             generated_images = self.model.generator(latent_vectors)
             generated_images = (generated_images + 1.0) / 2.0
 
-            plot_images(generated_images, images_count, epoch, self.model.plot_path)
+            #-------------
+            plot_images(generated_images, conditional_labels, images_count, epoch, self.model.plot_path)
