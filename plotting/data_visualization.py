@@ -396,7 +396,7 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data, 
     #---------------------------
     clr_sim = "tab:blue"
     clr_gan = "tab:orange"
-    clr_interpolate = "red"
+    clr_interpolate = "tab:green"
 
     #legend
     plt.sca(axs[1])

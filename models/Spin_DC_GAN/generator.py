@@ -21,15 +21,15 @@ def create_generator(latent_dim):
     #Structure
     latent_input = layers.Input(shape=latent_dim)
 
-    x = layers.Dense(8 * 8 * 192//2, use_bias=False)(latent_input)
-    x = layers.Reshape((8, 8, 192//2))(x)
+    x = layers.Dense(8 * 8 * 128//2, use_bias=False)(latent_input)
+    x = layers.Reshape((8, 8, 128//2))(x)
 
     #----------Encoder
     drop_rate = 0.0
 
-    x = enc_layer(x,  192//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16   128 //2
-    x = enc_layer(x,  256//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2
-    x = enc_layer(x,  320//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2
+    x = enc_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16   128 //2
+    x = enc_layer(x,  192//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2
+    x = enc_layer(x,  256//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2
     #x = enc_layer(x,  1024//4, kernel_size=(4,4), strides=(1,1), drop_rate=drop_rate, kernel_initializer=init)
 
     # 128, 192, 256 = t3! 102 looks very good!!!! , 7k and 64 batch, tain 1.5 1.25

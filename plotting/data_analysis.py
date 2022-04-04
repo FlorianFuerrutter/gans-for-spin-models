@@ -14,7 +14,7 @@ def reduceIntoBin2(data):
 
     return binnedData * 0.5
 
-def binningAnalysisSingle(data, printAlreadyConvergedWarning=False):
+def binningAnalysisSingle(data, printWarnings=False):
     #algo find max of errors -> use this binsize
     #if not converging -> max is last element then report error converging
 
@@ -45,10 +45,10 @@ def binningAnalysisSingle(data, printAlreadyConvergedWarning=False):
         stds[i]       = np.std(binnedData)
 
     maxElement = np.argmax(meanErrors)
-    if (maxElement+1) == maxBinningSteps: 
+    if (maxElement+1) == maxBinningSteps and printWarnings:
         info = "   (elements in bin of max error: " + str(data.shape[0] // 2**maxElement) + ")"
         print("binningAnalysisSingle: [NOT CONVERGED]  increase dataset," + info)
-    if maxElement == 0 and printAlreadyConvergedWarning:
+    if maxElement == 0 and printWarnings:
         info = "   (elements in bin of max error: " + str(data.shape[0] // 2**maxElement) + ")"
         print("binningAnalysisSingle: [Already CONVERGED]  first error is largest," + info)
 
@@ -56,7 +56,7 @@ def binningAnalysisSingle(data, printAlreadyConvergedWarning=False):
     corrSize = 2**maxElement
     return mean[maxElement], meanErrors[maxElement], stds[maxElement], corrSize
 
-def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=False):
+def binningAnalysisTriple(data1, data2, data3, printWarnings=True):
     #algo find max of errors -> use this binsize
     #if not converging -> max is last element then report error converging
     #here Triple means it uses the same binsize for three data sets, the max size is taken
@@ -121,10 +121,10 @@ def binningAnalysisTriple(data1, data2, data3, printAlreadyConvergedWarning=Fals
     #take the binsize of the larger one
     #maxElement == 0 means the init data is used
     maxElement = max(np.argmax(meanErrors1), np.argmax(meanErrors2), np.argmax(meanErrors3))
-    if (maxElement+1) == maxBinningSteps: 
+    if (maxElement+1) == maxBinningSteps and printWarnings:
         info = "   (elements in bin of max error: " + str(data1.shape[0] // 2**maxElement) + ")"
         print("binningAnalysisTriple: [NOT CONVERGED]  increase dataset," + info)
-    if maxElement == 0 and printAlreadyConvergedWarning:
+    if maxElement == 0 and printWarnings:
         info = "   (elements in bin of max error: " + str(data1.shape[0] // 2**maxElement) + ")"
         print("binningAnalysisTriple: [Already CONVERGED]  first error is largest," + info)
  

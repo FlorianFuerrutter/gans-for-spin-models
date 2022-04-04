@@ -121,7 +121,7 @@ def evaluate_metric_OOL(energy, m, mAbs, m2, mAbs3, m4, g_energy, g_m, g_mAbs, g
 
     #-----------------------------
     #calc MC values
-    data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3 = perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T) 
+    data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3 = perform_observable_calculation_binning(energy, m, mAbs, m2, mAbs3, m4, N, T) 
 
     #-----------------------------
     #calc GAN epoch values
@@ -132,7 +132,7 @@ def evaluate_metric_OOL(energy, m, mAbs, m2, mAbs3, m4, g_energy, g_m, g_mAbs, g
     gan_bind = []
     gan_k3   = []
     for i in range(g_energy.shape[0]):
-        g_data_energy, g_data_mAbs, g_data_magSusc, g_data_binderCu, g_data_k3 = perform_observable_calculation(g_energy[i], g_m[i], g_mAbs[i], g_m2[i], g_mAbs3[i], g_m4[i], N, T) 
+        g_data_energy, g_data_mAbs, g_data_magSusc, g_data_binderCu, g_data_k3 = perform_observable_calculation_non_binning(g_energy[i], g_m[i], g_mAbs[i], g_m2[i], g_mAbs3[i], g_m4[i], N, T) 
 
         gan_eng.append(g_data_energy)
         gan_mAbs.append(g_data_mAbs)
@@ -609,7 +609,7 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
         g_mAbs3  = g_mAbs3_tj[0, i]
         g_m4     = g_m4_tj[0, i]
 
-        g_xi, g_xi_err = da.calc_spin_spin_correlation(gan_states, N)
+        g_xi, g_xi_err = da.calc_spin_spin_correlation(states_epoch_tj[0, i], N)
 
         #----------------------------
         d = dh.model_evaluation_data()
@@ -635,7 +635,7 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
 
 #--------------------------------------------------------------------
 
-def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):  
+def perform_observable_calculation_binning(energy, m, mAbs, m2, mAbs3, m4, N, T):
     mean, err, std, corr = da.binningAnalysisSingle(energy)
     data_energy = dh.err_data(mean, err, std)
 
@@ -662,6 +662,29 @@ def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):
 
     return data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3
 
+def perform_observable_calculation_non_binning(energy, m, mAbs, m2, mAbs3, m4, N, T):
+    mean, std = np.mean(energy), np.std(energy) 
+    data_energy = dh.err_data(mean, std / np.sqrt(energy.shape[0]), std)
+
+    #mean, std = np.mean(m), np.std(m)
+    #data_m = dh.err_data(mean, std / np.sqrt(m.shape[0]), std)
+
+    mean, std = np.mean(mAbs), np.std(mAbs) 
+    data_mAbs = dh.err_data(mean, std / np.sqrt(mAbs.shape[0]), std)
+
+    #-------------------
+    meanMagSusc, errorMagSusc = da.mSuscJackknife(mAbs, m2, N, T)
+    data_magSusc = dh.err_data(meanMagSusc, errorMagSusc / np.sqrt(mAbs.shape[0]), errorMagSusc)
+
+    meanBinderCu, errorBinderCu = da.mBinderCuJackknife(m2, m4)
+    data_binderCu = dh.err_data(meanBinderCu, errorBinderCu / np.sqrt(m2.shape[0]), errorBinderCu)
+
+    #-------------------
+    meanK3, errorK3 = da.mK3Jackknife(mAbs, m2, m3, N, T)
+    data_k3 = dh.err_data(meanK3, errorK3 / np.sqrt(mAbs.shape[0]), errorK3)
+
+    return data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3
+
 def perform_data_processing(med_objs : list[dh.model_evaluation_data], mc_data=True):
     mpd = dh.model_processed_data()
     mpd.model_name    = med_objs[-1].model_name
@@ -682,7 +705,7 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data], mc_data=T
         #compute values for MC values -> binning
 
         if mc_data:
-            data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3 = perform_observable_calculation(d.energy, d.m, d.mAbs, d.m2, d.mAbs3, d.m4, d.N, d.T)
+            data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3 = perform_observable_calculation_binning(d.energy, d.m, d.mAbs, d.m2, d.mAbs3, d.m4, d.N, d.T)
 
             mpd.energy.append(data_energy)
             #mpd._m.append(data_m)
@@ -696,7 +719,7 @@ def perform_data_processing(med_objs : list[dh.model_evaluation_data], mc_data=T
         #----------------------------------------
         #compute values for GAN values -> binning
 
-        g_data_energy, g_data_mAbs, g_data_magSusc, g_data_binderCu, g_data_k3 = perform_observable_calculation(d.g_energy, d.g_m, d.g_mAbs, d.g_m2, d.g_mAbs3, d.g_m4, d.N, d.T)
+        g_data_energy, g_data_mAbs, g_data_magSusc, g_data_binderCu, g_data_k3 = perform_observable_calculation_non_binning(d.g_energy, d.g_m, d.g_mAbs, d.g_m2, d.g_mAbs3, d.g_m4, d.N, d.T)
 
         mpd.g_energy.append(g_data_energy)
         #mpd.g_m.append(g_data_m)
