@@ -227,7 +227,13 @@ class train_callback(keras.callbacks.Callback):
             #for now test discrete
             TJs = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
 
-            conditional_labels = np.random.choice(TJs, (images_count, 1))
+            shape = (images_count, 1)
+            #conditional_labels = np.random.choice(TJs, shape)
+            conditional_labels = np.ones(shape)
+            conditional_labels[:, 0] = [1.0 , 1.0,  1.8, 1.8,
+                                        1.0 , 1.0,  1.8, 1.8,
+                                        2.25, 2.25, 3.4, 3.4,
+                                        2.25, 2.25, 3.4, 3.4,]
 
             #-------------
             random_vectors = sample_generator_input(images_count, self.latent_dim)

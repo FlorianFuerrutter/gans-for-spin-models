@@ -277,10 +277,9 @@ def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
     alpha_min = 0.2
     alpha_max = 1
     #--------------------------------
-    cmap_sim = plt.get_cmap("Blues")
+    cmap_sim = plt.get_cmap("Blues") #bones
     cmap_sim_lin        = cmap_sim(np.arange(cmap_sim.N))
-    cmap_sim_lin[:,-1]  = np.linspace(alpha_min, alpha_max, cmap_sim.N)
-    cmap_sim_lin[0, -1] = 0
+    cmap_sim_lin[:,-1]  = np.linspace(alpha_min*2, alpha_max, cmap_sim.N)
     cmap_sim = matplotlib.colors.LinearSegmentedColormap.from_list("", cmap_sim_lin)
 
     #--------------------------------
@@ -350,13 +349,11 @@ def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
             dx = np.abs(X[0,0] - X[0,1])
             dy = np.abs(Y[0,0] - Y[1,0])
 
-            plt.contour(X[:-1, :-1] + dx/2., Y[:-1, :-1] + dy/2., H_spin, cmap="bone", levels=2, linewidths=2) #, label="Simulation")
+            plt.contour(X[:-1, :-1] + dx/2., Y[:-1, :-1] + dy/2., H_spin, cmap=cmap_sim, levels=2, linewidths=2) #, label="Simulation") "bone"
             #plt.contour(X[:-1, :-1] + dx/2., Y[:-1, :-1] + dy/2., H_gan, cmap=cmap_gan, levels=2, linewidths=2.5) #, label="GAN")
 
             #plt.contourf(X[:-1, :-1] + dx/2., Y[:-1, :-1] + dy/2., H_spin, cmap=cmap_sim) #, label="Simulation")
             #plt.contourf(X[:-1, :-1] + dx/2., Y[:-1, :-1] + dy/2., H_gan, cmap=cmap_gan) #, label="GAN")
-     
-            #also plot somehow the evolution with epochs !!
 
     savePdf("plot_performance_evaluation_phase_" + med_objs[-1].model_name)
     savePng("plot_performance_evaluation_phase_" + med_objs[-1].model_name)
@@ -365,7 +362,7 @@ def plot_performance_evaluation_phase(med_objs : dh.model_evaluation_data):
 
 #--------------------------------------------------------------------
 
-def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
+def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data, mpd_interpolate : dh.model_processed_data = None):
     Tc = 1.0 * 2.0 / np.log(1.0 + np.sqrt(2.0))
 
     #---------------------------
@@ -393,9 +390,13 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
     mc_data_list  = [mpd.mAbs  , mpd.energy,   mpd.magSusc,   mpd.k3, mpd.binderCu, mpd.xi]
     gan_data_list = [mpd.g_mAbs, mpd.g_energy, mpd.g_magSusc, mpd.g_k3, mpd.g_binderCu, mpd.g_xi] 
 
+    if mpd_interpolate != None:
+        gan_interpolate_data_list = [mpd_interpolate.g_mAbs, mpd_interpolate.g_energy, mpd_interpolate.g_magSusc, mpd_interpolate.g_k3, mpd_interpolate.g_binderCu, mpd_interpolate.g_xi] 
+
     #---------------------------
     clr_sim = "tab:blue"
     clr_gan = "tab:orange"
+    clr_interpolate = "red"
 
     #legend
     plt.sca(axs[1])
@@ -437,9 +438,15 @@ def plot_performance_evaluation_observables(TJs, mpd : dh.model_processed_data):
 
             plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
             plt.errorbar(TJs, g_mean, fmt='.', yerr=g_std, label="GAN_std", elinewidth=1, capsize=2, markersize=5, color=clr_gan)
-            #plt.legend()
 
-            if i==3 and 0:
+            if mpd_interpolate != None:
+                gan_data = gan_interpolate_data_list[i]
+                g_mean, g_err, g_std = [x.val for x in gan_data], [x.err for x in gan_data], [x.std for x in gan_data]
+
+                plt.errorbar(mpd_interpolate.TJs, g_mean, fmt='.', yerr=g_err, label="GAN_interpolate", elinewidth=1, capsize=5, markersize=5, color=clr_interpolate, alpha=0.8)
+                plt.errorbar(mpd_interpolate.TJs, g_mean, fmt='.', yerr=g_std, label="GAN_interpolate_std", elinewidth=1, capsize=2, markersize=5, color=clr_interpolate, alpha=0.8)
+
+            if 0: #plot with 2 axis
                 plt.sca(axs[i].twinx())
 
                 mc_data  = mpd.binderCu

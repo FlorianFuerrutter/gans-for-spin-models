@@ -48,8 +48,9 @@ def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), imag
             last_loaded_epoch_index = epoch_index
         except:
             print("[generate_gan_data] Not loaded:", gan_name, ", epoch:", epoch)
-            states_epoch.append(np.zeros((images_count, image_size[0] * image_size[1] * image_size[2])))
-            continue
+            #states_epoch.append(np.zeros((3, image_size[0] * image_size[1] * image_size[2])))
+            #continue
+            return np.array(states_epoch_tj), last_loaded_epoch_index
 
         #generate spin data
         batch_size = 100
@@ -89,7 +90,7 @@ def importConditionalGAN(gan_name):
 
     return conditional_gan
 
-def generate_conditional_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), images_count=1000, latent_dim=128, conditional_dim=1, image_size=(64, 64, 1), alt_path=False):
+def generate_conditional_gan_data(TJs, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), images_count=1000, latent_dim=128, conditional_dim=1, image_size=(64, 64, 1), alt_path=False):
     conditional_gan = importConditionalGAN(gan_name)
 
     gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
@@ -100,49 +101,61 @@ def generate_conditional_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 9
         gan_model.save_path = os.path.join(model_data_path, gan_name,"c_gan", "gan_")
 
     last_loaded_epoch_index = -1
-    states_epoch = []
-    epochs       = np.array(epochs).astype(int)
+    states_epoch_tj = [] # (epochs, tjs, states)
+    epochs          = np.array(epochs).astype(int)
 
     for epoch_index in range(epochs.shape[0]):
         epoch = epochs[epoch_index]
-
-        #load weights gan model for tj
+        
+        #load weights of gan model 
         try:
             gan_model.load(epoch)
             last_loaded_epoch_index = epoch_index
         except:
             print("[generate_gan_data] Not loaded:", gan_name, ", epoch:", epoch)
-            states_epoch.append(np.zeros((images_count, image_size[0] * image_size[1] * image_size[2])))
-            continue
+            #states_epoch_tj.append( np.zeros((TJs.shape[0], images_count, image_size[0] * image_size[1] * image_size[2]), dtype=np.int8) )
+            #continue
+            return np.array(states_epoch_tj), last_loaded_epoch_index
+
+        print("[generate_gan_data] Loaded:", gan_name, ", epoch:", epoch)
 
         #generate spin data
         batch_size = 100
+        states_tj = [] # (tjs, states)
 
-        latent_vectors = gan.sample_generator_input(batch_size, latent_dim)
-        generated_images = (gan_model.generator(latent_vectors)).numpy()
-       
-        for i in range((images_count // batch_size) - 1):
-            latent_vectors = gan.sample_generator_input(batch_size, latent_dim)
-            t = (gan_model.generator(latent_vectors)).numpy()
-            generated_images = np.concatenate((generated_images, t), axis=0)
+        for TJ in TJs:
+            conditional_labels = np.ones((batch_size, 1)) * TJ
 
-        #clip to +-1
-        images = np.where(generated_images < 0.0, -1.0, 1.0)
+            random_vectors = conditional_gan.sample_generator_input(batch_size, latent_dim)
+            latent_vectors = np.concatenate([random_vectors, conditional_labels], axis=1)
+
+            generated_images = (gan_model.generator(latent_vectors)).numpy()
        
-        if image_size is not None:
+            for i in range((images_count // batch_size) - 1):          
+                random_vectors = conditional_gan.sample_generator_input(batch_size, latent_dim)
+                latent_vectors = np.concatenate([random_vectors, conditional_labels], axis=1)
+
+                t = (gan_model.generator(latent_vectors)).numpy()                               
+                generated_images = np.concatenate((generated_images, t), axis=0)
+
+            #clip to +-1
+            images = (np.where(generated_images < 0.0, -1.0, 1.0)).astype(np.int8)
+       
             images = np.reshape(images, (-1, image_size[0] * image_size[1] * image_size[2]))
 
-        states_epoch.append(images)
+            states_tj.append(images)
 
-    return np.array(states_epoch), last_loaded_epoch_index
+        states_epoch_tj.append(np.array(states_tj))
+
+    return np.array(states_epoch_tj), last_loaded_epoch_index
 
 #--------------------------------------------------------------------
 
 def load_spin_observables(TJ):
     path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
-    file_path = os.path.join(path, "simulation_observ_TJ_{TJ}.txt".format(TJ=TJ))
+    file_path = os.path.join(path, "simulation_observ_TJ_{TJ}.npy".format(TJ=TJ))
 
-    obser = np.transpose(np.load(file_path[:-3]+"npy"))
+    obser = np.transpose(np.load(file_path))
     #obser = np.transpose(np.loadtxt(file_path, skiprows=1, dtype=np.float32))
 
     energy = obser[0]
@@ -154,6 +167,15 @@ def load_spin_observables(TJ):
     
     print("[load_spin_observables] Found data count:", energy.shape[0])
     return energy, m, mAbs, m2, mAbs3, m4
+
+def load_spin_states(TJ):
+    path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
+    file_path = os.path.join(path, "simulation_states_TJ_{TJ}.npy".format(TJ=TJ))
+
+    states = np.load(file_path)
+
+    print("[load_spin_states] Found data count:", states.shape[0])
+    return states
 
 #--------------------------------------------------------------------
 
@@ -209,6 +231,8 @@ class err_data:
 class model_processed_data:
     model_name    : str = ""
     model_name_id : int = 0
+
+    TJs : list[float] = field(default_factory=lambda : [])
 
     obs_dist     : float = -1
     obs_dist_std : float = -1

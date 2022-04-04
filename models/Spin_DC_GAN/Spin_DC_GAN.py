@@ -94,8 +94,8 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     #--------------
     #define loss and optimizer
     
-    g_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9) 
-    d_optimizer = keras.optimizers.Adam(learning_rate=2e-4, beta_1=0.0, beta_2=0.9)
+    g_optimizer = keras.optimizers.Adam(learning_rate=1.5e-4 , beta_1=0.0, beta_2=0.9) 
+    d_optimizer = keras.optimizers.Adam(learning_rate=1.25e-4, beta_1=0.0, beta_2=0.9)
 
     d_loss_fn = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
     g_loss_fn = conditional_gan.wasserstein_loss
@@ -152,7 +152,7 @@ def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7):
         states = np.load(file_path + ".npy")
         
         states = np.reshape(states, ( -1, res, res, 1))
-        states = states[:3000]
+        states = states[:10000]
 
         states = (states * amplitude).astype(np.float32)
         labels = (np.ones((states.shape[0], 1)) * TJ).astype(np.float32)
@@ -166,8 +166,11 @@ def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7):
             global_labels = np.append(global_labels, labels, axis=0)      
 
     dataset = tf.data.Dataset.from_tensor_slices((global_states, global_labels))
-    dataset = dataset.shuffle(27000, reshuffle_each_iteration=True)
-    dataset = dataset.batch(batch_size)   
+      
+   
+    dataset = dataset.shuffle(45000, reshuffle_each_iteration=True)
+    dataset = dataset.batch(batch_size) 
+
     dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
     #test if shuffle inside batch better or worse, order of .batch and .shufle important here
@@ -184,7 +187,7 @@ def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7):
 def main() -> int:  
     #--------------
     #setup
-    epochs     = 46
+    epochs     = 1002
     latent_dim = 4096 #256
 
     image_size = (64, 64, 1)
