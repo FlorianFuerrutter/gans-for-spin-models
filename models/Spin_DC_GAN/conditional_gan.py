@@ -31,8 +31,8 @@ def plot_images(generated_images, labels, images_count, epoch, plot_path=""):
         plt.axis('off')
 
         generated_image = generated_images[i].numpy()
-        generated_image = np.where(generated_image < 0.5, -1, 1)
-        plt.imshow(generated_image)  
+        generated_image = np.where(generated_image < 0.5, 0.0, 1.0)
+        plt.imshow(generated_image, vmin=0.0, vmax=1.0)  
 
         args = dict(horizontalalignment='left',verticalalignment='top',transform = plt.gca().transAxes, color="black",bbox=dict(facecolor='white', alpha=1, boxstyle="round", pad=0.1))
         plt.text(0.05, 0.95, r"%.2f" % labels[i, 0], args)

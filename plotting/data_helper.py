@@ -48,9 +48,11 @@ def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), imag
             last_loaded_epoch_index = epoch_index
         except:
             print("[generate_gan_data] Not loaded:", gan_name, ", epoch:", epoch)
-            #states_epoch.append(np.zeros((3, image_size[0] * image_size[1] * image_size[2])))
-            #continue
-            return np.array(states_epoch_tj), last_loaded_epoch_index
+
+            if last_loaded_epoch_index < 0:
+                states_epoch.append(np.zeros((3, image_size[0] * image_size[1] * image_size[2])))
+
+            return np.array(states_epoch), last_loaded_epoch_index
 
         #generate spin data
         batch_size = 100
@@ -64,8 +66,8 @@ def generate_gan_data(TJ, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), imag
             generated_images = np.concatenate((generated_images, t), axis=0)
 
         #clip to +-1
-        images = np.where(generated_images < 0.0, -1.0, 1.0)
-       
+        images = (np.where(generated_images < 0.0, -1.0, 1.0)).astype(np.int8)
+
         if image_size is not None:
             images = np.reshape(images, (-1, image_size[0] * image_size[1] * image_size[2]))
 
@@ -113,8 +115,10 @@ def generate_conditional_gan_data(TJs, gan_name="Spin_DC_GAN", epochs=range(20, 
             last_loaded_epoch_index = epoch_index
         except:
             print("[generate_gan_data] Not loaded:", gan_name, ", epoch:", epoch)
-            #states_epoch_tj.append( np.zeros((TJs.shape[0], images_count, image_size[0] * image_size[1] * image_size[2]), dtype=np.int8) )
-            #continue
+
+            if last_loaded_epoch_index < 0:
+                states_epoch_tj.append( np.zeros((TJs.shape[0], images_count, image_size[0] * image_size[1] * image_size[2]), dtype=np.int8) )
+
             return np.array(states_epoch_tj), last_loaded_epoch_index
 
         print("[generate_gan_data] Loaded:", gan_name, ", epoch:", epoch)

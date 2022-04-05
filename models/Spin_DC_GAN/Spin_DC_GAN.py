@@ -45,13 +45,13 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #--------------
     #define loss and optimizer
     
-    decay_steps = 469.0 * 10.0 #steps/epochs
-    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.5e-4,
+    decay_steps = 469.0 * 70.0 #469.0 * 10.0 #steps/epochs
+    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
                                                                 decay_steps=decay_steps,
-                                                                decay_rate=0.9)
-    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.25e-4,
+                                                                decay_rate=0.5)#0.95
+    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.8e-4,
                                                                 decay_steps=decay_steps,
-                                                                decay_rate=0.9)
+                                                                decay_rate=0.5) #0.95
 
     g_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule_g, beta_1=0.0, beta_2=0.9) #1.5e-4
     d_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule_d, beta_1=0.0, beta_2=0.9) #1.25e-4 
@@ -152,7 +152,7 @@ def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7):
         states = np.load(file_path + ".npy")
         
         states = np.reshape(states, ( -1, res, res, 1))
-        states = states[:10000]
+        #states = states[:10000]
 
         states = (states * amplitude).astype(np.float32)
         labels = (np.ones((states.shape[0], 1)) * TJ).astype(np.float32)
@@ -199,7 +199,7 @@ def main() -> int:
     save_period = 3
     plot_period = 3
 
-    conditional = True
+    conditional = 0
 
     #--------------
     #load data and train
@@ -217,7 +217,7 @@ def main() -> int:
 
     else:
         #------------
-        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_2.25.txt", amplitude=amplitude)
+        dataset = load_spin_data(batch_size, image_size[0], path, name="simulation_states_TJ_1.8.txt", amplitude=amplitude)
    
         train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size)
 

@@ -21,7 +21,9 @@ def main() -> int:
 
     batch_sizes = {"Spin_DC_GAN" : 64}
     latent_dims = {"Spin_DC_GAN" : 4096}
-    conditional = {"Spin_DC_GAN" : True}
+    conditional = {"Spin_DC_GAN" : 0}
+
+    conditional_dim = 1
 
     #---------------------------
     model_names = np.array(["Spin_DC_GAN"])
@@ -47,8 +49,8 @@ def main() -> int:
             # train to fixed epoch
             weights_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "model-data", model_name, "c_gan", "gan_")
 
-            gan_module.train_model(dataset, epochs, save_period, plot_period, latent_dims[model_name], image_size, weights_path, plot_path=weights_path[:-5])
-
+            gan_module.train_conditional_model(dataset, epochs, save_period, plot_period, latent_dims[model_name], conditional_dim, image_size, weights_path, plot_path=weights_path[:-5])
+          
         else:
             for TJ in TJs:
                 print("[train_model] model_name:", model_name, ", TJ:", TJ, "--------------------------------")

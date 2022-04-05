@@ -652,16 +652,16 @@ def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):
     meanMAbs, errorMAbs, stdMAbs, meanM2, errorM2, stdM2, meanM4, errorM4, stdM4, corr, binMAbs, binM2, binM4 = da.binningAnalysisTriple(mAbs, m2, m4, False)
 
     meanMagSusc, errorMagSusc = da.mSuscJackknife(binMAbs, binM2, N, T)
-    data_magSusc = dh.err_data(meanMagSusc, errorMagSusc, errorMagSusc)
+    data_magSusc = dh.err_data(meanMagSusc, errorMagSusc / np.sqrt(binMAbs.shape[0]), errorMagSusc)
 
     meanBinderCu, errorBinderCu = da.mBinderCuJackknife(binM2, binM4)
-    data_binderCu = dh.err_data(meanBinderCu, errorBinderCu, errorBinderCu)
+    data_binderCu = dh.err_data(meanBinderCu, errorBinderCu / np.sqrt(binM2.shape[0]), errorBinderCu)
 
     #-------------------
     meanMAbs, errorMAbs, stdMAbs, meanM2, errorM2, stdM2, meanMAbs3, errorMAbs3, stdMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(mAbs, m2, mAbs3)
 
     meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3, N, T)
-    data_k3 = dh.err_data(meanK3, errorK3, errorK3)
+    data_k3 = dh.err_data(meanK3, errorK3 / np.sqrt(binMAbs.shape[0]), errorK3)
 
     return data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3
 

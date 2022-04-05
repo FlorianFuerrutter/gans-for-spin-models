@@ -21,8 +21,8 @@ def plot_images(generated_images, images_count, epoch, plot_path=""):
         plt.axis('off')
 
         generated_image = generated_images[i].numpy()
-        generated_image = np.where(generated_image < 0.5, -1, 1)
-        plt.imshow(generated_image)  
+        generated_image = np.where(generated_image < 0.5, 0.0, 1.0)
+        plt.imshow(generated_image, vmin=0.0, vmax=1.0)  
         
     if plot_path == "":
         plt.savefig("img/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')

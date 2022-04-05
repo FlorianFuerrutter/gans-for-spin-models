@@ -9,7 +9,7 @@ def main() -> int:
   #-----------------------------------------------------------------
     
     latent_dims = {"Spin_DC_GAN" : 4096}
-    conditional = {"Spin_DC_GAN" : True}
+    conditional = {"Spin_DC_GAN" : 0}
 
     image_size = (64, 64, 1)
 
@@ -26,9 +26,9 @@ def main() -> int:
 
     #-----------------------------------------------------------------
     #set this for evaluation of a single training run of a model in their folder (not the data folder) -> used for development
-    if 1:
+    if 0:
         single_eval = True  #sets load path for weights
-        #TJs         = np.array([2.25])
+        TJs         = np.array([1.8])
 
         epoch_step  = 3
         epoch_min   = epoch_step * 2
