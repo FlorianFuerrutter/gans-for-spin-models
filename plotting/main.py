@@ -15,11 +15,19 @@ def main() -> int:
 
     model_names = np.array(["Spin_DC_GAN"])
     TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
-    #TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25])
+    TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4])
+
+    #TJs         = np.array([1.0, 1.8, 2.0])
+    TJs         = np.array([2.2, 2.25, 2.3])
+    #TJs         = np.array([2.4, 2.6, 3.4])
+
+
+    TJs         = np.array([2.3])
+    TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3])
 
     epoch_step = 3
     epoch_min  = epoch_step * 2
-    epoch_max  = epoch_step * 100
+    epoch_max  = epoch_step * 400
    
     #data cnt taken from GAN for evaluation
     images_count = 1000 #00

@@ -45,7 +45,7 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #--------------
     #define loss and optimizer
     
-    decay_steps = 469.0 * 70.0 #469.0 * 10.0 #steps/epochs
+    decay_steps = 469.0 * 70.0 # 70.0 - 80.0
     lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.5)#0.95

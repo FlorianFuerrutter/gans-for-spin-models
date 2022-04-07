@@ -29,7 +29,9 @@ def main() -> int:
     model_names = np.array(["Spin_DC_GAN"])
     TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
 
-    epochs      = 31
+    TJs         = np.array([2.3])
+
+    epochs      = 103
    
     plot_period = 3
     save_period = 3

@@ -27,15 +27,15 @@ def savePng(filename):
 
 def plot_metrics_history(epochs, last_loaded_epoch_index, model_name, m_pol, mAbs_pol, eng_pol, m_emd, mAbs_emd, eng_emd, phase_pol, obs_dist):
 
-    epochs = epochs[:last_loaded_epoch_index+0]
-    m_pol = m_pol[:last_loaded_epoch_index+0]
-    mAbs_pol = mAbs_pol[:last_loaded_epoch_index+0]
-    eng_pol = eng_pol[:last_loaded_epoch_index+0]
-    m_emd = m_emd[:last_loaded_epoch_index+0]
-    mAbs_emd = mAbs_emd[:last_loaded_epoch_index+0]
-    eng_emd = eng_emd[:last_loaded_epoch_index+0]
-    phase_pol = phase_pol[:last_loaded_epoch_index+0]
-    obs_dist = obs_dist[:last_loaded_epoch_index+0]
+    epochs = epochs[:last_loaded_epoch_index+1]
+    m_pol = m_pol[:last_loaded_epoch_index+1]
+    mAbs_pol = mAbs_pol[:last_loaded_epoch_index+1]
+    eng_pol = eng_pol[:last_loaded_epoch_index+1]
+    m_emd = m_emd[:last_loaded_epoch_index+1]
+    mAbs_emd = mAbs_emd[:last_loaded_epoch_index+1]
+    eng_emd = eng_emd[:last_loaded_epoch_index+1]
+    phase_pol = phase_pol[:last_loaded_epoch_index+1]
+    obs_dist = obs_dist[:last_loaded_epoch_index+1]
 
     #---------------------------
     size=(13, 4.8*1.8)

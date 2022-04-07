@@ -261,7 +261,7 @@ def mK3Jackknife(binnedMagAbs, binnedMag2, binnedMagAbs3, N, T):
 
 #--------------------------------------------------------------------
 
-def fit_spin_spin_correlation(rs, gc_r):    
+def fit_spin_spin_correlation(rs, gc_r):
     data = RealData(rs, gc_r)
 
     def f(beta, x):
@@ -277,8 +277,6 @@ def fit_spin_spin_correlation(rs, gc_r):
     a_err, xi_err = output.sd_beta
 
     return a, a_err, xi, xi_err, f
-
-#--------------------------------------------------------------------
 
 def calc_spin_spin_correlation(states, N):
     L = int(np.sqrt(N))
@@ -326,3 +324,5 @@ def calc_spin_spin_correlation(states, N):
         dv.plot_correlation_fit(rs, gc_r, fit_func, (a, xi))
 
     return xi, xi_err
+
+#--------------------------------------------------------------------
