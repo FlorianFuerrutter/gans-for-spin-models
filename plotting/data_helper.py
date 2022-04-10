@@ -157,6 +157,8 @@ def generate_conditional_gan_data(TJs, gan_name="Spin_DC_GAN", epochs=range(20, 
 
 def load_spin_observables(TJ):
     path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
+    #path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train", "64")
+
     file_path = os.path.join(path, "simulation_observ_TJ_{TJ}.npy".format(TJ=TJ))
 
     obser = np.transpose(np.load(file_path))

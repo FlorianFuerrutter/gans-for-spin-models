@@ -45,11 +45,11 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
     #--------------
     #define loss and optimizer
     
-    decay_steps = 469.0 * 70.0 # 70.0 - 80.0
+    decay_steps = 469.0 * 75.0
     lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.5)#0.95
-    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.8e-4,
+    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.85e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.5) #0.95
 
@@ -94,8 +94,16 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     #--------------
     #define loss and optimizer
     
-    g_optimizer = keras.optimizers.Adam(learning_rate=1.5e-4 , beta_1=0.0, beta_2=0.9) 
-    d_optimizer = keras.optimizers.Adam(learning_rate=1.25e-4, beta_1=0.0, beta_2=0.9)
+    decay_steps = 2110 * 70   # 2110(15k) 1407(10k) 1094(x64)
+    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.5e-4,
+                                                                decay_steps=decay_steps,
+                                                                decay_rate=0.5)
+    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.25e-4,
+                                                                decay_steps=decay_steps,
+                                                                decay_rate=0.5)
+
+    g_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule_g , beta_1=0.0, beta_2=0.9) 
+    d_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule_d, beta_1=0.0, beta_2=0.9)
 
     d_loss_fn = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
     g_loss_fn = conditional_gan.wasserstein_loss
@@ -152,7 +160,7 @@ def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7):
         states = np.load(file_path + ".npy")
         
         states = np.reshape(states, ( -1, res, res, 1))
-        #states = states[:10000]
+        states = states[:15000]
 
         states = (states * amplitude).astype(np.float32)
         labels = (np.ones((states.shape[0], 1)) * TJ).astype(np.float32)

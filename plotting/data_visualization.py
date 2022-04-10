@@ -102,6 +102,44 @@ def plot_metrics_history(epochs, last_loaded_epoch_index, model_name, m_pol, mAb
     #exit(0)
     return
 
+def plot_metrics_history_conditional(epochs, last_loaded_epoch_index, model_name, obs_dist):
+    epochs = epochs[:last_loaded_epoch_index+1]
+
+    #---------------------------
+    size=(13, 4.8*1.4)
+    fig = plt.figure(figsize=size, constrained_layout=True) 
+    gs = plt.GridSpec(2, 1, figure=fig)
+    axs = np.array([fig.add_subplot(gs[0]), fig.add_subplot(gs[1])])
+
+    ticks  = np.arange(0, epochs[-1], 50 if epochs[-1]<=250 else 100)
+    labels = [("%d" % x) for x in ticks]    
+    empty_labels = ["" for x in ticks]
+
+    #---------------------------
+    plt.sca(axs[0])
+    plt.margins(0.03)
+    plt.ylabel("Obs distance")
+    plt.xlabel("Epoch")
+    plt.xticks(ticks, labels)
+
+    plt.plot(epochs, obs_dist, "-", label="obs_dist")
+
+    #---------------------------
+    plt.sca(axs[1])
+    plt.margins(0.03)
+    plt.ylabel("Obs distance")
+    plt.xlabel("Epoch")
+    plt.xticks(ticks, labels)
+    plt.yscale('log') 
+
+    plt.plot(epochs, obs_dist, "-", label="obs_dist")
+
+    #---------------------------
+    savePdf("plot_metrics_history_conditional_" + model_name)
+    savePng("plot_metrics_history_conditional_" + model_name)
+    return
+
+
 #--------------------------------------------------------------------
 
 def plot_correlation_fit(x, y, fit_func, best_vals):

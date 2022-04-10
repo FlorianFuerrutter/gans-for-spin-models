@@ -492,6 +492,9 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
     print("[evaluate_model_metrics] Model:", model_name, "Best epoch:", best_epoch)
     print("[evaluate_model_metrics] obs_dist:", obs_dist_epoch[best_epoch_index])
 
+    import data_visualization as dv
+    dv.plot_metrics_history_conditional(epochs, last_loaded_epoch_index, model_name, obs_dist_epoch)
+
     #----------------------------
     #eval this best epoch gen images
 
@@ -663,6 +666,42 @@ def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):
     meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3, N, T)
     data_k3 = dh.err_data(meanK3, errorK3 / np.sqrt(binMAbs.shape[0]), errorK3)
 
+    return data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3
+
+def perform_observable_calculation_non_binning(energy, m, mAbs, m2, mAbs3, m4, N, T):
+
+    mean, std = np.mean(energy), np.std(energy)  
+    data_energy = dh.err_data(mean, std / np.sqrt(energy.shape[0]), std)
+
+    #mean, std = np.mean(m), np.std(m)
+    #data_m = dh.err_data(mean, std / np.sqrt(m.shape[0]), std)
+
+    mean, std = np.mean(mAbs), np.std(mAbs) 
+    data_mAbs = dh.err_data(mean, std / np.sqrt(mAbs.shape[0]), std)
+
+    #-------------------
+    m2, m2_err       = np.mean(m2), np.std(m2)
+    mAbs, mAbs_err   = np.mean(mAbs), np.std(mAbs)
+    mAbs3, mAbs3_err = np.mean(mAbs3), np.std(mAbs3)
+    m4, m4_err       = np.mean(m4), np.std(m4)
+
+    from uncertainties import ufloat
+    m2    = ufloat(m2, m2_err)
+    mAbs  = ufloat(mAbs, mAbs_err)
+    mAbs3 = ufloat(mAbs3, mAbs3_err)
+    m4    = ufloat(m4, m4_err)
+
+    meanMagSusc = (N/T) * (m2 - mAbs**2)
+    data_magSusc = dh.err_data(meanMagSusc.n, meanMagSusc.s , meanMagSusc.s)
+ 
+    r2 = m4 / (m2**2 + 1e-15)
+    meanBinderCu = 1.5 * (1.0 - r2 / 3.0)
+    data_binderCu = dh.err_data(meanBinderCu.n, meanBinderCu.s , meanBinderCu.s)
+
+    meanK3 = (mAbs3 - 3.0 * m2 * mAbs + 2.0 * mAbs**3) * (N/T)
+    data_k3 = dh.err_data(meanK3.n, meanK3.s, meanK3.s)
+
+    #-------------------
     return data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3
 
 def perform_data_processing(med_objs : list[dh.model_evaluation_data], mc_data=True):
