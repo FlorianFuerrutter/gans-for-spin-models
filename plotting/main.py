@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 def main() -> int:
   #-----------------------------------------------------------------
     
-    latent_dims = {"Spin_DC_GAN" : 4096}
-    conditional = {"Spin_DC_GAN" : 1}
+    latent_dims      = {"Spin_DC_GAN" : 2048} #4096
+    conditional      = {"Spin_DC_GAN" : 1}
+    conditional_dims = {"Spin_DC_GAN" : 128}
 
     image_size = (64, 64, 1)
 
@@ -48,7 +49,7 @@ def main() -> int:
         mpd_interpolate = None
 
         if conditional[model_name]:
-            med_objs, med_objs_interpolate = model_evaluation.evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dims[model_name], 1, image_size, images_count, N, single_eval=single_eval)
+            med_objs, med_objs_interpolate = model_evaluation.evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dims[model_name], conditional_dims[model_name], image_size, images_count, N, single_eval=single_eval)
         
             mpd_interpolate = model_evaluation.perform_data_processing(med_objs_interpolate, False)
         else:

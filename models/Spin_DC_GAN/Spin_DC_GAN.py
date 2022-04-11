@@ -95,10 +95,10 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     #define loss and optimizer
     
     decay_steps = 2110 * 70   # 2110(15k) 1407(10k) 1094(x64)
-    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.5e-4,
+    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.5)
-    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.25e-4,
+    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.8e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.5)
 
@@ -150,7 +150,7 @@ def load_spin_data(batch_size, res, path, name="simulation_states_TJ_2.6.txt", a
 
     return dataset
 
-def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7):
+def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7, conditional_dim=1):
     #create new dataset
     first = 1
 
@@ -163,7 +163,7 @@ def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7):
         states = states[:15000]
 
         states = (states * amplitude).astype(np.float32)
-        labels = (np.ones((states.shape[0], 1)) * TJ).astype(np.float32)
+        labels = (np.ones((states.shape[0], conditional_dim)) * TJ).astype(np.float32)
 
         if first:
             global_states = states
@@ -219,7 +219,7 @@ def main() -> int:
         TJs = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
 
         #------------
-        dataset  = load_conditional_spin_data(batch_size, image_size[0], path, TJs, amplitude)
+        dataset  = load_conditional_spin_data(batch_size, image_size[0], path, TJs, amplitude, conditional_dim)
 
         train_conditional_model(dataset, epochs, save_period, plot_period, latent_dim, conditional_dim, image_size)
 

@@ -128,7 +128,7 @@ def generate_conditional_gan_data(TJs, gan_name="Spin_DC_GAN", epochs=range(20, 
         states_tj = [] # (tjs, states)
 
         for TJ in TJs:
-            conditional_labels = np.ones((batch_size, 1)) * TJ
+            conditional_labels = np.ones((batch_size, conditional_dim)) * TJ
 
             random_vectors = conditional_gan.sample_generator_input(batch_size, latent_dim)
             latent_vectors = np.concatenate([random_vectors, conditional_labels], axis=1)

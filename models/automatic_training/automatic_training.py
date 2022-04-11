@@ -23,7 +23,7 @@ def main() -> int:
     latent_dims = {"Spin_DC_GAN" : 4096}
     conditional = {"Spin_DC_GAN" : 1}
 
-    conditional_dim = 1
+    conditional_dim = 32
 
     #---------------------------
     model_names = np.array(["Spin_DC_GAN"])
@@ -62,7 +62,7 @@ def main() -> int:
                 #load data          
                 file_name = "simulation_states_TJ_{TJ}.txt".format(TJ=TJ)
                 print("[train_model] load_spin_data:", file_name)
-                dataset = gan_module.load_spin_data(batch_sizes[model_name], image_size[0], path, name=file_name, amplitude=amplitude)
+                dataset = gan_module.load_spin_data(batch_sizes[model_name], image_size[0], train_data_path, name=file_name, amplitude=amplitude)
  
                 # train to fixed epoch
                 weights_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "model-data", model_name, "TJ_{TJ}".format(TJ=TJ), "gan_")

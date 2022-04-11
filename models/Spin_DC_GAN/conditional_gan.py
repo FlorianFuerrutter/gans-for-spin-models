@@ -70,7 +70,7 @@ class conditional_gan(keras.Model):
 
         self.generator = generator.create_generator(latent_dim + conditional_dim)
 
-        dis_input_shape = (image_size[0], image_size[1], image_size[2] + conditional_dim)
+        dis_input_shape = (image_size[0], image_size[1], image_size[2] + 1)
         self.discriminator = discriminator.create_discriminator(dis_input_shape)
 
         #self.generator.summary()
@@ -111,12 +111,15 @@ class conditional_gan(keras.Model):
         w          = shape[2]
         c          = tf.shape(conditional_labels)[-1]
 
+        conditional_latent = tf.repeat(conditional_labels, repeats=[self.conditional_dim])
+        conditional_latent = tf.reshape(conditional_latent, (-1, self.conditional_dim))
+
         conditional_channel = conditional_labels[:, :, None, None]
         conditional_channel = tf.repeat(conditional_channel, repeats=[h * w])
         conditional_channel = tf.reshape(conditional_channel, (-1, h, w, c))
     
         real_conditional_images = tf.concat([real_images, conditional_channel], -1)
-
+        
         #conditional_labels_f32 = tf.dtypes.cast(conditional_labels, tf.float32)
 
         #--------------------------------------------
@@ -124,7 +127,7 @@ class conditional_gan(keras.Model):
 
         #latent and noise     
         random_vectors = sample_generator_input(batch_size, self.latent_dim)
-        latent_vectors = tf.concat([random_vectors, conditional_labels], axis=1)
+        latent_vectors = tf.concat([random_vectors, conditional_latent], axis=1)
 
         #set labels
         real_labels = tf.zeros((batch_size, 1)) 
@@ -156,7 +159,7 @@ class conditional_gan(keras.Model):
       
         #latent and noise     
         random_vectors = sample_generator_input(batch_size, self.latent_dim)
-        latent_vectors = tf.concat([random_vectors, conditional_labels], axis=1)
+        latent_vectors = tf.concat([random_vectors, conditional_latent], axis=1)
 
         #Record operations for automatic differentiation, all watched variables within scope
         with tf.GradientTape() as tape: 
@@ -229,14 +232,17 @@ class train_callback(keras.callbacks.Callback):
 
             shape = (images_count, 1)
             #conditional_labels = np.random.choice(TJs, shape)
-            conditional_labels = np.ones(shape)
+            conditional_labels = np.ones(shape, dtype=np.float32)
             conditional_labels[:, 0] = [1.0 , 1.0,  1.8, 1.8,
                                         1.0 , 1.0,  1.8, 1.8,
                                         2.25, 2.25, 3.4, 3.4,
                                         2.25, 2.25, 3.4, 3.4,]
 
+            conditional_labels = tf.repeat(conditional_labels, repeats=[self.model.conditional_dim])
+            conditional_labels = tf.reshape(conditional_labels, (images_count, self.model.conditional_dim))
+
             #-------------
-            random_vectors = sample_generator_input(images_count, self.latent_dim)
+            random_vectors = sample_generator_input(images_count, self.model.latent_dim)
             latent_vectors = tf.concat([random_vectors, conditional_labels], axis=1)
 
             generated_images = self.model.generator(latent_vectors)
