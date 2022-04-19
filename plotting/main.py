@@ -8,16 +8,17 @@ import matplotlib.pyplot as plt
 def main() -> int:
   #-----------------------------------------------------------------
     
-    latent_dims      = {"Spin_DC_GAN" : 2048} #4096
+    latent_dims      = {"Spin_DC_GAN" : 4096}
     conditional      = {"Spin_DC_GAN" : 1}
-    conditional_dims = {"Spin_DC_GAN" : 128}
+    conditional_dims = {"Spin_DC_GAN" : 2}
 
     image_size = (64, 64, 1)
 
     model_names = np.array(["Spin_DC_GAN"])
-    TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
+    #TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
+    TJs         = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.8, 3.0, 3.4])
 
-    epoch_step = 3
+    epoch_step = 2
     epoch_min  = epoch_step * 2
     epoch_max  = epoch_step * 400
    

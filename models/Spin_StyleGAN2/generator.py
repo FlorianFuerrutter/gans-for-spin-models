@@ -43,7 +43,7 @@ from custom_layers import BiasNoiseBroadcastLayer, Conv2DMod
 #--------------------------------------------------------------------
 
 def tRGB_block(inp, style, filter_size, out_filter):
-    kernel_initializer = initializers.VarianceScaling(200/inp.shape[2])
+    kernel_initializer = initializers.VarianceScaling(200.0/inp.shape[2])
 
     rgb_style = layers.Dense(filter_size, kernel_initializer=kernel_initializer)(style)
     out = Conv2DMod(out_filter, 1, kernel_initializer=kernel_initializer, demod=False)([inp, rgb_style])

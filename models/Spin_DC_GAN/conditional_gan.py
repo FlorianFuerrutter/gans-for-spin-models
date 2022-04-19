@@ -64,6 +64,21 @@ def wasserstein_loss(y_true, y_pred):
     #calc wasserstein loss
     return -tf.reduce_mean(y_true * y_pred)
 
+#@tf.function
+def gradient_penalty(samples, output, weight):   
+    # Penalize the gradient norm
+    # r1 = (weight / 2) * E( ||grad||^2 )
+
+    #gradients = tf.gradients(output, samples)[0]
+    #gradients_sqr = tf.square(gradients)
+    #gradient_penalty = tf.reduce_sum(gradients_sqr, axis=[1, 2, 3]) 
+  
+    gradients = tf.gradients(output, samples) #[0]
+    gradients_sqr = tf.square(gradients)
+    gradient_penalty = tf.reduce_sum(gradients_sqr, axis=[0, 2, 3, 4]) 
+
+    return tf.reduce_mean(gradient_penalty) * weight
+
 class conditional_gan(keras.Model):
     def __init__(self, latent_dim, conditional_dim, image_size):
         super().__init__()
@@ -146,7 +161,7 @@ class conditional_gan(keras.Model):
 
             fake_loss = self.d_loss_fn(noisy_fake_labels, fake_predictions) 
             real_loss = self.d_loss_fn(noisy_real_labels, real_predictions)
-            d_loss = fake_loss + real_loss
+            d_loss = fake_loss + real_loss + gradient_penalty(real_conditional_images, real_predictions, 5)
 
             #--------------
             

@@ -97,12 +97,12 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     decay_steps = 2110 * 70   # 2110(15k) 1407(10k) 1094(x64)
     lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
                                                                 decay_steps=decay_steps,
-                                                                decay_rate=0.5)
-    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1.8e-4,
+                                                                decay_rate=0.9)
+    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
                                                                 decay_steps=decay_steps,
-                                                                decay_rate=0.5)
+                                                                decay_rate=0.9)
 
-    g_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule_g , beta_1=0.0, beta_2=0.9) 
+    g_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule_g, beta_1=0.0, beta_2=0.9) 
     d_optimizer = keras.optimizers.Adam(learning_rate=lr_schedule_d, beta_1=0.0, beta_2=0.9)
 
     d_loss_fn = keras.losses.BinaryCrossentropy(label_smoothing=0.05)
@@ -160,7 +160,7 @@ def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7, condit
         states = np.load(file_path + ".npy")
         
         states = np.reshape(states, ( -1, res, res, 1))
-        states = states[:15000]
+        states = states[:15000] #15k
 
         states = (states * amplitude).astype(np.float32)
         labels = (np.ones((states.shape[0], conditional_dim)) * TJ).astype(np.float32)
@@ -174,10 +174,11 @@ def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7, condit
             global_labels = np.append(global_labels, labels, axis=0)      
 
     dataset = tf.data.Dataset.from_tensor_slices((global_states, global_labels))
-      
-   
-    dataset = dataset.shuffle(45000, reshuffle_each_iteration=True)
+        
+    dataset = dataset.shuffle(global_states.shape[0], reshuffle_each_iteration=True)
     dataset = dataset.batch(batch_size) 
+
+    #dataset = dataset.shuffle(2000, reshuffle_each_iteration=True)
 
     dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
 
@@ -204,10 +205,10 @@ def main() -> int:
     amplitude  = 0.7 
 
     #--------------  
-    save_period = 3
-    plot_period = 3
+    save_period = 2
+    plot_period = 2
 
-    conditional = 0
+    conditional = 1
 
     #--------------
     #load data and train
@@ -215,9 +216,10 @@ def main() -> int:
 
     if conditional:
         #------------
-        conditional_dim = 1
-        TJs = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
-
+        conditional_dim = 2
+        #TJs = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
+        TJs = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.8, 3.0, 3.4])
+        
         #------------
         dataset  = load_conditional_spin_data(batch_size, image_size[0], path, TJs, amplitude, conditional_dim)
 

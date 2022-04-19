@@ -23,19 +23,20 @@ def main() -> int:
     latent_dims = {"Spin_DC_GAN" : 4096}
     conditional = {"Spin_DC_GAN" : 1}
 
-    conditional_dim = 32
+    conditional_dim = 2
 
     #---------------------------
     model_names = np.array(["Spin_DC_GAN"])
-    TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
-
+    #TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
+    TJs = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.8, 3.0, 3.4])
+    
     #TJs         = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.26, 2.27, 2.3, 2.4, 2.5, 2.6, 3.0, 3.4,
     #                        2.28, 2.29, 2.31, 2.32, 2.33, 2.34, 2.35, 2.36, 2.37, 2.38, 2.39])
 
     epochs      = 1003
    
-    plot_period = 3
-    save_period = 3
+    plot_period = 2
+    save_period = 2
   
     #---------------------------
     train_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train") #, "64")

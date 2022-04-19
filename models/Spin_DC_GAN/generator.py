@@ -22,6 +22,12 @@ def create_generator(latent_dim):
     latent_input = layers.Input(shape=latent_dim)
 
     x = layers.Dense(8 * 8 * 128//2, use_bias=False)(latent_input)
+   
+    x = layers.Dense(4096)(x)
+    x = layers.LeakyReLU(0.2)(x)
+    x = layers.Dense(4096)(x)
+    x = layers.LeakyReLU(0.2)(x)
+
     x = layers.Reshape((8, 8, 128//2))(x)
 
     #----------Encoder
