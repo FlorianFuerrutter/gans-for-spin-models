@@ -94,7 +94,7 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     #--------------
     #define loss and optimizer
     
-    decay_steps = 2110 * 70   # 2110(15k) 1407(10k) 1094(x64)
+    decay_steps = 3516 * 70   # 2110(15k) 1407(10k) 1094(x64)
     lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.9)
@@ -124,6 +124,7 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     callbacks = []
     callbacks.append(conditional_gan.train_callback(latent_dim, plot_period=plot_period, save_period=save_period))
 
+    #gan_model.plot_print_model_config()
     gan_model.fit(dataset, epochs=epochs,callbacks=callbacks)
 
     return

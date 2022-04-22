@@ -64,18 +64,13 @@ def wasserstein_loss(y_true, y_pred):
     #calc wasserstein loss
     return -tf.reduce_mean(y_true * y_pred)
 
-#@tf.function
 def gradient_penalty(samples, output, weight):   
     # Penalize the gradient norm
     # r1 = (weight / 2) * E( ||grad||^2 )
 
-    #gradients = tf.gradients(output, samples)[0]
-    #gradients_sqr = tf.square(gradients)
-    #gradient_penalty = tf.reduce_sum(gradients_sqr, axis=[1, 2, 3]) 
-  
-    gradients = tf.gradients(output, samples) #[0]
-    gradients_sqr = tf.square(gradients)
-    gradient_penalty = tf.reduce_sum(gradients_sqr, axis=[0, 2, 3, 4]) 
+    gradients        = tf.gradients(output, samples)[0]
+    gradients_sqr    = tf.square(gradients)
+    gradient_penalty = tf.reduce_sum(gradients_sqr, axis=[1, 2, 3])
 
     return tf.reduce_mean(gradient_penalty) * weight
 
@@ -83,10 +78,8 @@ class conditional_gan(keras.Model):
     def __init__(self, latent_dim, conditional_dim, image_size):
         super().__init__()
 
-        self.generator = generator.create_generator(latent_dim + conditional_dim)
-
-        dis_input_shape = (image_size[0], image_size[1], image_size[2] + 1)
-        self.discriminator = discriminator.create_discriminator(dis_input_shape)
+        self.generator = generator.create_generator(latent_dim + conditional_dim)       
+        self.discriminator = discriminator.create_discriminator(image_size, 1)
 
         #self.generator.summary()
         #self.discriminator.summary()
@@ -94,7 +87,7 @@ class conditional_gan(keras.Model):
         #--------------------------------------------
         self.latent_dim      = latent_dim
         self.conditional_dim = conditional_dim
-        self.dis_input_shape = dis_input_shape
+        #self.dis_input_shape = (image_size[0], image_size[1], image_size[2] + cond_channels)
 
         self.save_path = "./model-saves/gan_" 
         self.plot_path = ""
@@ -109,9 +102,10 @@ class conditional_gan(keras.Model):
         self.g_optimizer = g_optimizer
 
         #set loss functions
-        self.d_loss_fn     = d_loss_fn
-        self.g_loss_fn     = g_loss_fn
-        
+        self.d_loss_fn  = d_loss_fn
+        self.g_loss_fn  = g_loss_fn
+        self.a_loss_fn  = keras.losses.MeanSquaredError()
+     
     @property
     def metrics(self):
         return [self.d_loss_metric, self.g_loss_metric]
@@ -159,9 +153,12 @@ class conditional_gan(keras.Model):
             fake_predictions = self.discriminator(generated_conditional_images) 
             real_predictions = self.discriminator(real_conditional_images) 
 
-            fake_loss = self.d_loss_fn(noisy_fake_labels, fake_predictions) 
-            real_loss = self.d_loss_fn(noisy_real_labels, real_predictions)
-            d_loss = fake_loss + real_loss + gradient_penalty(real_conditional_images, real_predictions, 5)
+            #fake_loss = self.d_loss_fn(noisy_fake_labels, fake_predictions) 
+            #real_loss = self.d_loss_fn(noisy_real_labels, real_predictions) 
+            fake_loss = self.d_loss_fn(noisy_fake_labels, fake_predictions[0])
+            real_loss = self.d_loss_fn(noisy_real_labels, real_predictions[0]) + 10.0 * self.a_loss_fn(conditional_labels, real_predictions[1])
+
+            d_loss = fake_loss + real_loss + gradient_penalty(real_conditional_images, real_predictions, 5.0)
 
             #--------------
             
@@ -170,20 +167,29 @@ class conditional_gan(keras.Model):
         self.d_optimizer.apply_gradients(zip(grads, self.discriminator.trainable_weights))
  
         #--------------------------------------------
-        #train generator
-      
-        #latent and noise     
+        #train generator                
+        random_conditional = conditional_labels + tf.random.normal(tf.shape(conditional_labels), stddev=0.03)
+
+        random_conditional_latent = tf.repeat(random_conditional, repeats=[self.conditional_dim])
+        random_conditional_latent = tf.reshape(random_conditional_latent, (-1, self.conditional_dim))
+
+        random_conditional_channel = random_conditional[:, :, None, None]
+        random_conditional_channel = tf.repeat(random_conditional_channel, repeats=[h * w])
+        random_conditional_channel = tf.reshape(random_conditional_channel, (-1, h, w, c))
+
+        #latent and noise 
         random_vectors = sample_generator_input(batch_size, self.latent_dim)
-        latent_vectors = tf.concat([random_vectors, conditional_latent], axis=1)
+        latent_vectors = tf.concat([random_vectors, random_conditional_latent], axis=1)
 
         #Record operations for automatic differentiation, all watched variables within scope
         with tf.GradientTape() as tape: 
 
             generated_images = self.generator(latent_vectors)
-            generated_conditional_images = tf.concat([generated_images, conditional_channel], -1)
+            generated_conditional_images = tf.concat([generated_images, random_conditional_channel], -1)
 
             predictions = self.discriminator(generated_conditional_images) 
-            g_loss      = self.g_loss_fn(real_labels, predictions) 
+            #g_loss      = self.g_loss_fn(real_labels, predictions) 
+            g_loss      = self.g_loss_fn(real_labels, predictions[0]) + 10.0 * self.a_loss_fn(random_conditional, predictions[1]) 
 
             #--------------
 

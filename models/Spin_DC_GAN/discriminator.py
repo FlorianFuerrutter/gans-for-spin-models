@@ -62,30 +62,66 @@ def dec_layer(dec_input, filter_size, kernel_size, kernel_initializer, strides=2
 
     return dec
 
-def create_discriminator(image_res):
-    init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
-
-    #Structure
-    image_input = layers.Input(shape=image_res)
-
-    #x = layers.GaussianNoise(0.01)(image_input)
-
-    #Add periodic bounding conditions
-    x = PeriodicPadding2D(padding=1)(image_input)
-
-    #-----------Decoder
+def dec_block(x, init):
+    #-----------Drop rate
     drop_rate = 0.0
       
+    #-----------Decoder
     x = dec_layer(x,   64//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init, padding='valid') #32x32  #64//2
     x = dec_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16                   #128//2
     x = dec_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #8x8                     #128//2
     #x = dec_layer(x, 128, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #4x4
 
+    #-----------
+    return x
+
+#--------------------------------------------------------------------
+
+def create_discriminator(image_size, cond_channels=0):
+    init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
+
+    #Structure
+    dis_input_shape = (image_size[0], image_size[1], image_size[2] + cond_channels)
+    image_input = layers.Input(shape=dis_input_shape)
+   
+    A = create_A_model(image_size)
+    A_in = image_input[:, :, :, 0:image_size[2]]
+    output_A = A(A_in)
+
+    #Add periodic bounding conditions
+    #x = layers.GaussianNoise(0.01)(image_input)
+    x = PeriodicPadding2D(padding=1)(image_input)
+    
+    #-----------Decoder
+    x = dec_block(x, init)
+
     #----------- Activation-layer
     x = layers.Flatten()(x)
     x = layers.Dropout(0.2)(x)
-    output = layers.Dense(1, activation=activations.sigmoid)(x)
+    output_dis = layers.Dense(1, activation=activations.sigmoid)(x)
 
     #----------- Model
-    d_model = keras.models.Model(inputs = image_input, outputs = output, name="discriminator")
+    d_model = keras.models.Model(inputs = image_input, outputs = [output_dis, output_A], name="discriminator")
+    #d_model = keras.models.Model(inputs = image_input, outputs = output_dis, name="discriminator")
+    return d_model
+
+def create_A_model(image_res):
+    init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
+
+    #Structure
+    image_input = layers.Input(shape=image_res)
+
+    #Add periodic bounding conditions
+    x = PeriodicPadding2D(padding=1)(image_input)
+
+    #-----------Decoder
+    x = dec_block(x, init)
+
+    #----------- Activation-layer
+    x = layers.Flatten()(x)
+    x = layers.Dropout(0.2)(x)
+    output = layers.Dense(1, activation=activations.relu)(x)
+
+    #----------- Model
+    d_model = keras.models.Model(inputs = image_input, outputs = output, name="A_model")
     return d_model

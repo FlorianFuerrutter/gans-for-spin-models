@@ -15,28 +15,43 @@ def enc_layer(enc_input, filter_size, kernel_size, kernel_initializer, strides=2
 
     return enc
 
+def injection_layer(x, latent_input, res, filter_size, kernel_initializer):
+
+    inject = layers.Dense(filter_size, use_bias=True, kernel_initializer=kernel_initializer)(latent_input[:, -1:])
+    inject = layers.LeakyReLU(alpha=0.2)(inject)
+    
+    inject = layers.RepeatVector(res*res)(inject)
+    inject = layers.Reshape((res, res, filter_size))(inject)
+
+    inject = layers.Add()([x, inject])
+    inject = layers.LeakyReLU(alpha=0.2)(inject)
+
+    return inject
+
 def create_generator(latent_dim):
     init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
 
     #Structure
     latent_input = layers.Input(shape=latent_dim)
 
-    x = layers.Dense(8 * 8 * 128//2, use_bias=False)(latent_input)
-   
-    x = layers.Dense(4096)(x)
-    x = layers.LeakyReLU(0.2)(x)
-    x = layers.Dense(4096)(x)
-    x = layers.LeakyReLU(0.2)(x)
+    res = 8
 
-    x = layers.Reshape((8, 8, 128//2))(x)
+    x = layers.Dense(res * res * 128//2, use_bias=False)(latent_input) #128//2   
+    x = layers.Reshape((res, res, 128//2))(x)
 
     #----------Encoder
     drop_rate = 0.0
 
     x = enc_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16   128 //2
+    x = injection_layer(x, latent_input, 16, 128//2, init)
+
     x = enc_layer(x,  192//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2
+    x = injection_layer(x, latent_input, 32, 192//2, init)
+
     x = enc_layer(x,  256//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2
-    #x = enc_layer(x,  1024//4, kernel_size=(4,4), strides=(1,1), drop_rate=drop_rate, kernel_initializer=init)
+    x = injection_layer(x, latent_input, 64, 256//2, init)
+
+    #x = enc_layer(x,  320//4, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init)
 
     # 128, 192, 256 , epoch 102 looks very good!!!! , 7k and 64 batch, tain 1.5 1.25 (up to 132)
     # 192, 256, 320 , 20k and 64 batch, tain 1.5 1.25  half ok up to 114

@@ -120,7 +120,7 @@ def plot_metrics_history_conditional(epochs, last_loaded_epoch_index, model_name
     plt.margins(0.03)
     plt.ylabel("Obs distance")
     plt.xlabel("Epoch")
-    plt.xticks(ticks, labels)
+    #plt.xticks(ticks, labels)
 
     plt.plot(epochs, obs_dist, "-", label="obs_dist")
 
@@ -129,7 +129,7 @@ def plot_metrics_history_conditional(epochs, last_loaded_epoch_index, model_name
     plt.margins(0.03)
     plt.ylabel("Obs distance")
     plt.xlabel("Epoch")
-    plt.xticks(ticks, labels)
+   # plt.xticks(ticks, labels)
     plt.yscale('log') 
 
     plt.plot(epochs, obs_dist, "-", label="obs_dist")
