@@ -590,7 +590,7 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
 
     #TJs            = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
     #                           1.5, 2.1, 2.35, 2.5, 2.8, 3.0
-    TJs_interpolate = np.array([1.1, 1.3, 1.6, 1.9, 2.15, 2.275, 2.5, 2.7, 3.1, 3.2])
+    TJs_interpolate = np.array([1.1, 1.3, 1.6, 1.9, 2.15, 2.275, 2.7, 2.9, 3.1, 3.2])
     
     #generate states (epoch, tj, states, N)
     states_epoch_tj, last_loaded_epoch_index = dh.generate_conditional_gan_data(TJs_interpolate, model_name, [best_epoch], images_count=images_count, 

@@ -23,7 +23,9 @@ def main() -> int:
     latent_dims = {"Spin_DC_GAN" : 4096}
     conditional = {"Spin_DC_GAN" : 1}
 
-    conditional_dim = 2
+    conditional_dim = 4
+    # 2  works, not good tho
+    # 6,7,8 collapses
 
     #---------------------------
     model_names = np.array(["Spin_DC_GAN"])
@@ -35,8 +37,8 @@ def main() -> int:
 
     epochs      = 1003
    
-    plot_period = 2
-    save_period = 2
+    plot_period = 1
+    save_period = 1
   
     #---------------------------
     train_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train") #, "64")
