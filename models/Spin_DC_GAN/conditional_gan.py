@@ -78,11 +78,14 @@ class conditional_gan(keras.Model):
     def __init__(self, latent_dim, conditional_dim, image_size):
         super().__init__()
 
-        self.generator = generator.create_generator(latent_dim + conditional_dim)       
-        self.discriminator = discriminator.create_discriminator(image_size, 1)
+        #---------------------------------------------
+        self.use_aux = True
 
-        #self.generator.summary()
-        #self.discriminator.summary()
+        self.generator = generator.create_generator(latent_dim + conditional_dim, 1)       
+        self.discriminator = discriminator.create_discriminator(image_size, 1, self.use_aux)
+
+        self.generator.summary()
+        self.discriminator.summary()
 
         #--------------------------------------------
         self.latent_dim      = latent_dim
@@ -157,7 +160,7 @@ class conditional_gan(keras.Model):
             #real_loss = self.d_loss_fn(noisy_real_labels, real_predictions) 
             fake_loss = self.d_loss_fn(noisy_fake_labels, fake_predictions[0])
             real_loss = self.d_loss_fn(noisy_real_labels, real_predictions[0]) + 5.0 * self.a_loss_fn(conditional_labels, real_predictions[1])
-
+          
             d_loss = fake_loss + real_loss + gradient_penalty(real_conditional_images, real_predictions, 5.0)
 
             #--------------
@@ -188,8 +191,9 @@ class conditional_gan(keras.Model):
             generated_conditional_images = tf.concat([generated_images, random_conditional_channel], -1)
 
             predictions = self.discriminator(generated_conditional_images) 
-            #g_loss      = self.g_loss_fn(real_labels, predictions) 
-            g_loss      = self.g_loss_fn(real_labels, predictions[0]) + 5.0 * self.a_loss_fn(random_conditional, predictions[1]) 
+
+            #g_loss = self.g_loss_fn(real_labels, predictions) 
+            g_loss = self.g_loss_fn(real_labels, predictions[0]) + 5.0 * self.a_loss_fn(random_conditional, predictions[1])    
 
             #--------------
 

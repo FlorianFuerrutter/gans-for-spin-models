@@ -69,7 +69,7 @@ def dec_block(x, init):
     #-----------Decoder
     x = dec_layer(x,   64//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init, padding='valid') #32x32  #64//2
     x = dec_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16                   #128//2
-    x = dec_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #8x8                     #128//2
+    x = dec_layer(x,  192//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #8x8                     #128//2
     #x = dec_layer(x, 128, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #4x4
 
     #-----------
@@ -77,16 +77,17 @@ def dec_block(x, init):
 
 #--------------------------------------------------------------------
 
-def create_discriminator(image_size, cond_channels=0):
+def create_discriminator(image_size, cond_channels=0, use_aux=False):
     init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
 
     #Structure
     dis_input_shape = (image_size[0], image_size[1], image_size[2] + cond_channels)
     image_input = layers.Input(shape=dis_input_shape)
    
-    A = create_A_model(image_size)
-    A_in = image_input[:, :, :, 0:image_size[2]]
-    output_A = A(A_in)
+    if use_aux:
+        A = create_A_model(image_size)
+        A_in = image_input[:, :, :, 0:image_size[2]]
+        output_A = A(A_in)
 
     #Add periodic bounding conditions
     #x = layers.GaussianNoise(0.01)(image_input)
@@ -101,8 +102,10 @@ def create_discriminator(image_size, cond_channels=0):
     output_dis = layers.Dense(1, activation=activations.sigmoid)(x)
 
     #----------- Model
-    d_model = keras.models.Model(inputs = image_input, outputs = [output_dis, output_A], name="discriminator")
-    #d_model = keras.models.Model(inputs = image_input, outputs = output_dis, name="discriminator")
+
+    outputs = [output_dis, output_A] if use_aux else output_dis
+
+    d_model = keras.models.Model(inputs = image_input, outputs = outputs, name="discriminator")
     return d_model
 
 def create_A_model(image_res):
