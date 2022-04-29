@@ -1,6 +1,7 @@
 import numpy as np
 import data_helper as dh
 import data_analysis as da
+import data_visualization as dv
 from numba import jit, njit, prange
 
 #--------------------------------------------------------------------
@@ -485,16 +486,16 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
     #get best epoch with averaging over TJs
 
     obs_dist_epoch = np.mean(obs_dist_tj, axis=0)
-    
+    obs_dist_epoch_std   = np.std(obs_dist_tj, axis=0)
+
     best_epoch_index = np.argmin(obs_dist_epoch)
     best_epoch       = epochs[best_epoch_index]
 
     print("[evaluate_model_metrics] Model:", model_name, "Best epoch:", best_epoch)
     print("[evaluate_model_metrics] obs_dist:", obs_dist_epoch[best_epoch_index])
-
-    import data_visualization as dv
+ 
     dv.plot_metrics_history_conditional(epochs, last_loaded_epoch_index, model_name, obs_dist_epoch)
-
+    
     #----------------------------
     #eval this best epoch gen images
 
@@ -586,7 +587,73 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
         model_evaluation_data_list.append(d)
   
     #-------------------------------------------
+    if 1:
+        print("doing obs hist")
+
+        mAbs= []
+        energy = []
+        magSusc = []
+        k3 = []
+        binderCu = []
+        xi = []
+        for TJ in TJs:
+            tenergy, tm, tmAbs, tm2, tmAbs3, tm4 = dh.load_spin_observables(TJ)
+
+            data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3 = perform_observable_calculation(tenergy, tm, tmAbs, tm2, tmAbs3, tm4, N, TJ) 
+            states = dh.load_spin_states(TJ)
+            txi, txi_err = da.calc_spin_spin_correlation(states, N)   
+
+            mAbs.append(data_mAbs)
+            energy.append(data_energy)
+            magSusc.append(data_magSusc)
+            k3.append(data_k3)
+            binderCu.append(data_binderCu)                                 
+            xi.append(dh.err_data(txi, txi_err, txi_err))
+         
+        g_energy = calc_states_epoch_tj_energy(N, states_epoch_tj)
+        g_m     = np.sum(states_epoch_tj, axis=3) / N
+        g_mAbs  = np.abs(g_m)
+        g_m2    = np.square(g_m)
+        g_mAbs3 = g_mAbs * g_m2
+        g_m4    = np.square(g_m2)
+        for i in range(last_loaded_epoch_index+1):
+
+            g_energy_tj = g_energy[i]
+            g_m_tj      = g_m[i]
+            g_mAbs_tj   = g_mAbs[i]
+            g_m2_tj     = g_m2[i]
+            g_mAbs3_tj  = g_mAbs3[i]
+            g_m4_tj     = g_m4[i]
+               
+            tg_mAbs= []
+            tg_energy = []
+            tg_magSusc = []
+            tg_k3 = []
+            tg_binderCu = []
+            tg_xi = []
+
+            for j in range(TJs.shape[0]):
+                TJ = TJs[j]
+              
+                g_data_energy, g_data_mAbs, g_data_magSusc, g_data_binderCu, g_data_k3 = perform_observable_calculation(g_energy_tj[j], g_m_tj[j], g_mAbs_tj[j], 
+                                                                                                                        g_m2_tj[j], g_mAbs3_tj[j], g_m4_tj[j], N, TJ)
+                gan_states = states_epoch_tj[i, j]
+                teg_xi, teg_xi_err = da.calc_spin_spin_correlation(gan_states, N)
+             
+                tg_mAbs.append(g_data_mAbs)
+                tg_energy.append(g_data_energy)
+                tg_magSusc.append(g_data_magSusc)
+                tg_k3.append(g_data_k3)
+                tg_binderCu.append(g_data_binderCu)                                 
+                tg_xi.append(dh.err_data(teg_xi, teg_xi_err, teg_xi_err))
+
+            dv.plot_observable_epoch(TJs, epochs[i], obs_dist_epoch[i], obs_dist_epoch_std[i], 
+                                        mAbs, energy, magSusc, k3, binderCu, xi, 
+                                        tg_mAbs, tg_energy, tg_magSusc, tg_k3, tg_binderCu, tg_xi)
+
     #-------------------------------------------
+    #-------------------------------------------
+    #interpolate
 
     #TJs            = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
     #                           1.5, 2.1, 2.35, 2.5, 2.8, 3.0

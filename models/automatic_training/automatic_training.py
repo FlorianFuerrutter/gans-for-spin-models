@@ -3,6 +3,9 @@ import numpy as np
 import importlib
 import tensorflow as tf
 
+#tf.debugging.set_log_device_placement(True)
+#os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+
 #-----------------------------------------------------------------
 
 def import_gan_module(gan_name=""):

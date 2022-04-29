@@ -94,11 +94,11 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     #--------------
     #define loss and optimizer
     
-    decay_steps = 3516 * 70   # 2110(15k) 1407(10k) 1094(x64)
-    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
+    decay_steps = 3516 * 20   # 2110(15k) 1407(10k) 1094(x64)    [2e-4, 0.9]
+    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=3e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.9)
-    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
+    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=3e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.9)
 
@@ -110,7 +110,7 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
 
     #--------------
     #create model
-   
+    
     gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
     gan_model.compile(d_optimizer, g_optimizer, d_loss_fn, g_loss_fn)
 
@@ -123,6 +123,10 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     #train
     callbacks = []
     callbacks.append(conditional_gan.train_callback(latent_dim, plot_period=plot_period, save_period=save_period))
+
+    # Profile from batches 10 to 15
+    log_dir = "../log"
+    #callbacks.append(tf.keras.callbacks.TensorBoard(log_dir=log_dir, profile_batch='100, 300'))
 
     #gan_model.plot_print_model_config()
     gan_model.fit(dataset, epochs=epochs,callbacks=callbacks)

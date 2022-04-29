@@ -139,6 +139,78 @@ def plot_metrics_history_conditional(epochs, last_loaded_epoch_index, model_name
     savePng("plot_metrics_history_conditional_" + model_name)
     return
 
+def plot_observable_epoch(TJs, epoch, obs_dist, obs_dist_std, mAbs, energy, magSusc, k3, binderCu, xi, g_mAbs, g_energy, g_magSusc, g_k3, g_binderCu, g_xi):
+     
+    Tc = 1.0 * 2.0 / np.log(1.0 + np.sqrt(2.0))
+
+    #---------------------------
+    size=(13, 4.8*1.9)
+    fig = plt.figure(figsize=size, constrained_layout=True) 
+    gs = plt.GridSpec(3, 2, figure=fig)
+    axs = np.array([fig.add_subplot(gs[0,0]), fig.add_subplot(gs[0,1]),
+                    fig.add_subplot(gs[1,0]), fig.add_subplot(gs[1,1]),
+                    fig.add_subplot(gs[2,0]), fig.add_subplot(gs[2,1])])
+        
+    #---------------------------
+    title = [r"$\langle |m|\rangle$",  r"$\langle E\rangle$",
+             r"$\chi$",                r"$\kappa_3$",
+             r"$U_2$",                r"$\xi$"]
+
+    ticks  = [1.0, 1.8, 2.2, 2.6, 3.4]
+    labels = [("%0.1f" % x) for x in ticks]  
+    
+    empty_labels = ["" for x in ticks]
+
+    mc_data_list  = [mAbs, energy, magSusc, k3, binderCu, xi]
+    gan_data_list = [g_mAbs, g_energy, g_magSusc, g_k3, g_binderCu, g_xi] 
+
+    #---------------------------
+    clr_sim = "tab:blue"
+    clr_gan = "tab:orange"
+
+    #legend
+    plt.sca(axs[1])
+    args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color=clr_sim, size="large")
+    plt.text(1.03, 0.96, r"Simulated", args)
+
+    args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color=clr_gan, size="large")
+    plt.text(1.03, 0.96-0.20*1, r"OOP: $(%.1f \pm %0.1f)$" % (obs_dist, obs_dist_std), args)
+
+    #---------------------------
+    for iy in range(3):
+        for ix in range(2):
+            i = iy * 2 + ix
+
+            #---------------------------
+            plt.sca(axs[i])
+            plt.margins(0.03) 
+            plt.axvline(Tc, color="gray", linestyle="--")
+            plt.ylabel(title[i])
+
+            if iy > 1:
+                plt.xlabel(r'$T/J$')
+                plt.xticks(ticks, labels)
+            else:
+                plt.xticks(ticks, empty_labels)
+
+            #---------------------------
+            mc_data  = mc_data_list[i]
+            gan_data = gan_data_list[i]
+
+            mean, err, std       = [x.val for x in mc_data], [x.err for x in mc_data], [x.std for x in mc_data]
+            g_mean, g_err, g_std = [x.val for x in gan_data], [x.err for x in gan_data], [x.std for x in gan_data]
+
+            plt.plot(TJs, mean, "--", color=clr_sim, alpha=0.5, linewidth=0.8)
+            plt.errorbar(TJs, mean, fmt='.', yerr=err, label="Simulated", elinewidth=1, capsize=5, markersize=5, color=clr_sim)
+            plt.errorbar(TJs, mean, fmt='.', yerr=std, label="Simulated_std", elinewidth=1, capsize=2, markersize=5, color=clr_sim)
+
+            plt.errorbar(TJs, g_mean, fmt='.', yerr=g_err, label="GAN", elinewidth=1, capsize=5, markersize=5, color=clr_gan)
+            plt.errorbar(TJs, g_mean, fmt='.', yerr=g_std, label="GAN_std", elinewidth=1, capsize=2, markersize=5, color=clr_gan)
+
+    #savePdf("epochs/observables_%d" % epoch)
+    savePng("epochs/observables_%d" % epoch)
+    plt.close(fig)
+    return
 
 #--------------------------------------------------------------------
 

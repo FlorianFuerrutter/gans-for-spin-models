@@ -21,7 +21,7 @@ def main() -> int:
     epoch_step = 1
     epoch_min  = epoch_step * 2
     epoch_max  = epoch_step * 1000
-   
+  
     #data cnt taken from GAN for evaluation
     images_count = 1000 #00
 

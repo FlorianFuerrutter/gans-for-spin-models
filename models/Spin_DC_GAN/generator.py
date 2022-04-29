@@ -42,28 +42,30 @@ def injection_layer(x, latent_input, res, filter_size, kernel_initializer, condi
 def create_generator(latent_dim, conditional_dim=0):
     init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
 
+    scale = 1
+
     #Structure
     latent_input = layers.Input(shape=latent_dim)
 
     res = 8
 
-    x = layers.Dense(res * res * 64//2, use_bias=False)(latent_input) #128//2   
-    x = layers.Reshape((res, res, 64//2))(x)
+    x = layers.Dense(res * res * 64//scale, use_bias=False)(latent_input) #128//2   
+    x = layers.Reshape((res, res, 64//scale))(x)
 
     #----------Encoder
     drop_rate = 0.0
-
-    x = enc_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16   128 //2
+   
+    x = enc_layer(x,  128//scale, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16   128 //2
     if conditional_dim > 0:
-        x = injection_layer(x, latent_input, 16, 128//2, init, conditional_dim)
+        x = injection_layer(x, latent_input, 16, 128//scale, init, conditional_dim)
 
-    x = enc_layer(x,  192//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2   
+    x = enc_layer(x,  192//scale, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2   
     if conditional_dim > 0:
-        x = injection_layer(x, latent_input, 32, 192//2, init, conditional_dim)
+        x = injection_layer(x, latent_input, 32, 192//scale, init, conditional_dim)
 
-    x = enc_layer(x,  256//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2   
+    x = enc_layer(x,  256//scale, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2   
     if conditional_dim > 0:
-        x = injection_layer(x, latent_input, 64, 256//2, init, conditional_dim)
+        x = injection_layer(x, latent_input, 64, 256//scale, init, conditional_dim)
 
     #x = enc_layer(x,  320//4, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init)
 

@@ -45,13 +45,13 @@ def plot_images(generated_images, labels, images_count, epoch, plot_path=""):
         plt.savefig(plot_path + "/generated_{epoch}.png".format(epoch=epoch), bbox_inches='tight')
     plt.close()
 
-@tf.function
+@tf.function(jit_compile=True)
 def sample_generator_input(batch_size, latent_dim,):
     return tf.random.normal(shape=(batch_size, latent_dim))
   
 #--------------------------------------------------------------------
 
-@tf.function
+@tf.function(jit_compile=True)
 def wasserstein_loss(y_true, y_pred):
     #true label smooth
     label_smoothing = 0.05
@@ -113,6 +113,7 @@ class conditional_gan(keras.Model):
     def metrics(self):
         return [self.d_loss_metric, self.g_loss_metric]
 
+    @tf.function(jit_compile=True)
     def train_step(self, data):
         #------#unpack train data
         real_images, conditional_labels = data
