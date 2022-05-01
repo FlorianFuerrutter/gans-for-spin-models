@@ -94,7 +94,10 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     #--------------
     #define loss and optimizer
     
-    decay_steps = 3516 * 20   # 2110(15k) 1407(10k) 1094(x64)    [2e-4, 0.9]
+    #first 3e-4 and 15k to epoch 26
+    #then load this,and 3e-5
+
+    decay_steps = 3516 * 20  # 2110(15k) 1407(10k) 1094(x64)    [3e-4, 0.9]
     lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=3e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.9)
@@ -114,6 +117,11 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
     gan_model.compile(d_optimizer, g_optimizer, d_loss_fn, g_loss_fn)
 
+    #-------------
+    #gan_model.save_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "model-data", "Spin_DC_GAN", "ck", "gan_")
+    #gan_model.load(26)
+
+    #--------------
     if (weights_path != ""):
         gan_model.save_path = weights_path
     if (plot_path != ""):
