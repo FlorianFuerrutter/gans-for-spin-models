@@ -62,21 +62,27 @@ def sample_generator_input(batch_size, enc_block_count, latent_dim, noise_image_
 
 #--------------------------------------------------------------------
 
-#@tf.function
-def gradient_penalty(samples, output, weight):
-    gradients = K.gradients(output, samples)[0]
-    gradients_sqr = K.square(gradients)
-    gradient_penalty = K.sum(gradients_sqr, axis=np.arange(1, len(gradients_sqr.shape)))
-
-    # (weight / 2) * ||grad||^2
+def gradient_penalty(samples, output, weight):   
     # Penalize the gradient norm
-    return K.mean(gradient_penalty) * weight
+    # r1 = (weight / 2) * E( ||grad||^2 )
 
-@tf.function
+    gradients        = tf.gradients(output, samples)[0]
+    gradients_sqr    = tf.square(gradients)
+    gradient_penalty = tf.reduce_sum(gradients_sqr, axis=[1, 2, 3])
+
+    return tf.reduce_mean(gradient_penalty) * weight
+
+@tf.function(jit_compile=True)
 def wasserstein_loss(y_true, y_pred):
-    label_smooth = 1 - 0.05
-    y_true = (2.0 * label_smooth) * y_true - label_smooth
-    y_pred = (2.0 * label_smooth) * y_pred - label_smooth
+    #true label smooth
+    label_smoothing = 0.05
+    y_true = y_true * (1.0 - label_smoothing) + 0.5 * label_smoothing
+
+    #convert [0,1] to [-1,1]
+    y_true = 2.0 * y_true - 1.0
+    y_pred = 2.0 * y_pred - 1.0
+
+    #calc wasserstein loss
     return -tf.reduce_mean(y_true * y_pred)
 
 class gan(keras.Model):
@@ -116,6 +122,7 @@ class gan(keras.Model):
     def metrics(self):
         return [self.d_loss_metric, self.g_loss_metric]
 
+    @tf.function(jit_compile=True)
     def train_step(self, real_images):
         batch_size = tf.shape(real_images)[0] 
        
@@ -132,8 +139,8 @@ class gan(keras.Model):
         latent_vectors, noise_images = sample_generator_input(batch_size, self.enc_block_count, self.latent_dim, self.noise_image_res)
 
         #set labels
-        labels  = tf.concat( [tf.ones((batch_size, 1)), tf.zeros((batch_size, 1))], axis=0 )   
-        labels += 0.05 * tf.random.uniform(tf.shape(labels)) 
+        #labels  = tf.concat( [tf.ones((batch_size, 1)), tf.zeros((batch_size, 1))], axis=0 )   
+        #labels += 0.05 * tf.random.uniform(tf.shape(labels)) 
 
         real_labels = tf.zeros((batch_size, 1)) 
         fake_labels = tf.ones((batch_size, 1))

@@ -39,3 +39,5 @@ simulation_*
 /models/Spin_StyleGAN2/*.png
 /plotting/*.pdf
 /plotting/*.png
+/plotting/epochs
+/models/log

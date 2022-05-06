@@ -20,8 +20,6 @@ else:
 
 import gan
 import conditional_gan
-import generator
-import discriminator
 
 #-------------------------------------
 #-------------------------------------
@@ -77,7 +75,7 @@ def train_model(dataset, epochs, save_period, plot_period, latent_dim, image_siz
 
     gan_model.fit(dataset, epochs=epochs,callbacks=callbacks)
 
-    return
+    return 
 
 def train_conditional_model(dataset, epochs, save_period, plot_period, latent_dim, conditional_dim, image_size, weights_path="", plot_path=""):
     if 1:
@@ -207,7 +205,7 @@ def load_conditional_spin_data(batch_size, res, path, TJs, amplitude=0.7, condit
 #-------------------------------------
 
 def main() -> int:  
-    #--------------
+    #--------------------------------------------------------------------
     #setup
     epochs     = 1002
     latent_dim = 4096 #256
@@ -223,18 +221,18 @@ def main() -> int:
 
     conditional = 1
 
-    #--------------
+    #--------------------------------------------------------------------
     #load data and train
     path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train")
 
     if conditional:
         #------------
-        conditional_dim = 2
+        conditional_dim = 4
         #TJs = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
         TJs = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.8, 3.0, 3.4])
         
         #------------
-        dataset  = load_conditional_spin_data(batch_size, image_size[0], path, TJs, amplitude, conditional_dim)
+        dataset  = load_conditional_spin_data(batch_size, image_size[0], path, TJs, amplitude, 1)
 
         train_conditional_model(dataset, epochs, save_period, plot_period, latent_dim, conditional_dim, image_size)
 
@@ -244,7 +242,7 @@ def main() -> int:
    
         train_model(dataset, epochs, save_period, plot_period, latent_dim, image_size)
 
-    #--------------
+    #--------------------------------------------------------------------
     return 0
 
 if __name__ == '__main__':

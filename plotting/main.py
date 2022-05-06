@@ -8,9 +8,13 @@ import matplotlib.pyplot as plt
 def main() -> int:
   #-----------------------------------------------------------------
     
-    latent_dims      = {"Spin_DC_GAN" : 4096}
-    conditional      = {"Spin_DC_GAN" : 1}
-    conditional_dims = {"Spin_DC_GAN" : 4}
+    #latent_dims      = {"Spin_DC_GAN" : 4096}
+    #conditional      = {"Spin_DC_GAN" : 1}
+    #conditional_dims = {"Spin_DC_GAN" : 4}
+
+    latent_dims      = {"Spin_StyleGAN2" : 512}
+    conditional      = {"Spin_StyleGAN2" : 1}
+    conditional_dims = {"Spin_StyleGAN2" : 4}
 
     image_size = (64, 64, 1)
 
