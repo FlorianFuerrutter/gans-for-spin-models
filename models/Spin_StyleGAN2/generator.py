@@ -112,7 +112,7 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
     init = keras.initializers.GlorotUniform()
     
     filter_size_const = 64
-    filter_size_start = 256 #256 #288 #312
+    filter_size_start = 256     #256 #288 #312
     res_start         = 4
 
     #create mapping operator, z->w
@@ -157,8 +157,8 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
         
     #--------------------------------------------
     #Activation-layer
-    #output = layers.Conv2D(out_filter, kernel_size=(5,5), strides=1, padding='same', activation=activations.tanh)(rgb)
-    output = layers.Activation(activations.tanh)(rgb)
+    output = layers.Conv2D(out_filter, kernel_size=(5,5), strides=1, padding='same', activation=activations.tanh)(rgb)
+    #output = layers.Activation(activations.tanh)(rgb)
 
     g_model = keras.models.Model(inputs=[latent_input, noise_image_input], outputs=output, name="generator")
     return g_model

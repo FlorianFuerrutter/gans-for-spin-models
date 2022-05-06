@@ -19,7 +19,7 @@ def main() -> int:
     TJs         = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.8, 3.0, 3.4])
 
     epoch_step = 1
-    epoch_min  = epoch_step * 2
+    epoch_min  = 0 #epoch_step * 2
     epoch_max  = epoch_step * 1000
   
     #data cnt taken from GAN for evaluation

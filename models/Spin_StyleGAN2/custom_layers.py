@@ -6,6 +6,8 @@ from keras import layers
 from keras.engine import base_layer
 
 #--------------------------------------------------------------------
+#--------------------------------------------------------------------
+#--------------------------------------------------------------------
 # Custom layers defined in https://arxiv.org/pdf/1912.04958.pdf
 #--------------------------------------------------------------------
 
@@ -183,3 +185,49 @@ class Conv2DMod(tf.keras.layers.Conv2D):
         return config
 
 #--------------------------------------------------------------------
+#--------------------------------------------------------------------
+#--------------------------------------------------------------------
+# From thesis
+#--------------------------------------------------------------------
+
+class PeriodicPadding2D(keras.layers.Layer):
+    '''Pads a image with periodic conditions'''
+
+    def __init__(self, padding=1, *args, **kwargs):
+        super(PeriodicPadding2D, self).__init__(*args, **kwargs)
+        self.padding = padding
+
+    def compute_output_shape(self, input_shape):
+        shape = tf.shape(input_shape)
+        assert shape.size == 3  
+
+        if shape[1] is not None:
+          length_h = shape[1] + 2 * self.padding         
+        else:
+          length_h = None
+
+        if shape[1] is not None:
+          length_w = shape[2] + 2 * self.padding         
+        else:
+          length_w = None
+
+        return tuple([shape[0], length_h, length_w])
+
+    def call(self, inputs):  
+        x    = inputs
+        size = self.padding
+
+        #assumes channel last format!
+
+        #pad cols
+        x = tf.concat([x[:, :, -size:], x, x[:, :, 0:size]], axis=2) 
+
+        #pad rows
+        x = tf.concat([x[:, -size:, :], x, x[:, 0:size, :]], axis=1)
+
+        return x
+
+    def get_config(self):
+        config = super(PeriodicPadding2D, self).get_config()
+        config.update({"padding": self.padding})
+        return config

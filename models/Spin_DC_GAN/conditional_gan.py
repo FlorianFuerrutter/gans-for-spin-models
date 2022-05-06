@@ -244,7 +244,7 @@ class train_callback(keras.callbacks.Callback):
         
         #--------------------------------------------
         #save weights
-        if ((epoch % self.save_period) == 0) and (epoch > 1 * self.save_period):
+        if ((epoch % self.save_period) == 0): # and (epoch >= 1 * self.save_period):
             self.model.save(epoch, only_weights=True)
 
         #--------------------------------------------

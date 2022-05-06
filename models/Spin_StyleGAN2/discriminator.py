@@ -2,6 +2,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, activations, initializers
+import custom_layers
 
 #--------------------------------------------------------------------
 
@@ -27,16 +28,9 @@ def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate
     dec1 = layers.Conv2D(filter_size, kernel_size=1, strides=(1,1), padding=padding, kernel_initializer=kernel_initializer)(dec)   
 
     #------- res 
-    res = layers.Conv2D(filter_size, kernel_size=kernel_size, strides=(1,1), padding=padding, kernel_initializer=kernel_initializer)(dec)
-    res = layers.LeakyReLU(alpha=0.2)(res)
-    if drop_rate > 0.0:
-        res = layers.Dropout(drop_rate)(res)
-
-    res = layers.Conv2D(filter_size, kernel_size=kernel_size, strides=(1,1), padding=padding, kernel_initializer=kernel_initializer)(res)
-    res = layers.LeakyReLU(alpha=0.2)(res)
-    if drop_rate > 0.0:
-        res = layers.Dropout(drop_rate)(res)
-   
+    res = dec_layer(dec, filter_size, kernel_size, kernel_initializer, strides=(1,1), drop_rate=drop_rate, padding=padding)
+    res = dec_layer(res, filter_size, kernel_size, kernel_initializer, strides=(1,1), drop_rate=drop_rate, padding=padding)
+ 
     #-------
     out = layers.Add()([res, dec1])  
     out = layers.Lambda( lambda x: x * tf.math.rsqrt(2.0) )(out) #1/sqrt2
@@ -48,17 +42,12 @@ def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate
 
 #--------------------------------------------------------------------
 
-def create_discriminator(image_res):
-    init = keras.initializers.GlorotUniform() 
-
-    start_filter_size = 16 #16 #18
+def decoder(x, init):
+    start_filter_size = 16 #18
     drop_rate         = 0.0
-    
-    #Structure
-    image_input = layers.Input(shape=image_res) #64x64
 
     #fRGB
-    x = layers.Conv2D(start_filter_size, kernel_size=1, strides=(1,1), padding='same', kernel_initializer=init)(image_input)
+    x = layers.Conv2D(start_filter_size, kernel_size=1, strides=(1,1), padding='valid', kernel_initializer=init)(x)
 
     #-----------Decoders   
     x = dec_block(x,  start_filter_size * 1, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
@@ -67,13 +56,50 @@ def create_discriminator(image_res):
     #x = dec_block(x,  start_filter_size * 6, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #4x4
     x = dec_block(x,  start_filter_size * 6, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) 
 
+    return x
+
+#--------------------------------------------------------------------
+
+def create_discriminator(image_res, cond_channels=0, use_aux=False):
+    init = keras.initializers.GlorotUniform() 
+   
+    #Structure
+    input_shape = (image_res[0], image_res[1], image_res[2] + cond_channels)
+    image_input = layers.Input(shape=input_shape) #64x64
+
+    if use_aux:
+        A = create_A_model(image_res, init)
+        A_in = image_input[:, :, :, 0:image_res[2]]
+        output_A = A(A_in)
+
+    #-----------Decoder
+    x = custom_layers.PeriodicPadding2D(padding=1)(image_input)
+    x = decoder(x, init)
+
     #----------- Activation-layer
     x = layers.Flatten()(x)  
-    #x = layers.Dropout(0.2)(x)
-    output = layers.Dense(1, activation=activations.sigmoid)(x)
+    output_dis = layers.Dense(1, activation=activations.sigmoid)(x)
 
     #----------- Model
-    d_model = keras.models.Model(inputs=image_input, outputs=output, name="discriminator")
+    outputs = [output_dis, output_A] if use_aux else output_dis
+
+    d_model = keras.models.Model(inputs=image_input, outputs=outputs, name="discriminator")
     return d_model
 
 #--------------------------------------------------------------------
+
+def create_A_model(image_res, init):
+
+    image_input = layers.Input(shape=image_res)
+
+     #-----------Decoder
+    x = custom_layers.PeriodicPadding2D(padding=1)(image_input)
+    x = decoder(x, init)
+
+    #----------- Activation-layer
+    x = layers.Flatten()(x)  
+    output = layers.Dense(1, activation=activations.sigmoid)(x)
+
+    #----------- Model
+    model = keras.models.Model(inputs = image_input, outputs = output, name="A_model")
+    return model
