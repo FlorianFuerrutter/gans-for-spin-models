@@ -86,7 +86,7 @@ def wasserstein_loss(y_true, y_pred):
     #calc wasserstein loss
     return -tf.reduce_mean(y_true * y_pred)
 
-def gradient_penalty(samples, output, weight):   
+def gradient_penalty(samples, output, weight):
     # Penalize the gradient norm
     # r1 = (weight / 2) * E( ||grad||^2 )
 
@@ -139,7 +139,7 @@ class conditional_gan(keras.Model):
     def metrics(self):
         return [self.d_loss_metric, self.g_loss_metric, self.a_loss_metric]
 
-    #@tf.function(jit_compile=True)
+    @tf.function
     def train_step(self, data):
         #------#unpack train data
         real_images, conditional_labels = data
@@ -188,8 +188,8 @@ class conditional_gan(keras.Model):
             real_loss = self.d_loss_fn(noisy_real_labels, real_predictions[0])
 
             a_loss = 5.0 * self.a_loss_fn(conditional_labels, real_predictions[1])
-            d_loss = fake_loss + real_loss + a_loss + gradient_penalty(real_conditional_images, real_predictions, 5.0)
-
+            d_loss = fake_loss + real_loss + gradient_penalty(real_conditional_images, real_predictions, 5.0) + a_loss
+            
             #--------------
             
         #derivative of d_loss with respect to trainable_weights

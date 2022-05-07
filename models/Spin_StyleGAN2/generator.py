@@ -56,7 +56,8 @@ def enc_block(enc_input, in_style, noise_image, filter_size, out_filter, kernel_
     #--------------------------------------------
     #UpSample, not on first_block
     if not first_block:
-        enc = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(enc)
+        #enc = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(enc)
+        enc = layers.Conv2DTranspose(filter_size, kernel_size=(4,4), strides=(2,2), padding=padding, kernel_initializer=kernel_initializer)(enc)
 
     cropping = ((noise_image.shape[1]-enc.shape[1], 0), (noise_image.shape[2]-enc.shape[2], 0))
     noise = layers.Cropping2D(cropping=cropping)(noise_image)
@@ -113,7 +114,7 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
     
     filter_size_const = 64
     filter_size_start = 256     #256 #288 #312
-    res_start         = 4
+    res_start         = 4      #4
 
     #create mapping operator, z->w
     mapping_model = create_mapping_network(latent_dim, styles_dim)
@@ -146,19 +147,20 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
 
     #--------------------------------------------
     #scale blocks
-    for i in range(1, enc_block_count):            
+    for i in range(1, enc_block_count):
+        #filter_size = filter_size_start - 64 * (i-1)
         filter_size = filter_size_start / (2**i)
-        #filter_size = filter_size_start - i * 56 #56 #64 #70
 
         x, rgb_c = enc_block(x, style_input[i], noise_image_input[i], filter_size=filter_size, out_filter=out_filter, kernel_size=(3,3), kernel_initializer=init, first_block=False)       
         
-        rgb = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(rgb)
+        #rgb = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(rgb)
+        rgb = layers.Conv2DTranspose(out_filter, kernel_size=(4,4), strides=(2,2), padding="same", kernel_initializer=init)(rgb)
         rgb = layers.Add()([rgb, rgb_c])        
         
     #--------------------------------------------
     #Activation-layer
-    output = layers.Conv2D(out_filter, kernel_size=(5,5), strides=1, padding='same', activation=activations.tanh)(rgb)
-    #output = layers.Activation(activations.tanh)(rgb)
+    rgb = layers.Conv2D(out_filter, kernel_size=(5,5), strides=1, padding='same')(rgb)
+    output = layers.Activation(activations.tanh, dtype="float32")(rgb)
 
     g_model = keras.models.Model(inputs=[latent_input, noise_image_input], outputs=output, name="generator")
     return g_model

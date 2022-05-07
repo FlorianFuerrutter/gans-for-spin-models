@@ -33,7 +33,7 @@ def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate
  
     #-------
     out = layers.Add()([res, dec1])  
-    out = layers.Lambda( lambda x: x * tf.math.rsqrt(2.0) )(out) #1/sqrt2
+    out = layers.Lambda( lambda x: x * tf.math.rsqrt(2.0), dtype="float32")(out) #1/sqrt2
 
     if not last_block:
         out = layers.AveragePooling2D()(out)
@@ -43,7 +43,7 @@ def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate
 #--------------------------------------------------------------------
 
 def decoder(x, init):
-    start_filter_size = 16 #18
+    start_filter_size = 32 #18
     drop_rate         = 0.0
 
     #fRGB
@@ -52,9 +52,8 @@ def decoder(x, init):
     #-----------Decoders   
     x = dec_block(x,  start_filter_size * 1, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
     x = dec_block(x,  start_filter_size * 2, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #16x16
-    x = dec_block(x,  start_filter_size * 4, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
-    #x = dec_block(x,  start_filter_size * 6, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #4x4
-    x = dec_block(x,  start_filter_size * 6, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) 
+    #x = dec_block(x,  start_filter_size * 4, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
+    x = dec_block(x,  start_filter_size * 3, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) 
 
     return x
 
@@ -78,7 +77,9 @@ def create_discriminator(image_res, cond_channels=0, use_aux=False):
 
     #----------- Activation-layer
     x = layers.Flatten()(x)  
-    output_dis = layers.Dense(1, activation=activations.sigmoid)(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.Dense(1)(x)
+    output_dis = layers.Activation(activations.sigmoid, dtype="float32")(x)
 
     #----------- Model
     outputs = [output_dis, output_A] if use_aux else output_dis
@@ -97,8 +98,10 @@ def create_A_model(image_res, init):
     x = decoder(x, init)
 
     #----------- Activation-layer
-    x = layers.Flatten()(x)  
-    output = layers.Dense(1, activation=activations.sigmoid)(x)
+    x = layers.Flatten()(x)
+    x = layers.Dropout(0.2)(x)
+    x = layers.Dense(1)(x)
+    output = layers.Activation(activations.relu, dtype="float32")(x)
 
     #----------- Model
     model = keras.models.Model(inputs = image_input, outputs = output, name="A_model")

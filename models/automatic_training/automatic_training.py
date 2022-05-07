@@ -4,7 +4,9 @@ import importlib
 import tensorflow as tf
 
 #tf.debugging.set_log_device_placement(True)
-#os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+os.environ['TF_GPU_THREAD_MODE'] = 'gpu_private'
+#tf.keras.mixed_precision.set_global_policy('mixed_float16')
+#tf.config.optimizer.set_jit("autoclustering")
 
 #-----------------------------------------------------------------
 
@@ -29,9 +31,9 @@ def main() -> int:
     #model_names = np.array(["Spin_DC_GAN"])
 
     batch_sizes      = {"Spin_StyleGAN2" : 64}
-    latent_dims      = {"Spin_StyleGAN2" : 512}
+    latent_dims      = {"Spin_StyleGAN2" : 4096}
     conditional      = {"Spin_StyleGAN2" : 1}
-    conditional_dims = {"Spin_StyleGAN2" : 4}
+    conditional_dims = {"Spin_StyleGAN2" : 1}
     model_names = np.array(["Spin_StyleGAN2"])
   
     #---------------------------    
