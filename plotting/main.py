@@ -11,14 +11,15 @@ def main() -> int:
     #latent_dims      = {"Spin_DC_GAN" : 4096}
     #conditional      = {"Spin_DC_GAN" : 1}
     #conditional_dims = {"Spin_DC_GAN" : 4}
+    #model_names = np.array(["Spin_DC_GAN"])
 
-    latent_dims      = {"Spin_StyleGAN2" : 512}
+    latent_dims      = {"Spin_StyleGAN2" : 4096}
     conditional      = {"Spin_StyleGAN2" : 1}
     conditional_dims = {"Spin_StyleGAN2" : 4}
+    model_names = np.array(["Spin_StyleGAN2"])
 
     image_size = (64, 64, 1)
 
-    model_names = np.array(["Spin_DC_GAN"])
     #TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
     TJs         = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.8, 3.0, 3.4])
 
@@ -27,7 +28,7 @@ def main() -> int:
     epoch_max  = epoch_step * 1000
   
     #data cnt taken from GAN for evaluation
-    images_count = 1000 #00
+    images_count = 1024 #00
 
     #-----------------------------------------------------------------
     #set this for evaluation of a single training run of a model in their folder (not the data folder) -> used for development

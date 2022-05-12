@@ -104,7 +104,7 @@ class conditional_gan(keras.Model):
         self.use_aux = True
  
         self.generator = generator.create_generator(enc_block_count, latent_dim + conditional_dim, style_dim, noise_image_res, image_size[-1])
-        self.discriminator = discriminator.create_discriminator(image_size, 1, self.use_aux)
+        self.discriminator, self.A_model = discriminator.create_discriminator(image_size, 1, self.use_aux)
         
         self.generator.summary()
         self.discriminator.summary()
@@ -187,8 +187,8 @@ class conditional_gan(keras.Model):
             fake_loss = self.d_loss_fn(noisy_fake_labels, fake_predictions[0])
             real_loss = self.d_loss_fn(noisy_real_labels, real_predictions[0])
 
-            a_loss = 5.0 * self.a_loss_fn(conditional_labels, real_predictions[1])
-            d_loss = fake_loss + real_loss + gradient_penalty(real_conditional_images, real_predictions, 5.0) + a_loss
+            a_loss = self.a_loss_fn(conditional_labels, real_predictions[1])
+            d_loss = fake_loss + real_loss + gradient_penalty(real_conditional_images, real_predictions, 5.0) + 5.0 * a_loss
             
             #--------------
             

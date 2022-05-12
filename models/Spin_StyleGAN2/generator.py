@@ -59,6 +59,7 @@ def enc_block(enc_input, in_style, noise_image, filter_size, out_filter, kernel_
         #enc = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(enc)
         enc = layers.Conv2DTranspose(filter_size, kernel_size=(4,4), strides=(2,2), padding=padding, kernel_initializer=kernel_initializer)(enc)
 
+    #crop noise to current image size
     cropping = ((noise_image.shape[1]-enc.shape[1], 0), (noise_image.shape[2]-enc.shape[2], 0))
     noise = layers.Cropping2D(cropping=cropping)(noise_image)
     noise = layers.Dense(filter_size, kernel_initializer='zeros')(noise)
@@ -93,10 +94,11 @@ def create_mapping_network(latent_dim, styles_dim):
     latent_input = layers.Input(shape=latent_dim)
 
     out = latent_input
-    out = layers.Dense(styles_dim)(out)
+    out = layers.Dense(styles_dim, use_bias=False)(out)
     out = layers.LeakyReLU(0.2)(out)
 
     out = layers.Dense(styles_dim)(out)
+    out = layers.Dropout(0.2)(out)
     out = layers.LeakyReLU(0.2)(out)
 
     #out = layers.Dense(styles_dim)(out)

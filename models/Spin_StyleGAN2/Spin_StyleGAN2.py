@@ -98,7 +98,7 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
 
     #--------------------------------------------------------------------
     #setup
-    style_dim  = 128
+    style_dim = 4096    #128 works but somewhat mode collaps,  256?? 512?? 1024??
 
     enc_block_count = int(np.log2(image_size[0])-1)
     noise_image_res = image_size[0]
@@ -107,10 +107,10 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     #define loss and optimizer
     
     decay_steps = 3516 * 20  # 2110(15k) 1407(10k) 1094(x64)    [3e-4, 0.9]
-    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
+    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=3e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.9)
-    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
+    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=3e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.9)
 
@@ -140,6 +140,12 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     # Profile from batches 10 to 15
     log_dir = "../log"
     #callbacks.append(tf.keras.callbacks.TensorBoard(log_dir=log_dir, profile_batch='10, 100'))
+
+    if 1:
+        gan_model.A_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=3e-4),
+                                    loss=tf.keras.losses.MeanSquaredError(),
+                                    metrics=[tf.keras.metrics.MeanSquaredError()])
+        gan_model.A_model.fit(dataset, batch_size=128, epochs=3)
 
     #gan_model.plot_print_model_config()
     gan_model.fit(dataset, epochs=epochs,callbacks=callbacks)

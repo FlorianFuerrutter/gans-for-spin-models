@@ -95,7 +95,13 @@ def importConditionalGAN(gan_name):
 def generate_conditional_gan_data(TJs, gan_name="Spin_DC_GAN", epochs=range(20, 91, 10), images_count=1000, latent_dim=128, conditional_dim=1, image_size=(64, 64, 1), alt_path=False):
     conditional_gan = importConditionalGAN(gan_name)
 
-    gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
+    if gan_name == "Spin_StyleGAN2":
+        enc_block_count = 5
+        style_dim = 4096
+        noise_image_res = 64
+        gan_model = conditional_gan.conditional_gan(enc_block_count, latent_dim, conditional_dim, style_dim, image_size, noise_image_res)      
+    else:
+        gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
 
     if alt_path:
         gan_model.save_path = os.path.join(os.path.dirname(__file__), "..", "models", gan_name, "model-saves", "gan_")
@@ -124,22 +130,35 @@ def generate_conditional_gan_data(TJs, gan_name="Spin_DC_GAN", epochs=range(20, 
         print("[generate_gan_data] Loaded:", gan_name, ", epoch:", epoch)
 
         #generate spin data
-        batch_size = 100
+        batch_size = 512
         states_tj = [] # (tjs, states)
 
         for TJ in TJs:
             conditional_labels = np.ones((batch_size, conditional_dim)) * TJ
 
-            random_vectors = conditional_gan.sample_generator_input(batch_size, latent_dim)
-            latent_vectors = np.concatenate([random_vectors, conditional_labels], axis=1)
+            if gan_name == "Spin_StyleGAN2":
+                random_vectors, noise_images = conditional_gan.sample_generator_input(batch_size, enc_block_count, latent_dim, noise_image_res)
+                latent_vectors = [np.concatenate([random_vector, conditional_labels], axis=1) for random_vector in random_vectors]
 
-            generated_images = (gan_model.generator(latent_vectors)).numpy()
-       
-            for i in range((images_count // batch_size) - 1):          
+                generated_images = (gan_model.generator([latent_vectors, noise_images])).numpy()
+            else:
                 random_vectors = conditional_gan.sample_generator_input(batch_size, latent_dim)
                 latent_vectors = np.concatenate([random_vectors, conditional_labels], axis=1)
 
-                t = (gan_model.generator(latent_vectors)).numpy()                               
+                generated_images = (gan_model.generator(latent_vectors)).numpy()
+       
+            for i in range((images_count // batch_size) - 1):          
+                if gan_name == "Spin_StyleGAN2":
+                    random_vectors, noise_images = conditional_gan.sample_generator_input(batch_size, enc_block_count, latent_dim, noise_image_res)
+                    latent_vectors = [np.concatenate([random_vector, conditional_labels], axis=1) for random_vector in random_vectors]
+
+                    t = (gan_model.generator([latent_vectors, noise_images])).numpy()
+                else:
+                    random_vectors = conditional_gan.sample_generator_input(batch_size, latent_dim)
+                    latent_vectors = np.concatenate([random_vectors, conditional_labels], axis=1)
+
+                    t = (gan_model.generator(latent_vectors)).numpy()
+
                 generated_images = np.concatenate((generated_images, t), axis=0)
 
             #clip to +-1

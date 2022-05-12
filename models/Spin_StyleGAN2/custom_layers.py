@@ -27,7 +27,7 @@ class BiasNoiseBroadcastLayer(tf.keras.layers.Layer):
         #bias for each feature map
         self.b = self.add_weight('kernel', shape=(1, 1, 1, c), initializer="zeros", trainable=True)
 
-    def call(self, inputs):         
+    def call(self, inputs):  
         x, noise = inputs
         return x + tf.multiply(self.b, noise)
 

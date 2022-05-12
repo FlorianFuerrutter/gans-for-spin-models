@@ -33,7 +33,7 @@ def main() -> int:
     batch_sizes      = {"Spin_StyleGAN2" : 64}
     latent_dims      = {"Spin_StyleGAN2" : 4096}
     conditional      = {"Spin_StyleGAN2" : 1}
-    conditional_dims = {"Spin_StyleGAN2" : 1}
+    conditional_dims = {"Spin_StyleGAN2" : 4}
     model_names = np.array(["Spin_StyleGAN2"])
   
     #---------------------------    
