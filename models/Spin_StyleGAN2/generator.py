@@ -46,6 +46,8 @@ def tRGB_block(inp, style, filter_size, out_filter):
     kernel_initializer = initializers.VarianceScaling(200.0/inp.shape[2])
 
     rgb_style = layers.Dense(filter_size, kernel_initializer=kernel_initializer)(style)
+    rgb_style = layers.Dropout(0.2)(rgb_style)
+
     out = Conv2DMod(out_filter, 1, kernel_initializer=kernel_initializer, demod=False)([inp, rgb_style])
 
     return out
@@ -66,7 +68,8 @@ def enc_block(enc_input, in_style, noise_image, filter_size, out_filter, kernel_
 
     if not first_block:
         style = layers.Dense(enc.shape[-1], kernel_initializer=kernel_initializer)(in_style)
-        
+        style = layers.Dropout(0.2)(style)
+
         enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])       
         enc = BiasNoiseBroadcastLayer(filter_size)([enc, noise])
         enc = layers.LeakyReLU(0.2)(enc)
@@ -74,7 +77,8 @@ def enc_block(enc_input, in_style, noise_image, filter_size, out_filter, kernel_
     #--------------------------------------------
     #Second block always
     style = layers.Dense(enc.shape[-1], kernel_initializer=kernel_initializer)(in_style)
-    
+    style = layers.Dropout(0.2)(style)
+
     enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])
     enc = BiasNoiseBroadcastLayer(filter_size)([enc, noise])
     enc = layers.LeakyReLU(0.2)(enc)
@@ -98,7 +102,7 @@ def create_mapping_network(latent_dim, styles_dim):
     out = layers.LeakyReLU(0.2)(out)
 
     out = layers.Dense(styles_dim)(out)
-    out = layers.Dropout(0.2)(out)
+    #out = layers.Dropout(0.2)(out)
     out = layers.LeakyReLU(0.2)(out)
 
     #out = layers.Dense(styles_dim)(out)
@@ -115,7 +119,7 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
     init = keras.initializers.GlorotUniform()
     
     filter_size_const = 64
-    filter_size_start = 256     #256 #288 #312
+    filter_size_start = 16 #256     #256 #288 #312
     res_start         = 4      #4
 
     #create mapping operator, z->w
@@ -147,11 +151,15 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
     #first block
     x, rgb = enc_block(x, style_input[0], noise_image_input[0], filter_size=filter_size_start, out_filter=out_filter, kernel_size=(3,3), kernel_initializer=init, first_block=True)
 
+    #-------dsgjshgsgdohöghdshXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    #8 oder 16 and filter_size = filter_size_start * (2**i)
+
     #--------------------------------------------
     #scale blocks
     for i in range(1, enc_block_count):
-        #filter_size = filter_size_start - 64 * (i-1)
-        filter_size = filter_size_start / (2**i)
+        #filter_size = filter_size_start - 32 * (i-1)
+        #filter_size = filter_size_start / (2**(i-1))
+        filter_size = filter_size_start * (2**(i-1))
 
         x, rgb_c = enc_block(x, style_input[i], noise_image_input[i], filter_size=filter_size, out_filter=out_filter, kernel_size=(3,3), kernel_initializer=init, first_block=False)       
         
@@ -161,7 +169,7 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
         
     #--------------------------------------------
     #Activation-layer
-    rgb = layers.Conv2D(out_filter, kernel_size=(5,5), strides=1, padding='same')(rgb)
+    #rgb = layers.Conv2D(out_filter, kernel_size=(5,5), strides=1, padding='same')(rgb)
     output = layers.Activation(activations.tanh, dtype="float32")(rgb)
 
     g_model = keras.models.Model(inputs=[latent_input, noise_image_input], outputs=output, name="generator")

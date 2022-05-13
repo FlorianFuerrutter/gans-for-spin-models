@@ -15,7 +15,7 @@ def main() -> int:
 
     latent_dims      = {"Spin_StyleGAN2" : 4096}
     conditional      = {"Spin_StyleGAN2" : 1}
-    conditional_dims = {"Spin_StyleGAN2" : 4}
+    conditional_dims = {"Spin_StyleGAN2" : 8}
     model_names = np.array(["Spin_StyleGAN2"])
 
     image_size = (64, 64, 1)

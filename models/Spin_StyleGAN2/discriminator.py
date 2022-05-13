@@ -44,7 +44,7 @@ def dec_block(dec_input, filter_size, kernel_size, kernel_initializer, drop_rate
 #--------------------------------------------------------------------
 
 def decoder(x, init):
-    start_filter_size = 24  #32 #18
+    start_filter_size = 12 # 24 #24  #32 #18
     drop_rate         = 0.0
 
     #fRGB
