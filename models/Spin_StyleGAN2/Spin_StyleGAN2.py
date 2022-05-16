@@ -107,10 +107,10 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     #define loss and optimizer
     
     decay_steps = 3516 * 20  # 2110(15k) 1407(10k) 1094(x64)    [3e-4, 0.9]
-    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=3e-4,
+    lr_schedule_g = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.9)
-    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=3e-4,
+    lr_schedule_d = keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=2e-4,
                                                                 decay_steps=decay_steps,
                                                                 decay_rate=0.9)
 

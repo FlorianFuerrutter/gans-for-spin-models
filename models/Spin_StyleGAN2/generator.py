@@ -60,6 +60,7 @@ def enc_block(enc_input, in_style, noise_image, filter_size, out_filter, kernel_
     if not first_block:
         #enc = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(enc)
         enc = layers.Conv2DTranspose(filter_size, kernel_size=(4,4), strides=(2,2), padding=padding, kernel_initializer=kernel_initializer)(enc)
+        enc = layers.LeakyReLU(0.2)(enc)
 
     #crop noise to current image size
     cropping = ((noise_image.shape[1]-enc.shape[1], 0), (noise_image.shape[2]-enc.shape[2], 0))
@@ -98,16 +99,9 @@ def create_mapping_network(latent_dim, styles_dim):
     latent_input = layers.Input(shape=latent_dim)
 
     out = latent_input
-    out = layers.Dense(styles_dim, use_bias=False)(out)
+    out = layers.Dense(styles_dim, use_bias=True)(out)
     out = layers.LeakyReLU(0.2)(out)
 
-    out = layers.Dense(styles_dim)(out)
-    #out = layers.Dropout(0.2)(out)
-    out = layers.LeakyReLU(0.2)(out)
-
-    #out = layers.Dense(styles_dim)(out)
-    #out = layers.LeakyReLU(0.2)(out)
-    
     #out = layers.Dense(styles_dim)(out)
     #out = layers.LeakyReLU(0.2)(out)
 
@@ -118,8 +112,8 @@ def create_mapping_network(latent_dim, styles_dim):
 def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, out_filter):
     init = keras.initializers.GlorotUniform()
     
-    filter_size_const = 64
-    filter_size_start = 16 #256     #256 #288 #312
+    filter_size_const = 16 #64
+    filter_size_start = 12 #256     #256 #288 #312
     res_start         = 4      #4
 
     #create mapping operator, z->w
@@ -151,9 +145,6 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
     #first block
     x, rgb = enc_block(x, style_input[0], noise_image_input[0], filter_size=filter_size_start, out_filter=out_filter, kernel_size=(3,3), kernel_initializer=init, first_block=True)
 
-    #-------dsgjshgsgdohöghdshXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    #8 oder 16 and filter_size = filter_size_start * (2**i)
-
     #--------------------------------------------
     #scale blocks
     for i in range(1, enc_block_count):
@@ -165,6 +156,7 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
         
         #rgb = layers.UpSampling2D(size=(2, 2), interpolation="bilinear")(rgb)
         rgb = layers.Conv2DTranspose(out_filter, kernel_size=(4,4), strides=(2,2), padding="same", kernel_initializer=init)(rgb)
+        #rgb = layers.LeakyReLU(0.2)(rgb)
         rgb = layers.Add()([rgb, rgb_c])        
         
     #--------------------------------------------
