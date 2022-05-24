@@ -150,8 +150,8 @@ class conditional_gan(keras.Model):
         w          = shape[2]
         c          = tf.shape(conditional_labels)[-1]
 
-        conditional_latent = tf.repeat(conditional_labels, repeats=[self.conditional_dim])
-        conditional_latent = tf.reshape(conditional_latent, (-1, self.conditional_dim))
+        #conditional_latent = tf.repeat(conditional_labels, repeats=[self.conditional_dim])
+        #conditional_latent = tf.reshape(conditional_latent, (-1, self.conditional_dim))
 
         conditional_channel = conditional_labels[:, :, None, None]
         conditional_channel = tf.repeat(conditional_channel, repeats=[h * w])
@@ -164,8 +164,14 @@ class conditional_gan(keras.Model):
         #train discriminator
 
         #latent and noise     
+
+        #_>>>> MAKE T RANDOM HERE NOT THE SAME AS REAL ???? 
+        random_conditional = conditional_labels + tf.random.normal(tf.shape(conditional_labels), stddev=0.03)
+        random_conditional_latent = tf.repeat(random_conditional, repeats=[self.conditional_dim])
+        random_conditional_latent = tf.reshape(random_conditional_latent, (-1, self.conditional_dim))
+
         random_vectors, noise_images = sample_generator_input(batch_size, self.enc_block_count, self.latent_dim, self.noise_image_res)
-        latent_vectors = [tf.concat([random_vector, conditional_latent], axis=1) for random_vector in random_vectors]
+        latent_vectors = [tf.concat([random_vector, random_conditional_latent], axis=1) for random_vector in random_vectors]
 
         #set labels
         real_labels = tf.zeros((batch_size, 1)) 

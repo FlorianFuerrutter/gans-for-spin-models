@@ -46,7 +46,7 @@ def tRGB_block(inp, style, filter_size, out_filter):
     kernel_initializer = initializers.VarianceScaling(200.0/inp.shape[2])
 
     rgb_style = layers.Dense(filter_size, kernel_initializer=kernel_initializer)(style)
-    rgb_style = layers.Dropout(0.2)(rgb_style)
+    #rgb_style = layers.Dropout(0.2)(rgb_style)
 
     out = Conv2DMod(out_filter, 1, kernel_initializer=kernel_initializer, demod=False)([inp, rgb_style])
 
@@ -102,9 +102,6 @@ def create_mapping_network(latent_dim, styles_dim):
     out = layers.Dense(styles_dim, use_bias=True)(out)
     out = layers.LeakyReLU(0.2)(out)
 
-    #out = layers.Dense(styles_dim)(out)
-    #out = layers.LeakyReLU(0.2)(out)
-
     #--------------------------------------------
     map_model = keras.models.Model(inputs=latent_input, outputs=out, name="mapping_network")
     return map_model
@@ -113,7 +110,7 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
     init = keras.initializers.GlorotUniform()
     
     filter_size_const = 16 #64
-    filter_size_start = 12 #256     #256 #288 #312
+    filter_size_start = 24 #256     #256 #288 #312
     res_start         = 4      #4
 
     #create mapping operator, z->w

@@ -1,6 +1,7 @@
 import numpy as np
 import data_visualization
 import model_evaluation
+import data_helper
 import data_analysis
 import os
 import matplotlib
@@ -112,5 +113,3 @@ def main():
 
 #--------------------------------------------------------------------
 
-if __name__ == '__main__':
-    main()

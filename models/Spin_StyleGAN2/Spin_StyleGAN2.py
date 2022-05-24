@@ -141,11 +141,16 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
     log_dir = "../log"
     #callbacks.append(tf.keras.callbacks.TensorBoard(log_dir=log_dir, profile_batch='10, 100'))
 
-    if 1:
-        gan_model.A_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=3e-4),
-                                    loss=tf.keras.losses.MeanSquaredError(),
-                                    metrics=[tf.keras.metrics.MeanSquaredError()])
-        gan_model.A_model.fit(dataset, batch_size=128, epochs=3)
+    if 0:
+        gan_model.A_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=2e-4), loss=tf.keras.losses.MeanSquaredError())
+        gan_model.A_model.fit(dataset, epochs=10)
+        gan_model.A_model.save_weights(gan_model.save_path[:-10] + "A_model_weights")
+    else:
+        gan_model.A_model.load_weights(gan_model.save_path[:-10] + "A_model_weights")
+    
+    if 1:    
+        gan_model.A_model.trainable = False
+        gan_model.A_model.summary()
 
     #gan_model.plot_print_model_config()
     gan_model.fit(dataset, epochs=epochs,callbacks=callbacks)

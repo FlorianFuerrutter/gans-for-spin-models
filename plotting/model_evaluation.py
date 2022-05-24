@@ -587,7 +587,7 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
         model_evaluation_data_list.append(d)
   
     #-------------------------------------------
-    if 0:
+    if 1:
         print("doing obs hist")
 
         mAbs= []

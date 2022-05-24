@@ -129,7 +129,7 @@ def create_A_model(image_res, init):
 
      #-----------Decoder
     x = custom_layers.PeriodicPadding2D(padding=1)(image_input)
-    x = decoderA(x, init)
+    x = decoder(x, init)
 
     #----------- Activation-layer
     x = layers.Flatten()(x)
