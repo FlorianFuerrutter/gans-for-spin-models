@@ -39,7 +39,7 @@ def injection_layer(x, latent_input, res, filter_size, kernel_initializer, condi
 
     return inject
 
-def create_generator(latent_dim, conditional_dim=0):
+def create_generator(latent_dim, conditional_dim=0, injection=True):
     init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
 
     scale = 1
@@ -56,15 +56,15 @@ def create_generator(latent_dim, conditional_dim=0):
     drop_rate = 0.0
    
     x = enc_layer(x,  128//scale, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16   128 //2
-    if conditional_dim > 0:
+    if conditional_dim > 0 and injection:
         x = injection_layer(x, latent_input, 16, 128//scale, init, conditional_dim)
 
     x = enc_layer(x,  192//scale, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2   
-    if conditional_dim > 0:
+    if conditional_dim > 0 and injection:
         x = injection_layer(x, latent_input, 32, 192//scale, init, conditional_dim)
 
     x = enc_layer(x,  256//scale, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2   
-    if conditional_dim > 0:
+    if conditional_dim > 0 and injection:
         x = injection_layer(x, latent_input, 64, 256//scale, init, conditional_dim)
 
     #x = enc_layer(x,  320//4, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init)

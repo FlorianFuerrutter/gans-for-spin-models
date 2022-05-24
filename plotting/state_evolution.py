@@ -113,7 +113,7 @@ def create_conditional_image(img, T, Tmin, Tmax):
 
     #---------- Image ----------
     extent = (0, 1, 0, 1) 
-    plt.imshow(img, origin="lower", extent=extent)
+    plt.imshow(img, origin="lower", extent=extent, vmin=-1.0, vmax=1.0)
 
     return fig
 
