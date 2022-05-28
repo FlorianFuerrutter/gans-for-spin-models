@@ -81,8 +81,8 @@ class conditional_gan(keras.Model):
         #---------------------------------------------
         self.use_aux = True
 
-        self.generator = generator.create_generator(latent_dim + conditional_dim, 1)       
-        self.discriminator = discriminator.create_discriminator(image_size, 1, self.use_aux)
+        self.generator = generator.create_generator(latent_dim + conditional_dim, image_size, 1)       
+        self.discriminator, self.A_model = discriminator.create_discriminator(image_size, 1, self.use_aux)
 
         self.generator.summary()
         self.discriminator.summary()
@@ -124,8 +124,8 @@ class conditional_gan(keras.Model):
         w          = shape[2]
         c          = tf.shape(conditional_labels)[-1]
 
-        conditional_latent = tf.repeat(conditional_labels, repeats=[self.conditional_dim])
-        conditional_latent = tf.reshape(conditional_latent, (-1, self.conditional_dim))
+        #conditional_latent = tf.repeat(conditional_labels, repeats=[self.conditional_dim])
+        #conditional_latent = tf.reshape(conditional_latent, (-1, self.conditional_dim))
 
         conditional_channel = conditional_labels[:, :, None, None]
         conditional_channel = tf.repeat(conditional_channel, repeats=[h * w])
@@ -138,9 +138,13 @@ class conditional_gan(keras.Model):
         #--------------------------------------------
         #train discriminator
 
-        #latent and noise     
+        #latent and noise    
+        random_conditional = conditional_labels + tf.random.normal(tf.shape(conditional_labels), stddev=0.03)
+        random_conditional_latent = tf.repeat(random_conditional, repeats=[self.conditional_dim])
+        random_conditional_latent = tf.reshape(random_conditional_latent, (-1, self.conditional_dim))
+                
         random_vectors = sample_generator_input(batch_size, self.latent_dim)
-        latent_vectors = tf.concat([random_vectors, conditional_latent], axis=1)
+        latent_vectors = tf.concat([random_vectors, random_conditional_latent], axis=1)
 
         #set labels
         real_labels = tf.zeros((batch_size, 1)) 

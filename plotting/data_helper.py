@@ -130,7 +130,7 @@ def generate_conditional_gan_data(TJs, gan_name="Spin_DC_GAN", epochs=range(20, 
         print("[generate_gan_data] Loaded:", gan_name, ", epoch:", epoch)
 
         #generate spin data
-        batch_size = 512
+        batch_size = 128
         states_tj = [] # (tjs, states)
 
         for TJ in TJs:
@@ -174,11 +174,11 @@ def generate_conditional_gan_data(TJs, gan_name="Spin_DC_GAN", epochs=range(20, 
 
 #--------------------------------------------------------------------
 
-def load_spin_observables(TJ):
+def load_spin_observables(TJ, addpath):
     path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
     #path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train", "64")
 
-    file_path = os.path.join(path, "simulation_observ_TJ_{TJ}.npy".format(TJ=TJ))
+    file_path = os.path.join(path, addpath + "simulation_observ_TJ_{TJ}.npy".format(TJ=TJ))
 
     obser = np.transpose(np.load(file_path))
     #obser = np.transpose(np.loadtxt(file_path, skiprows=1, dtype=np.float32))
@@ -193,9 +193,9 @@ def load_spin_observables(TJ):
     print("[load_spin_observables] Found data count:", energy.shape[0])
     return energy, m, mAbs, m2, mAbs3, m4
 
-def load_spin_states(TJ):
+def load_spin_states(TJ, addpath):
     path = os.path.join(os.path.dirname(__file__), "..", "data", "train")
-    file_path = os.path.join(path, "simulation_states_TJ_{TJ}.npy".format(TJ=TJ))
+    file_path = os.path.join(path, addpath + "simulation_states_TJ_{TJ}.npy".format(TJ=TJ))
 
     states = np.load(file_path)
 

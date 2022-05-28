@@ -62,14 +62,15 @@ def dec_layer(dec_input, filter_size, kernel_size, kernel_initializer, strides=2
 
     return dec
 
-def dec_block(x, init):
+def dec_block(x, init, image_size):
     #-----------Drop rate
     drop_rate = 0.0
-      
+    scale = 2  
+
     #-----------Decoder
-    x = dec_layer(x,   64//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init, padding='valid') #32x32  #64//2
-    x = dec_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16                   #128//2
-    x = dec_layer(x,  196//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #8x8                     #128//2
+    x = dec_layer(x,   64//scale, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init, padding='valid') #32x32  #64//2
+    x = dec_layer(x,  128//scale, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16                   #128//2
+    x = dec_layer(x,  196//scale, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #8x8                     #128//2
     #x = dec_layer(x, 128, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #4x4
 
     #-----------
@@ -85,16 +86,16 @@ def create_discriminator(image_size, cond_channels=0, use_aux=False):
     image_input = layers.Input(shape=dis_input_shape)
    
     if use_aux:
-        A = create_A_model(image_size)
+        A_model = create_A_model(image_size)
         A_in = image_input[:, :, :, 0:image_size[2]]
-        output_A = A(A_in)
+        output_A = A_model(A_in)
 
     #Add periodic bounding conditions
     #x = layers.GaussianNoise(0.01)(image_input)
     x = PeriodicPadding2D(padding=1)(image_input)
     
     #-----------Decoder
-    x = dec_block(x, init)
+    x = dec_block(x, init, image_size)
 
     #----------- Activation-layer
     x = layers.Flatten()(x)
@@ -106,7 +107,7 @@ def create_discriminator(image_size, cond_channels=0, use_aux=False):
     outputs = [output_dis, output_A] if use_aux else output_dis
 
     d_model = keras.models.Model(inputs = image_input, outputs = outputs, name="discriminator")
-    return d_model
+    return d_model, A_model
 
 def create_A_model(image_res):
     init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
@@ -118,7 +119,7 @@ def create_A_model(image_res):
     x = PeriodicPadding2D(padding=1)(image_input)
 
     #-----------Decoder
-    x = dec_block(x, init)
+    x = dec_block(x, init, image_res)
 
     #----------- Activation-layer
     x = layers.Flatten()(x)

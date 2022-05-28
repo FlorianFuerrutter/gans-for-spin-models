@@ -22,34 +22,33 @@ def import_gan_module(gan_name=""):
 
 def main() -> int:
     amplitude   = 0.7
-    image_size = (64, 64, 1)
+    #image_size = (64, 64, 1)
+    image_size = (32, 32, 1)
 
-    #batch_sizes      = {"Spin_DC_GAN" : 64}
-    #latent_dims      = {"Spin_DC_GAN" : 4096}
-    #conditional      = {"Spin_DC_GAN" : 1}
-    #conditional_dims = {"Spin_DC_GAN" : 4}
-    #model_names = np.array(["Spin_DC_GAN"])
+    train_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train", "L32")
 
-    batch_sizes      = {"Spin_StyleGAN2" : 64}
-    latent_dims      = {"Spin_StyleGAN2" : 4096}
-    conditional      = {"Spin_StyleGAN2" : 1}
-    conditional_dims = {"Spin_StyleGAN2" : 8}
-    model_names = np.array(["Spin_StyleGAN2"])
+    if 1: #Spin_DC_GAN
+        batch_sizes      = {"Spin_DC_GAN" : 64}
+        latent_dims      = {"Spin_DC_GAN" : 4096}
+        conditional      = {"Spin_DC_GAN" : 1}
+        conditional_dims = {"Spin_DC_GAN" : 4}
+        model_names = np.array(["Spin_DC_GAN"])
+
+    else: #Spin_StyleGAN2
+        batch_sizes      = {"Spin_StyleGAN2" : 64}
+        latent_dims      = {"Spin_StyleGAN2" : 4096}
+        conditional      = {"Spin_StyleGAN2" : 1}
+        conditional_dims = {"Spin_StyleGAN2" : 4}
+        model_names = np.array(["Spin_StyleGAN2"])
   
     #---------------------------    
-    #TJs         = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
     TJs = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.8, 3.0, 3.4])
-    
-    #TJs         = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.26, 2.27, 2.3, 2.4, 2.5, 2.6, 3.0, 3.4,
-    #                        2.28, 2.29, 2.31, 2.32, 2.33, 2.34, 2.35, 2.36, 2.37, 2.38, 2.39])
 
-    epochs      = 1003
-   
+    epochs      = 1003 
     plot_period = 1
     save_period = 1
   
-    #---------------------------
-    train_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train") #, "64")
+    #---------------------------    
 
     for model_name in model_names:
         gan_module = import_gan_module(model_name)

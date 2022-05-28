@@ -451,7 +451,7 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
 
     return model_evaluation_data_list    
 
-def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, conditional_dim, image_size, images_count=1000, N=64*64, single_eval=False):
+def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, conditional_dim, image_size, images_count=1000, N=64*64, single_eval=False, addpath=""):
 
     #---------------------------------------
     #generate states (epoch, tj, states, N)
@@ -474,7 +474,7 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
         TJ = TJs[i]
         
         #load MC data (tj, bins)
-        energy, m, mAbs, m2, mAbs3, m4 = dh.load_spin_observables(TJ)
+        energy, m, mAbs, m2, mAbs3, m4 = dh.load_spin_observables(TJ, addpath)
 
         #----------------------------
         # metric functions calc over epochs for a given TJ !!
@@ -531,9 +531,9 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
 
         #----------------------------
         #load MC data (tj, bins)
-        energy, m, mAbs, m2, mAbs3, m4 = dh.load_spin_observables(TJ)
+        energy, m, mAbs, m2, mAbs3, m4 = dh.load_spin_observables(TJ, addpath)
 
-        states = dh.load_spin_states(TJ)
+        states = dh.load_spin_states(TJ, addpath)
         xi, xi_err = da.calc_spin_spin_correlation(states, N)
 
         #----------------------------
@@ -587,7 +587,7 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
         model_evaluation_data_list.append(d)
   
     #-------------------------------------------
-    if 1:
+    if 0:
         print("doing obs hist")
 
         mAbs= []
@@ -597,10 +597,10 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
         binderCu = []
         xi = []
         for TJ in TJs:
-            tenergy, tm, tmAbs, tm2, tmAbs3, tm4 = dh.load_spin_observables(TJ)
+            tenergy, tm, tmAbs, tm2, tmAbs3, tm4 = dh.load_spin_observables(TJ, addpath)
 
             data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3 = perform_observable_calculation(tenergy, tm, tmAbs, tm2, tmAbs3, tm4, N, TJ) 
-            states = dh.load_spin_states(TJ)
+            states = dh.load_spin_states(TJ, addpath)
             txi, txi_err = da.calc_spin_spin_correlation(states, N)   
 
             mAbs.append(data_mAbs)
@@ -716,7 +716,7 @@ def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):
     #mean, err, corr = da.binningAnalysisSingle(m)
     #data_m = dh.err_data(mean, err)
 
-    mean, err, std, corr = da.binningAnalysisSingle(mAbs)
+    mean, err, std, corr = da.binningAnalysisSingle(mAbs, False)
     data_mAbs = dh.err_data(mean, err, std)
 
     #-------------------
@@ -729,7 +729,7 @@ def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):
     data_binderCu = dh.err_data(meanBinderCu, errorBinderCu / np.sqrt(binM2.shape[0]), errorBinderCu)
 
     #-------------------
-    meanMAbs, errorMAbs, stdMAbs, meanM2, errorM2, stdM2, meanMAbs3, errorMAbs3, stdMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(mAbs, m2, mAbs3)
+    meanMAbs, errorMAbs, stdMAbs, meanM2, errorM2, stdM2, meanMAbs3, errorMAbs3, stdMAbs3, corr, binMAbs, binM2, binMAbs3 = da.binningAnalysisTriple(mAbs, m2, mAbs3, False)
 
     meanK3, errorK3 = da.mK3Jackknife(binMAbs, binM2, binMAbs3, N, T)
     data_k3 = dh.err_data(meanK3, errorK3 / np.sqrt(binMAbs.shape[0]), errorK3)

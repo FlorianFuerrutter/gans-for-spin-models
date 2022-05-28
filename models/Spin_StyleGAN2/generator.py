@@ -72,7 +72,7 @@ def enc_block(enc_input, in_style, noise_image, filter_size, out_filter, kernel_
         style = layers.Dropout(0.2)(style)
 
         enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])       
-        enc = BiasNoiseBroadcastLayer(filter_size)([enc, noise])
+        #enc = BiasNoiseBroadcastLayer(filter_size)([enc, noise])
         enc = layers.LeakyReLU(0.2)(enc)
 
     #--------------------------------------------
@@ -81,7 +81,7 @@ def enc_block(enc_input, in_style, noise_image, filter_size, out_filter, kernel_
     style = layers.Dropout(0.2)(style)
 
     enc = Conv2DMod(filter_size, kernel_size, demod=True, strides=strides, kernel_initializer=kernel_initializer, padding=padding)([enc, style])
-    enc = BiasNoiseBroadcastLayer(filter_size)([enc, noise])
+    #enc = BiasNoiseBroadcastLayer(filter_size)([enc, noise])
     enc = layers.LeakyReLU(0.2)(enc)
 
     #--------------------------------------------
@@ -110,7 +110,7 @@ def create_generator(enc_block_count, latent_dim, styles_dim, noise_image_res, o
     init = keras.initializers.GlorotUniform()
     
     filter_size_const = 16 #64
-    filter_size_start = 24 #256     #256 #288 #312
+    filter_size_start = 16 #256     #256 #288 #312
     res_start         = 4      #4
 
     #create mapping operator, z->w

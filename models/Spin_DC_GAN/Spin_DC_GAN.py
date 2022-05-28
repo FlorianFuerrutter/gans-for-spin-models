@@ -126,6 +126,15 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
         gan_model.plot_path = plot_path
 
     #--------------
+
+    if 0:
+        gan_model.A_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=2e-4), loss=tf.keras.losses.MeanSquaredError())
+        gan_model.A_model.fit(dataset, epochs=20)
+        gan_model.A_model.save_weights(gan_model.save_path[:-10] + "A_model_weights_L32")
+    else:
+        gan_model.A_model.load_weights(gan_model.save_path[:-10] + "A_model_weights_L32")
+
+    #--------------
     #train
     callbacks = []
     callbacks.append(conditional_gan.train_callback(latent_dim, plot_period=plot_period, save_period=save_period))
