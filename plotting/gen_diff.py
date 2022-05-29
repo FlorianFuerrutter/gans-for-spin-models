@@ -4,6 +4,7 @@ import model_evaluation
 import data_helper
 import data_analysis
 import os
+from scipy.ndimage import uniform_filter1d
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.rcParams.update({
@@ -17,6 +18,7 @@ matplotlib.rcParams.update({
 
 #plot_path = os.path.dirname(__file__)
 plot_path = "F:/GAN - Plots"
+ck_path = "F:/GAN - DC_CK"
 
 def savePdf(filename): 
     plt.savefig(plot_path + "/" + filename + '.pdf', bbox_inches='tight')
@@ -71,9 +73,20 @@ def calcGenDiff_DCGAN(T, dT, conditional_gan, gan_model, samples, conditional_di
     TdT_states = getStates_DCGAN(T + dT, gan_model, samples, conditional_dim, random_vectors)
 
     #d = np.mean( np.square(TdT_states - T_states) ) / dT
-    d = np.mean(TdT_states - T_states) / dT
+    d = np.mean( np.abs(TdT_states - T_states) ) / dT
 
-    return d
+    v = np.mean( np.abs(T_states) )
+
+    return d, v
+
+def load_ck(epoch, res, latent_dim, conditional_dim, conditional_gan):
+    image_size = (res, res, 1)
+    gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
+
+    gan_model.save_path = os.path.join(ck_path, "L%d" % res, "gan_")
+    gan_model.load(epoch=epoch)
+
+    return gan_model
 
 #--------------------------------------------------------------------
 
@@ -85,33 +98,90 @@ def main():
 
     latent_dim = 4096
     conditional_dim = 4
-    image_size = (64, 64, 1)
-    gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
+    #image_size = (64, 64, 1)
+    #gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
+    #gan_model.save_path = os.path.join(model_data_path, gan_name,"ck", "gan_")
+    #gan_model.load(epoch=26)
 
-    gan_model.save_path = os.path.join(model_data_path, gan_name,"ck", "gan_")
-    gan_model.load(epoch=26)
+    clrs = ["tab:blue", "tab:orange", "tab:green", "tab:purple"]
+    reses  = [16, 32, 48, 64]
+    epochs = [ 3, 21, 13, 26]
+    dTs    = np.array([ 4, 3, 2, 1]) * 0.0032
+
+    #reses  = [48]
+    #epochs = [13]
+    #dTs = np.array([2]) * 0.0032
+
+    Fs = list()
+    vs = list()
+
+    gen_new = 0
 
     #-------------------------------------------
     Ts = np.linspace(1.0, 3.4, 750)
-    dT = Ts[1] - Ts[0] 
-    samples = 2**11
+    samples = 2**10
 
-    F = [calcGenDiff_DCGAN(T, dT, conditional_gan, gan_model, samples, conditional_dim, latent_dim) for T in Ts]
+    for i in range(len(epochs)):
+        res   = reses[i]
+        epoch = epochs[i]
+        dT    = dTs[i]
 
-    np.save(plot_path + "/" + gan_name + "_GenDiff_Ts", Ts)
-    np.save(plot_path + "/" + gan_name + "_GenDiff_F", F)
+        print("process L%d" % res)
+
+        if gen_new:
+            try:
+                gan_model = load_ck(epoch, res, latent_dim, conditional_dim, conditional_gan)
+            except:
+                continue
+
+            data = [calcGenDiff_DCGAN(T, dT, conditional_gan, gan_model, samples, conditional_dim, latent_dim) for T in Ts]
+            F = [x[0] for x in data]
+            v = [x[1] for x in data]
+
+            np.save(plot_path + "/data/" + gan_name + "_L%d_GenDiff_Ts" % res, Ts)
+            np.save(plot_path + "/data/" + gan_name + "_L%d_GenDiff_F"  % res, F)    
+            np.save(plot_path + "/data/" + gan_name + "_L%d_GenDiff_v"  % res, v)         
+        else:
+            try:
+                F = np.load(plot_path + "/data/" + gan_name + "_L%d_GenDiff_F.npy"  % res) 
+                v = np.load(plot_path + "/data/" + gan_name + "_L%d_GenDiff_v.npy"  % res) 
+            except:
+                continue
+
+        Fs.append(F)
+        vs.append(v)
 
     #-------------------------------------------
-    size=(12, 5)
+    size=(12, 5*1.5)
     fig = plt.figure(figsize = size, constrained_layout = True) 
+
     plt.xlabel(r"$T$")
     plt.ylabel(r"$d_{\mathrm{GAN}}(T)$")
+    if 0:
+        plt.xlim((2.1,2.7))
+        plt.ylim((0.7,3.2))
+        plt.yscale('log')
 
     Tc = 1.0 * 2.0 / np.log(1.0 + np.sqrt(2.0))
     plt.axvline(Tc, color="gray", linestyle="--")
 
-    plt.plot(Ts, F)
+    for i in range(len(Fs)):
+        F   = Fs[i]
+        res = reses[i]
+        clr = clrs[i]
 
+        #F = F / np.max(F)
+        kernel_size = 20
+        F_smooth = uniform_filter1d(F, kernel_size, mode="nearest")
+
+        peak = Ts[np.argmax(F_smooth)]
+        plt.axvline(peak, color=clr, linestyle="--")
+
+        plt.plot(Ts, F, "--", alpha=0.3, linewidth=0.7, color=clr)
+        plt.plot(Ts, F_smooth, label="L%d" % res, color=clr)
+    plt.legend()
+
+    #-------------------------------------------
     savePdf(gan_name + "_GenDiff")
     savePng(gan_name + "_GenDiff")
     return
@@ -122,4 +192,5 @@ if __name__ == '__main__':
     main()
 
     plt.show()
+
 #--------------------------------------------------------------------

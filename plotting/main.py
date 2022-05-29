@@ -18,8 +18,8 @@ def main() -> int:
     #conditional_dims = {"Spin_StyleGAN2" : 4}
     #model_names = np.array(["Spin_StyleGAN2"])
 
-    image_size = (32, 32, 1)
-    addpath = "L32/"
+    image_size = (64, 64, 1)
+    addpath = "" #"L48/"
 
     TJs         = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.8, 3.0, 3.4])
 

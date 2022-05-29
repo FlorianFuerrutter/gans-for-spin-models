@@ -22,10 +22,9 @@ def import_gan_module(gan_name=""):
 
 def main() -> int:
     amplitude   = 0.7
-    #image_size = (64, 64, 1)
-    image_size = (32, 32, 1)
 
-    train_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train", "L32")
+    image_size = (64, 64, 1)
+    train_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train" )#, "L48")
 
     if 1: #Spin_DC_GAN
         batch_sizes      = {"Spin_DC_GAN" : 64}

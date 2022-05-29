@@ -39,7 +39,7 @@ def injection_layer(x, latent_input, res, filter_size, kernel_initializer, condi
 
     return inject
 
-def create_generator(latent_dim, image_size, conditional_dim=0, injection=True):
+def create_generator(latent_dim, image_size, conditional_dim=0, injection=False):
     init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
 
     scale = 1 
@@ -48,7 +48,7 @@ def create_generator(latent_dim, image_size, conditional_dim=0, injection=True):
     if image_size[0] == 32:
         scale = 4
     if image_size[0] == 48:
-        scale = 4 
+        scale = 2 
 
     #Structure
     latent_input = layers.Input(shape=latent_dim)
