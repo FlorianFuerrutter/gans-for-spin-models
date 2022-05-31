@@ -22,6 +22,8 @@ int main()
 
     //std::array<PRECISION, 6> Ts = {1.5, 2.1, 2.35, 2.5, 2.8, 3.0};
 
+    //std::array<PRECISION, 1> Ts = { 2.3 };
+
     SimulationParameter para = { N_TERM, N_BINS, N_SWEEPS };
 
     //------------------

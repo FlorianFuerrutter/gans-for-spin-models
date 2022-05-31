@@ -18,12 +18,14 @@ matplotlib.rcParams.update({
 
 #plot_path = os.path.dirname(__file__)
 plot_path = "F:/GAN - Plots"
-ck_path = "F:/GAN - DC_CK"
+ck_path   = "F:/GAN - DC_CK"
 
 def savePdf(filename): 
     plt.savefig(plot_path + "/" + filename + '.pdf', bbox_inches='tight')
 def savePng(filename):
     plt.savefig(plot_path + "/" + filename + '.png', bbox_inches='tight')
+def saveSvg(filename):
+    plt.savefig(plot_path + "/" + filename + '.svg', bbox_inches='tight')
 
 #--------------------------------------------------------------------
 
@@ -108,18 +110,18 @@ def main():
     epochs = [ 3, 21, 13, 26]
     dTs    = np.array([ 4, 3, 2, 1]) * 0.0032
 
-    #reses  = [48]
-    #epochs = [13]
-    #dTs = np.array([2]) * 0.0032
-
     Fs = list()
     vs = list()
 
     gen_new = 0
 
+    #reses  = [48]
+    #epochs = [13]
+    #dTs    = np.array([2]) * 0.0032
+
     #-------------------------------------------
     Ts = np.linspace(1.0, 3.4, 750)
-    samples = 2**10
+    samples = 2**11
 
     for i in range(len(epochs)):
         res   = reses[i]
@@ -171,7 +173,7 @@ def main():
         clr = clrs[i]
 
         #F = F / np.max(F)
-        kernel_size = 20
+        kernel_size = 15
         F_smooth = uniform_filter1d(F, kernel_size, mode="nearest")
 
         peak = Ts[np.argmax(F_smooth)]
@@ -184,6 +186,7 @@ def main():
     #-------------------------------------------
     savePdf(gan_name + "_GenDiff")
     savePng(gan_name + "_GenDiff")
+    saveSvg(gan_name + "_GenDiff")
     return
 
 #--------------------------------------------------------------------

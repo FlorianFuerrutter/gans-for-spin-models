@@ -8,18 +8,18 @@ import matplotlib.pyplot as plt
 def main() -> int:
   #-----------------------------------------------------------------
     
-    latent_dims      = {"Spin_DC_GAN" : 4096}
-    conditional      = {"Spin_DC_GAN" : 1}
-    conditional_dims = {"Spin_DC_GAN" : 4}
-    model_names = np.array(["Spin_DC_GAN"])
+    #latent_dims      = {"Spin_DC_GAN" : 4096}
+    #conditional      = {"Spin_DC_GAN" : 1}
+    #conditional_dims = {"Spin_DC_GAN" : 4}
+    #model_names = np.array(["Spin_DC_GAN"])
 
-    #latent_dims      = {"Spin_StyleGAN2" : 4096}
-    #conditional      = {"Spin_StyleGAN2" : 1}
-    #conditional_dims = {"Spin_StyleGAN2" : 4}
-    #model_names = np.array(["Spin_StyleGAN2"])
+    latent_dims      = {"Spin_StyleGAN2" : 4096}
+    conditional      = {"Spin_StyleGAN2" : 1}
+    conditional_dims = {"Spin_StyleGAN2" : 4}
+    model_names = np.array(["Spin_StyleGAN2"])
 
     image_size = (64, 64, 1)
-    addpath = "" #"L48/"
+    addpath = "" #"L64/"
 
     TJs         = np.array([1.0, 1.5, 1.8, 2.0, 2.1, 2.2, 2.25, 2.3, 2.35, 2.4, 2.5, 2.6, 2.8, 3.0, 3.4])
 

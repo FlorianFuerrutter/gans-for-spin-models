@@ -24,9 +24,9 @@ def main() -> int:
     amplitude   = 0.7
 
     image_size = (64, 64, 1)
-    train_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train" )#, "L48")
+    train_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train")#, "L128")
 
-    if 1: #Spin_DC_GAN
+    if 0: #Spin_DC_GAN
         batch_sizes      = {"Spin_DC_GAN" : 64}
         latent_dims      = {"Spin_DC_GAN" : 4096}
         conditional      = {"Spin_DC_GAN" : 1}
