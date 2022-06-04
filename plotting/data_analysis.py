@@ -44,7 +44,10 @@ def binningAnalysisSingle(data, printWarnings=False):
         meanErrors[i] = np.std(binnedData) / np.sqrt(N)
         stds[i]       = np.std(binnedData)
 
-    maxElement = np.argmax(meanErrors)
+    #--------------------------------
+    maxElement = np.argmax(stds)
+    #maxElement = np.argmax(meanErrors)
+
     if (maxElement+1) == maxBinningSteps and printWarnings:
         info = "   (elements in bin of max error: " + str(data.shape[0] // 2**maxElement) + ")"
         print("binningAnalysisSingle: [NOT CONVERGED]  increase dataset," + info)
@@ -120,7 +123,10 @@ def binningAnalysisTriple(data1, data2, data3, printWarnings=True):
 
     #take the binsize of the larger one
     #maxElement == 0 means the init data is used
+
+    #maxElement = max(np.argmax(stds1), np.argmax(stds2), np.argmax(stds3))
     maxElement = max(np.argmax(meanErrors1), np.argmax(meanErrors2), np.argmax(meanErrors3))
+
     if (maxElement+1) == maxBinningSteps and printWarnings:
         info = "   (elements in bin of max error: " + str(data1.shape[0] // 2**maxElement) + ")"
         print("binningAnalysisTriple: [NOT CONVERGED]  increase dataset," + info)

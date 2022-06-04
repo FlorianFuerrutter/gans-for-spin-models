@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 import data_visualization
 import model_evaluation
 import data_helper
@@ -47,6 +48,47 @@ def importConditionalGAN(gan_name):
 
 #--------------------------------------------------------------------
 
+def getStates_gradient_DCGAN(T, gan_model, samples, conditional_dim, random_vectors, res):
+
+    #------- do batches for memory ---------------------
+    mini_batch_size = 128
+    runs = (samples // mini_batch_size) + 1
+
+    for i in range(runs):
+        with tf.GradientTape() as tape: 
+            tf_T = tf.convert_to_tensor(T,  dtype=tf.dtypes.float32)
+            tf_random_vectors = tf.convert_to_tensor(random_vectors)
+
+            tape.watch(tf_T)
+
+            tf_conditional_labels = tf.ones((samples, conditional_dim)) * tf_T
+            tf_latent_vectors = tf.concat([tf_random_vectors, tf_conditional_labels], -1)
+
+            tf_slice_latent_vectors = tf_latent_vectors[i*mini_batch_size:(i+1)*mini_batch_size]
+       
+            out_tensors = gan_model.generator(tf_slice_latent_vectors)
+
+            tf_grad = tape.gradient(out_tensors, tf_T)
+            tf_grad = np.abs( (tf_grad / (res * res * tf_slice_latent_vectors.shape[0])).numpy() )
+
+        if i == 0:
+            grad = tf_grad
+        else:
+            grad = np.append(grad, tf_grad)
+
+    return np.nanmean(grad)
+
+def calcGenGradient_DCGAN(T, conditional_gan, gan_model, samples, conditional_dim, latent_dim, res):
+    print("T:", T)
+
+    random_vectors = conditional_gan.sample_generator_input(samples, latent_dim)
+
+    grad = getStates_gradient_DCGAN(T, gan_model, samples, conditional_dim, random_vectors, res)
+
+    return grad
+
+#--------------------------------------------------------------------
+
 def getStates_DCGAN(T, gan_model, samples, conditional_dim, random_vectors):
     conditional_labels = np.ones((samples, conditional_dim)) * T   
     latent_vectors = np.concatenate([random_vectors, conditional_labels], axis=1)
@@ -57,6 +99,7 @@ def getStates_DCGAN(T, gan_model, samples, conditional_dim, random_vectors):
     for i in range(runs):
 
         slice_latent_vectors = latent_vectors[i*mini_batch_size:(i+1)*mini_batch_size]
+
         generated_images = (gan_model.generator(slice_latent_vectors)).numpy()
 
         if i == 0:
@@ -73,13 +116,13 @@ def calcGenDiff_DCGAN(T, dT, conditional_gan, gan_model, samples, conditional_di
 
     T_states   = getStates_DCGAN(T     , gan_model, samples, conditional_dim, random_vectors)
     TdT_states = getStates_DCGAN(T + dT, gan_model, samples, conditional_dim, random_vectors)
-
-    #d = np.mean( np.square(TdT_states - T_states) ) / dT
+    d = np.mean( np.square(TdT_states - T_states) ) / dT
     d = np.mean( np.abs(TdT_states - T_states) ) / dT
-
     v = np.mean( np.abs(T_states) )
 
     return d, v
+
+#--------------------------------------------------------------------
 
 def load_ck(epoch, res, latent_dim, conditional_dim, conditional_gan):
     image_size = (res, res, 1)
@@ -100,10 +143,6 @@ def main():
 
     latent_dim = 4096
     conditional_dim = 4
-    #image_size = (64, 64, 1)
-    #gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
-    #gan_model.save_path = os.path.join(model_data_path, gan_name,"ck", "gan_")
-    #gan_model.load(epoch=26)
 
     clrs = ["tab:blue", "tab:orange", "tab:green", "tab:purple"]
     reses  = [16, 32, 48, 64]
@@ -112,12 +151,13 @@ def main():
 
     Fs = list()
     vs = list()
+    v  = F = 0
 
     gen_new = 0
 
-    #reses  = [48]
-    #epochs = [13]
-    #dTs    = np.array([2]) * 0.0032
+    #reses  = [64]
+    #epochs = [26]
+    #dTs    = np.array([1]) * 0.0032
 
     #-------------------------------------------
     Ts = np.linspace(1.0, 3.4, 750)
@@ -136,17 +176,19 @@ def main():
             except:
                 continue
 
-            data = [calcGenDiff_DCGAN(T, dT, conditional_gan, gan_model, samples, conditional_dim, latent_dim) for T in Ts]
-            F = [x[0] for x in data]
-            v = [x[1] for x in data]
+            F = [calcGenGradient_DCGAN(T, conditional_gan, gan_model, samples, conditional_dim, latent_dim, res) for T in Ts]
 
+            #data = [calcGenDiff_DCGAN(T, dT, conditional_gan, gan_model, samples, conditional_dim, latent_dim) for T in Ts]
+            #F = [x[0] for x in data]
+            #v = [x[1] for x in data]
+         
             np.save(plot_path + "/data/" + gan_name + "_L%d_GenDiff_Ts" % res, Ts)
             np.save(plot_path + "/data/" + gan_name + "_L%d_GenDiff_F"  % res, F)    
-            np.save(plot_path + "/data/" + gan_name + "_L%d_GenDiff_v"  % res, v)         
+            #np.save(plot_path + "/data/" + gan_name + "_L%d_GenDiff_v"  % res, v)         
         else:
             try:
                 F = np.load(plot_path + "/data/" + gan_name + "_L%d_GenDiff_F.npy"  % res) 
-                v = np.load(plot_path + "/data/" + gan_name + "_L%d_GenDiff_v.npy"  % res) 
+                #v = np.load(plot_path + "/data/" + gan_name + "_L%d_GenDiff_v.npy"  % res) 
             except:
                 continue
 
@@ -154,10 +196,10 @@ def main():
         vs.append(v)
 
     #-------------------------------------------
-    size=(12, 5*1.5)
+    size=(13, 4.8)
     fig = plt.figure(figsize = size, constrained_layout = True) 
 
-    plt.xlabel(r"$T$")
+    plt.xlabel(r'$T/J$')
     plt.ylabel(r"$d_{\mathrm{GAN}}(T)$")
     if 0:
         plt.xlim((2.1,2.7))
@@ -173,14 +215,15 @@ def main():
         clr = clrs[i]
 
         #F = F / np.max(F)
-        kernel_size = 15
+        kernel_size = 10
         F_smooth = uniform_filter1d(F, kernel_size, mode="nearest")
 
         peak = Ts[np.argmax(F_smooth)]
         plt.axvline(peak, color=clr, linestyle="--")
 
         plt.plot(Ts, F, "--", alpha=0.3, linewidth=0.7, color=clr)
-        plt.plot(Ts, F_smooth, label="L%d" % res, color=clr)
+        plt.plot(Ts, F_smooth, label=r"$L$ = $%d$" % res, color=clr)
+
     plt.legend()
 
     #-------------------------------------------

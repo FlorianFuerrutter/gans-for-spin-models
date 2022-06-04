@@ -175,6 +175,7 @@ def calc_state_energy(state, nn, J, N):
         local += state[nnI[2]];
         local += state[nnI[3]];
         energy += local * state[i];
+
     return - 0.5 * J * energy #0.5 bcs of double counting
 
 def genNNList(L):
@@ -191,6 +192,21 @@ def genNNList(L):
             nn1d[y*L+x] = nn2d[y, x, :, 0]*L + nn2d[y, x, :, 1]
             
     return nn1d
+
+def calc_states_energy(N, states):
+    J = 1.0
+    L = int(np.sqrt(N))
+
+    #------------------
+    nn = genNNList(L)
+
+    #------------------
+    states_energy = []
+    for state in states:
+        e = calc_state_energy(state, nn, J, N) / N
+        states_energy.append(e)
+
+    return np.array(states_energy)
 
 def calc_states_epoch_energy(N, states_epoch):
     J = 1.0
@@ -710,7 +726,7 @@ def evaluate_conditional_model_metrics(TJs, model_name, epochs, latent_dim, cond
 #--------------------------------------------------------------------
 
 def perform_observable_calculation(energy, m, mAbs, m2, mAbs3, m4, N, T):
-    mean, err, std, corr = da.binningAnalysisSingle(energy)
+    mean, err, std, corr = da.binningAnalysisSingle(energy, False)
     data_energy = dh.err_data(mean, err, std)
 
     #mean, err, corr = da.binningAnalysisSingle(m)
@@ -748,26 +764,37 @@ def perform_observable_calculation_non_binning(energy, m, mAbs, m2, mAbs3, m4, N
     data_mAbs = dh.err_data(mean, std / np.sqrt(mAbs.shape[0]), std)
 
     #-------------------
-    m2, m2_err       = np.mean(m2), np.std(m2)
-    mAbs, mAbs_err   = np.mean(mAbs), np.std(mAbs)
-    mAbs3, mAbs3_err = np.mean(mAbs3), np.std(mAbs3)
-    m4, m4_err       = np.mean(m4), np.std(m4)
+    if 1:
+        meanMagSusc, errorMagSusc = da.mSuscJackknife(mAbs, m2, N, T)
+        data_magSusc = dh.err_data(meanMagSusc, errorMagSusc / np.sqrt(mAbs.shape[0]), errorMagSusc)
 
-    from uncertainties import ufloat
-    m2    = ufloat(m2, m2_err)
-    mAbs  = ufloat(mAbs, mAbs_err)
-    mAbs3 = ufloat(mAbs3, mAbs3_err)
-    m4    = ufloat(m4, m4_err)
+        meanBinderCu, errorBinderCu = da.mBinderCuJackknife(m2, m4)
+        data_binderCu = dh.err_data(meanBinderCu, errorBinderCu / np.sqrt(m2.shape[0]), errorBinderCu)
 
-    meanMagSusc = (N/T) * (m2 - mAbs**2)
-    data_magSusc = dh.err_data(meanMagSusc.n, meanMagSusc.s , meanMagSusc.s)
+        meanK3, errorK3 = da.mK3Jackknife(mAbs, m2, mAbs3, N, T)
+        data_k3 = dh.err_data(meanK3, errorK3 / np.sqrt(mAbs3.shape[0]), errorK3)
+
+    else:
+        m2, m2_err       = np.mean(m2), np.std(m2)
+        mAbs, mAbs_err   = np.mean(mAbs), np.std(mAbs)
+        mAbs3, mAbs3_err = np.mean(mAbs3), np.std(mAbs3)
+        m4, m4_err       = np.mean(m4), np.std(m4)
+
+        from uncertainties import ufloat
+        m2    = ufloat(m2, m2_err)
+        mAbs  = ufloat(mAbs, mAbs_err)
+        mAbs3 = ufloat(mAbs3, mAbs3_err)
+        m4    = ufloat(m4, m4_err)
+
+        meanMagSusc = (N/T) * (m2 - mAbs**2)
+        data_magSusc = dh.err_data(meanMagSusc.n, meanMagSusc.s , meanMagSusc.s)
  
-    r2 = m4 / (m2**2 + 1e-15)
-    meanBinderCu = 1.5 * (1.0 - r2 / 3.0)
-    data_binderCu = dh.err_data(meanBinderCu.n, meanBinderCu.s , meanBinderCu.s)
+        r2 = m4 / (m2**2 + 1e-15)
+        meanBinderCu = 1.5 * (1.0 - r2 / 3.0)
+        data_binderCu = dh.err_data(meanBinderCu.n, meanBinderCu.s , meanBinderCu.s)
 
-    meanK3 = (mAbs3 - 3.0 * m2 * mAbs + 2.0 * mAbs**3) * (N/T)
-    data_k3 = dh.err_data(meanK3.n, meanK3.s, meanK3.s)
+        meanK3 = (mAbs3 - 3.0 * m2 * mAbs + 2.0 * mAbs**3) * (N/T)
+        data_k3 = dh.err_data(meanK3.n, meanK3.s, meanK3.s)
 
     #-------------------
     return data_energy, data_mAbs, data_magSusc, data_binderCu, data_k3

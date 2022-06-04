@@ -85,6 +85,7 @@ void Simulator::run_monte_carlo()
         //sweeps per bin (prebinning)
         for (int sweep = 0; sweep < m_para.nSweeps; sweep++)
         {
+            //if (bin == 0) continue;
             update_monte_carlo(state, nnList, pFlips, N);
 
             #if PREBINNING_OBSERVABLES

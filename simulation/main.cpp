@@ -9,7 +9,8 @@
 int main()
 {
     srand(std::time(nullptr));
- 
+    //srand(1);
+
     PRECISION J = 1;
     //std::array<PRECISION, 9> Ts = { 1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4 };
 
@@ -22,7 +23,7 @@ int main()
 
     //std::array<PRECISION, 6> Ts = {1.5, 2.1, 2.35, 2.5, 2.8, 3.0};
 
-    //std::array<PRECISION, 1> Ts = { 2.3 };
+    //std::array<PRECISION, 1> Ts = { 3.4 };
 
     SimulationParameter para = { N_TERM, N_BINS, N_SWEEPS };
 
