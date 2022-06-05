@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>7634a9e4-b0c3-4b7e-b174-4161b8a4f348</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>gen_diff.py</StartupFile>
+    <StartupFile>metropolis_evolution.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -41,6 +41,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="main.py" />
+    <Compile Include="metropolis_evolution.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="model_evaluation.py">
       <SubType>Code</SubType>
     </Compile>

@@ -55,11 +55,15 @@ def importConditionalGAN(gan_name):
 
     return conditional_gan
 
-def load_ck(epoch, res, latent_dim, conditional_dim, conditional_gan, ck_path):
+def load_ck(epoch, res, latent_dim, conditional_dim, conditional_gan, ck_path, injection=True):
     image_size = (res, res, 1)
-    gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size)
+    gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size, injection)
 
-    gan_model.save_path = os.path.join(ck_path, "L%d" % res, "gan_")
+    if not injection:
+        gan_model.save_path = os.path.join(ck_path, "L%d_noInj" % res, "gan_")
+    else:
+        gan_model.save_path = os.path.join(ck_path, "L%d" % res, "gan_")
+
     gan_model.load(epoch=epoch)
 
     return gan_model
@@ -194,7 +198,7 @@ def getMC_Observables(Ts, N, gen_new=False):
 
 #--------------------------------------------------------------------
 
-def getGAN_Observables_DCGAN(Ts, res, samples, gen_new=False):
+def getGAN_Observables_DCGAN(Ts, res, samples, gen_new=False, injection=True):
     
     #------------------------
     if gen_new:    
@@ -211,7 +215,7 @@ def getGAN_Observables_DCGAN(Ts, res, samples, gen_new=False):
         epoch = 26
     
         #------------------------
-        gan_model = load_ck(epoch, res, latent_dim, conditional_dim, conditional_gan, dc_ck_path)
+        gan_model = load_ck(epoch, res, latent_dim, conditional_dim, conditional_gan, dc_ck_path, injection)
     
         #------------------------
 
@@ -346,11 +350,16 @@ def plot_m_e(data, g_data, Tc):
         #plt.errorbar(  Ts,   mean[i], fmt='.',   yerr=std[i], label="SIM", elinewidth=1, capsize=2, markersize=5, color=clr_sim)
         #plt.errorbar(g_Ts, g_mean[i], fmt='.', yerr=g_std[i], label="GAN", elinewidth=1, capsize=2, markersize=5, color=clr_gan)
 
-        plt.plot(  Ts,   mean[i], "--", color=clr_sim, lw=2)
-        plt.plot(g_Ts, g_mean[i], "--", color=clr_gan, lw=2)
+        plt.fill_between(  Ts, np.array(mean[i])+np.array(std[i]), np.array(mean[i])-np.array(std[i]), alpha=0.2, color=clr_sim, lw=0)
+        plt.fill_between(g_Ts, np.array(g_mean[i])+np.array(g_std[i]), np.array(g_mean[i])-np.array(g_std[i]), alpha=0.2, color=clr_gan, lw=0)
 
-        plt.fill_between(  Ts, np.array(mean[i])+np.array(std[i]), np.array(mean[i])-np.array(std[i]), alpha=0.25, color=clr_sim, lw=0)
-        plt.fill_between(g_Ts, np.array(g_mean[i])+np.array(g_std[i]), np.array(g_mean[i])-np.array(g_std[i]), alpha=0.25, color=clr_gan, lw=0)
+        plt.plot(  Ts,   mean[i], "-", color=clr_sim, lw=2.5, label="MC")
+        plt.plot(g_Ts, g_mean[i], "--", color=clr_gan, lw=2.5, label="SpinGAN")
+        
+        #plt.plot(  Ts,   mean[i], "o", color=clr_sim)
+        #plt.plot(g_Ts, g_mean[i], "o", color=clr_gan)
+        if i ==1:
+            plt.legend()
 
     #-------------------------------------------
     savePdf("gan_perf_m_e")
@@ -389,11 +398,16 @@ def plot_chi_xi(data, g_data, Tc):
         #plt.errorbar(  Ts,   mean[i], fmt='.',   yerr=std[i], label="SIM", elinewidth=1, capsize=2, markersize=5, color=clr_sim)
         #plt.errorbar(g_Ts, g_mean[i], fmt='.', yerr=g_std[i], label="GAN", elinewidth=1, capsize=2, markersize=5, color=clr_gan)
 
-        plt.plot(  Ts,   mean[i], "--", color=clr_sim, lw=2)
-        plt.plot(g_Ts, g_mean[i], "--", color=clr_gan, lw=2)
+        plt.fill_between(  Ts, np.array(mean[i])+np.array(std[i]), np.array(mean[i])-np.array(std[i]), alpha=0.2, color=clr_sim, lw=0)
+        plt.fill_between(g_Ts, np.array(g_mean[i])+np.array(g_std[i]), np.array(g_mean[i])-np.array(g_std[i]), alpha=0.2, color=clr_gan, lw=0)
 
-        plt.fill_between(  Ts, np.array(mean[i])+np.array(std[i]), np.array(mean[i])-np.array(std[i]), alpha=0.25, color=clr_sim, lw=0)
-        plt.fill_between(g_Ts, np.array(g_mean[i])+np.array(g_std[i]), np.array(g_mean[i])-np.array(g_std[i]), alpha=0.25, color=clr_gan, lw=0)
+        plt.plot(  Ts,   mean[i], "-", color=clr_sim, lw=2.5, label="MC")
+        plt.plot(g_Ts, g_mean[i], "--", color=clr_gan, lw=2.5, label="SpinGAN")
+
+        #plt.plot(  Ts,   mean[i], "o", color=clr_sim)
+        #plt.plot(g_Ts, g_mean[i], "o", color=clr_gan)
+        if i ==1:
+            plt.legend()
 
     #-------------------------------------------
     savePdf("gan_perf_chi_xi")
@@ -449,14 +463,15 @@ def histo_plot_m(Ts, res):
             bins   = me.bin_size_m
             b_range = me.range_m
 
-            plt.hist(data, bins=bins, range=b_range, density=True, label="SIM", alpha=0.5, color=clr_sim)
+            plt.hist(data, bins=bins, range=b_range, density=True, label="MC", alpha=0.5, color=clr_sim)
 
             #-------------------------
             data = m[np.where(x_Ts == T)][0]
 
-            plt.hist(data, bins=bins, range=b_range, density=True, label="GAN", alpha=0.5, color=clr_gan)
+            plt.hist(data, bins=bins, range=b_range, density=True, label="SpinGAN", alpha=0.5, color=clr_gan)
     
-
+            if i ==1:
+                plt.legend()
     return
 
 def histo_plot_e(Ts, res):
@@ -505,13 +520,15 @@ def histo_plot_e(Ts, res):
             bins   = me.bin_size_eng
             b_range = me.range_eng
 
-            plt.hist(data, bins=bins, range=b_range, density=True, label="SIM", alpha=0.5, color=clr_sim)
+            plt.hist(data, bins=bins, range=b_range, density=True, label="MS", alpha=0.5, color=clr_sim)
 
             #------------------------- 
             data = e_raw[np.where(x_Ts == T)][0]
 
-            plt.hist(data, bins=bins, range=b_range, density=True, label="GAN", alpha=0.5, color=clr_gan)
+            plt.hist(data, bins=bins, range=b_range, density=True, label="SpinGAN", alpha=0.5, color=clr_gan)
     
+            if i ==1:
+                plt.legend()
 
     return
 

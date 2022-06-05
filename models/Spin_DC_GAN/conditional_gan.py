@@ -75,13 +75,13 @@ def gradient_penalty(samples, output, weight):
     return tf.reduce_mean(gradient_penalty) * weight
 
 class conditional_gan(keras.Model):
-    def __init__(self, latent_dim, conditional_dim, image_size):
+    def __init__(self, latent_dim, conditional_dim, image_size, injection=True):
         super().__init__()
 
         #---------------------------------------------
         self.use_aux = True
 
-        self.generator = generator.create_generator(latent_dim + conditional_dim, image_size, 1)       
+        self.generator = generator.create_generator(latent_dim + conditional_dim, image_size, 1, injection=injection)       
         self.discriminator, self.A_model = discriminator.create_discriminator(image_size, 1, self.use_aux)
 
         self.generator.summary()

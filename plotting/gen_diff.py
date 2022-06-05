@@ -12,7 +12,7 @@ matplotlib.rcParams.update({
     'text.usetex': False,
     'font.family': 'serif',
     'font.serif': 'cmr10',
-    'font.size': 20,
+    'font.size': 25,
     'mathtext.fontset': 'cm',
     'font.family': 'STIXGeneral',
     'axes.unicode_minus': True})
