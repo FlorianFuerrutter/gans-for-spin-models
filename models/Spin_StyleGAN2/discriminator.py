@@ -51,10 +51,15 @@ def decoder(x, init):
     x = layers.Conv2D(start_filter_size, kernel_size=1, strides=(1,1), padding='valid', kernel_initializer=init)(x)
 
     #-----------Decoders   
+    #x = dec_block(x,  start_filter_size * 1, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
+    #x = dec_block(x,  start_filter_size * 2, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #16x16
+    #x = dec_block(x,  start_filter_size * 4, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
+    #x = dec_block(x,  start_filter_size * 8, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) 
+
     x = dec_block(x,  start_filter_size * 1, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #32x32
     x = dec_block(x,  start_filter_size * 2, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #16x16
-    x = dec_block(x,  start_filter_size * 4, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
-    x = dec_block(x,  start_filter_size * 8, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) 
+    #x = dec_block(x,  start_filter_size * 4, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init) #8x8
+    x = dec_block(x,  start_filter_size * 3, kernel_size=(3,3), drop_rate=drop_rate, kernel_initializer=init, last_block=True) 
 
     return x
 
@@ -129,7 +134,7 @@ def create_A_model(image_res, init):
 
      #-----------Decoder
     x = custom_layers.PeriodicPadding2D(padding=1)(image_input)
-    x = decoder(x, init)
+    x = decoderA(x, init)
 
     #----------- Activation-layer
     x = layers.Flatten()(x)

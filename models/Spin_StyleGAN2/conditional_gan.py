@@ -165,7 +165,7 @@ class conditional_gan(keras.Model):
 
         #latent and noise     
 
-        #_>>>> MAKE T RANDOM HERE NOT THE SAME AS REAL ???? 
+        #latent and noise 
         random_conditional = conditional_labels + tf.random.normal(tf.shape(conditional_labels), stddev=0.03)
         random_conditional_latent = tf.repeat(random_conditional, repeats=[self.conditional_dim])
         random_conditional_latent = tf.reshape(random_conditional_latent, (-1, self.conditional_dim))

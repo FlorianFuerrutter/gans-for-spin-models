@@ -18,12 +18,13 @@ matplotlib.rcParams.update({
     'font.family': 'STIXGeneral',
     'axes.unicode_minus': True})
 
-plot_path    = "F:/GAN - PerformancePlots"
-dc_ck_path   = "F:/GAN - DC_CK"
+plot_path     = "F:/GAN - PerformancePlots"
+dc_ck_path    = "F:/GAN - DC_CK"
+style_ck_path = "F:/GAN - Style_CK"
 
-mc_data_path = "F:/GAN - PerformancePlots/data MC"
-dc_data_path = "F:/GAN - PerformancePlots/data DcGan"
-
+mc_data_path    = "F:/GAN - PerformancePlots/data MC"
+dc_data_path    = "F:/GAN - PerformancePlots/data DcGan"
+style_data_path = "F:/GAN - PerformancePlots/data Style"
 
 def savePdf(filename): 
     plt.savefig(plot_path + "/" + filename + '.pdf', bbox_inches='tight')
@@ -55,9 +56,22 @@ def importConditionalGAN(gan_name):
 
     return conditional_gan
 
-def load_ck(epoch, res, latent_dim, conditional_dim, conditional_gan, ck_path, injection=True):
+def load_ck_DCGAN(epoch, res, latent_dim, conditional_dim, conditional_gan, ck_path, injection=True):
     image_size = (res, res, 1)
     gan_model = conditional_gan.conditional_gan(latent_dim, conditional_dim, image_size, injection)
+
+    if not injection:
+        gan_model.save_path = os.path.join(ck_path, "L%d_noInj" % res, "gan_")
+    else:
+        gan_model.save_path = os.path.join(ck_path, "L%d" % res, "gan_")
+
+    gan_model.load(epoch=epoch)
+
+    return gan_model
+
+def load_ck_StyleGAN(epoch, res, enc_block_count, latent_dim, conditional_dim, style_dim, conditional_gan, ck_path, injection=True):
+    image_size = (res, res, 1)
+    gan_model = conditional_gan.conditional_gan(enc_block_count, latent_dim, conditional_dim, style_dim, image_size, res)
 
     if not injection:
         gan_model.save_path = os.path.join(ck_path, "L%d_noInj" % res, "gan_")
@@ -76,7 +90,7 @@ def getStates_DCGAN(T, conditional_gan, gan_model, samples, conditional_dim, lat
     latent_vectors = np.concatenate([random_vectors, conditional_labels], axis=1)
 
     #------- do batches for memory ---------------------
-    mini_batch_size = 128
+    mini_batch_size = 64
     runs = (samples // mini_batch_size) + 1
     for i in range(runs):
 
@@ -102,8 +116,8 @@ def getStates_StyleGAN(T, conditional_gan, gan_model, samples, conditional_dim, 
     runs = (samples // mini_batch_size) + 1
     for i in range(runs):
 
-        slice_latent_vectors = latent_vectors[i*mini_batch_size:(i+1)*mini_batch_size]
-        slice_noise_images   = noise_images[i*mini_batch_size:(i+1)*mini_batch_size]
+        slice_latent_vectors = [ x[i*mini_batch_size:(i+1)*mini_batch_size] for x in latent_vectors ]  
+        slice_noise_images   = [ x[i*mini_batch_size:(i+1)*mini_batch_size] for x in noise_images ]  
 
         generated_images = (gan_model.generator([slice_latent_vectors, slice_noise_images])).numpy()
 
@@ -200,6 +214,8 @@ def getMC_Observables(Ts, N, gen_new=False):
 
 def getGAN_Observables_DCGAN(Ts, res, samples, gen_new=False, injection=True):
     
+    add = "/" if injection else "/noInj_"
+
     #------------------------
     if gen_new:    
         N = res * res
@@ -212,14 +228,14 @@ def getGAN_Observables_DCGAN(Ts, res, samples, gen_new=False, injection=True):
         latent_dim = 4096
         conditional_dim = 4
 
-        epoch = 26
+        epoch = 26 if injection else 6
     
         #------------------------
-        gan_model = load_ck(epoch, res, latent_dim, conditional_dim, conditional_gan, dc_ck_path, injection)
+        gan_model = load_ck_DCGAN(epoch, res, latent_dim, conditional_dim, conditional_gan, dc_ck_path, injection)
     
         #------------------------
 
-        print("Generate getMC_Observables")
+        print("Generate getGAN_Observables_DCGAN")
         if 1:
             m = list()
             e_raw = list()
@@ -274,47 +290,188 @@ def getGAN_Observables_DCGAN(Ts, res, samples, gen_new=False, injection=True):
                 k3_err.append(g_data_k3.std)
                 xi.append(g_data_xi)
                 xi_err.append(g_data_xi_err)
+              
+        np.save(dc_data_path + add + "m.npy", m)
+        np.save(dc_data_path + add + "e_raw.npy", e_raw)
 
-        np.save(dc_data_path + "/m.npy", m)
-        np.save(dc_data_path + "/e_raw.npy", e_raw)
-
-        np.save(dc_data_path + "/Ts.npy", Ts)
-        np.save(dc_data_path + "/e.npy", e)
-        np.save(dc_data_path + "/e_rr.npy", e_rr)      
-        np.save(dc_data_path + "/mAbs.npy", mAbs)
-        np.save(dc_data_path + "/mAbs_err.npy", mAbs_err)
-        np.save(dc_data_path + "/magSusc.npy", magSusc)
-        np.save(dc_data_path + "/magSusc_err.npy", magSusc_err)
-        np.save(dc_data_path + "/binderCu.npy", binderCu)
-        np.save(dc_data_path + "/binderCu_err.npy", binderCu_err)
-        np.save(dc_data_path + "/k3.npy", k3)
-        np.save(dc_data_path + "/k3_err.npy", k3_err)
-        np.save(dc_data_path + "/xi.npy", xi)
-        np.save(dc_data_path + "/xi_err.npy", xi_err)
+        np.save(dc_data_path + add + "Ts.npy", Ts)
+        np.save(dc_data_path + add + "e.npy", e)
+        np.save(dc_data_path + add + "e_rr.npy", e_rr)      
+        np.save(dc_data_path + add + "mAbs.npy", mAbs)
+        np.save(dc_data_path + add + "mAbs_err.npy", mAbs_err)
+        np.save(dc_data_path + add + "magSusc.npy", magSusc)
+        np.save(dc_data_path + add + "magSusc_err.npy", magSusc_err)
+        np.save(dc_data_path + add + "binderCu.npy", binderCu)
+        np.save(dc_data_path + add + "binderCu_err.npy", binderCu_err)
+        np.save(dc_data_path + add + "k3.npy", k3)
+        np.save(dc_data_path + add + "k3_err.npy", k3_err)
+        np.save(dc_data_path + add + "xi.npy", xi)
+        np.save(dc_data_path + add + "xi_err.npy", xi_err)
 
     #------------------------
     else:
-        print("Load getMC_Observables")
-        m = np.load(dc_data_path + "/m.npy")
-        e_raw = np.load(dc_data_path + "/e_raw.npy")
+        print("Load getGAN_Observables_DCGAN")
 
-        Ts = np.load(dc_data_path + "/Ts.npy") 
-        e = np.load(dc_data_path + "/e.npy")
-        e_rr = np.load(dc_data_path + "/e_rr.npy")        
-        mAbs = np.load(dc_data_path + "/mAbs.npy")
-        mAbs_err = np.load(dc_data_path + "/mAbs_err.npy")
-        magSusc = np.load(dc_data_path + "/magSusc.npy")
-        magSusc_err = np.load(dc_data_path + "/magSusc_err.npy")
-        binderCu = np.load(dc_data_path + "/binderCu.npy")
-        binderCu_err = np.load(dc_data_path + "/binderCu_err.npy")
-        k3 = np.load(dc_data_path + "/k3.npy")
-        k3_err = np.load(dc_data_path + "/k3_err.npy")
-        xi = np.load(dc_data_path + "/xi.npy")
-        xi_err = np.load(dc_data_path + "/xi_err.npy")
+
+        m = np.load(dc_data_path + add + "m.npy")
+        e_raw = np.load(dc_data_path + add + "e_raw.npy")
+
+        Ts = np.load(dc_data_path + add + "Ts.npy") 
+        e = np.load(dc_data_path + add + "e.npy")
+        e_rr = np.load(dc_data_path + add + "e_rr.npy")        
+        mAbs = np.load(dc_data_path + add + "mAbs.npy")
+        mAbs_err = np.load(dc_data_path + add + "mAbs_err.npy")
+        magSusc = np.load(dc_data_path + add + "magSusc.npy")
+        magSusc_err = np.load(dc_data_path + add + "magSusc_err.npy")
+        binderCu = np.load(dc_data_path + add + "binderCu.npy")
+        binderCu_err = np.load(dc_data_path + add + "binderCu_err.npy")
+        k3 = np.load(dc_data_path + add + "k3.npy")
+        k3_err = np.load(dc_data_path + add + "k3_err.npy")
+        xi = np.load(dc_data_path + add + "xi.npy")
+        xi_err = np.load(dc_data_path + add + "xi_err.npy")
+
+    return Ts, e, e_rr, e_raw, m, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err
+
+def getGAN_Observables_StyleGAN(Ts, res, samples, gen_new=False, injection=True):
+    
+    add = "/" if injection else "/noInj_"
+
+    #------------------------
+    if gen_new:    
+        N = res * res
+
+        gan_name = "Spin_StyleGAN2"
+        model_data_path = os.path.join(os.path.dirname(__file__), "..", "data", "model-data")
+
+        conditional_gan = importConditionalGAN(gan_name)
+
+        latent_dim = 4096
+        style_dim = 4096
+        conditional_dim = 8
+        enc_block_count = 5
+        noise_image_res = 64
+
+        epoch = 60 if injection else -1
+    
+        #------------------------
+        gan_model = load_ck_StyleGAN(epoch, res, enc_block_count, latent_dim, conditional_dim, style_dim, conditional_gan, style_ck_path, injection)
+    
+        #------------------------
+
+        print("Generate getGAN_Observables_StyleGAN")
+        if 1:
+            m = list()
+            e_raw = list()
+
+            e = list()
+            e_rr = list()
+            mAbs = list()
+            mAbs_err = list()
+            magSusc = list()
+            magSusc_err = list()
+            binderCu = list()
+            binderCu_err = list()
+            k3 = list()
+            k3_err = list()
+            xi = list()
+            xi_err = list()
+
+        for T in Ts:
+            print("T:", T)
+
+            states = getStates_StyleGAN(T, conditional_gan, gan_model, samples, conditional_dim, latent_dim, enc_block_count, noise_image_res)
+
+            states = np.reshape(states, (-1, N))
+
+            #calc observables
+            g_energy = me.calc_states_energy(N, states)
+            g_m     = np.sum(states, axis=-1) / N
+            g_mAbs  = np.abs(g_m)
+            g_m2    = np.square(g_m)
+            g_mAbs3 = g_mAbs * g_m2
+            g_m4    = np.square(g_m2)
+        
+            g_data_energy, g_data_mAbs, g_data_magSusc, g_data_binderCu, g_data_k3 = me.perform_observable_calculation(g_energy, g_m, g_mAbs, g_m2, g_mAbs3, g_m4, N, T)
+            #g_data_energy, g_data_mAbs, g_data_magSusc, g_data_binderCu, g_data_k3 = me.perform_observable_calculation_non_binning(g_energy, g_m, g_mAbs, g_m2, g_mAbs3, g_m4, N, T)
+
+            g_data_xi, g_data_xi_err = da.calc_spin_spin_correlation(states, N)
+
+            #append
+            if 1:
+                m.append(g_m)
+                e_raw.append(g_energy)
+
+                e.append(g_data_energy.val)
+                e_rr.append(g_data_energy.std)               
+                mAbs.append(g_data_mAbs.val)
+                mAbs_err.append(g_data_mAbs.std)
+                magSusc.append(g_data_magSusc.val)
+                magSusc_err.append(g_data_magSusc.std)
+                binderCu.append(g_data_binderCu.val)
+                binderCu_err.append(g_data_binderCu.std)
+                k3.append(g_data_k3.val)
+                k3_err.append(g_data_k3.std)
+                xi.append(g_data_xi)
+                xi_err.append(g_data_xi_err)
+              
+        np.save(style_data_path + add + "m.npy", m)
+        np.save(style_data_path + add + "e_raw.npy", e_raw)
+
+        np.save(style_data_path + add + "Ts.npy", Ts)
+        np.save(style_data_path + add + "e.npy", e)
+        np.save(style_data_path + add + "e_rr.npy", e_rr)      
+        np.save(style_data_path + add + "mAbs.npy", mAbs)
+        np.save(style_data_path + add + "mAbs_err.npy", mAbs_err)
+        np.save(style_data_path + add + "magSusc.npy", magSusc)
+        np.save(style_data_path + add + "magSusc_err.npy", magSusc_err)
+        np.save(style_data_path + add + "binderCu.npy", binderCu)
+        np.save(style_data_path + add + "binderCu_err.npy", binderCu_err)
+        np.save(style_data_path + add + "k3.npy", k3)
+        np.save(style_data_path + add + "k3_err.npy", k3_err)
+        np.save(style_data_path + add + "xi.npy", xi)
+        np.save(style_data_path + add + "xi_err.npy", xi_err)
+
+    #------------------------
+    else:
+        print("Load getGAN_Observables_StyleGAN")
+
+
+        m = np.load(style_data_path + add + "m.npy")
+        e_raw = np.load(style_data_path + add + "e_raw.npy")
+
+        Ts = np.load(style_data_path + add + "Ts.npy") 
+        e = np.load(style_data_path + add + "e.npy")
+        e_rr = np.load(style_data_path + add + "e_rr.npy")        
+        mAbs = np.load(style_data_path + add + "mAbs.npy")
+        mAbs_err = np.load(style_data_path + add + "mAbs_err.npy")
+        magSusc = np.load(style_data_path + add + "magSusc.npy")
+        magSusc_err = np.load(style_data_path + add + "magSusc_err.npy")
+        binderCu = np.load(style_data_path + add + "binderCu.npy")
+        binderCu_err = np.load(style_data_path + add + "binderCu_err.npy")
+        k3 = np.load(style_data_path + add + "k3.npy")
+        k3_err = np.load(style_data_path + add + "k3_err.npy")
+        xi = np.load(style_data_path + add + "xi.npy")
+        xi_err = np.load(style_data_path + add + "xi_err.npy")
 
     return Ts, e, e_rr, e_raw, m, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err
 
 #--------------------------------------------------------------------
+
+def add_plot_m_e(g_data, axs, clr, sign, name):
+    g_Ts, g_e, g_e_rr, e_raw, g_m, g_mAbs, g_mAbs_err, g_magSusc, g_magSusc_err, g_binderCu, g_binderCu_err, g_k3, g_k3_err, g_xi, g_xi_err = g_data
+
+    mean = [g_mAbs, g_e]
+    std  = [g_mAbs_err, g_e_rr]
+
+    for i in range(2):
+        plt.sca(axs[i])
+        plt.margins(0.03) 
+
+        plt.fill_between(  g_Ts, np.array(mean[i])+np.array(std[i]), np.array(mean[i])-np.array(std[i]), alpha=0.2, color=clr, lw=0)
+        plt.plot(  g_Ts,   mean[i], sign, color=clr, lw=2.5, label=name)
+
+        if i == 1:
+            plt.legend()
 
 def plot_m_e(data, g_data, Tc):
     Ts, e, e_rr, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = data
@@ -362,10 +519,25 @@ def plot_m_e(data, g_data, Tc):
             plt.legend()
 
     #-------------------------------------------
-    savePdf("gan_perf_m_e")
-    savePng("gan_perf_m_e")
-    saveSvg("gan_perf_m_e")
-    return
+    return axs
+
+#--------------------------------------------------------------------
+
+def add_plot_chi_xi(g_data, axs, clr, sign, name):
+    g_Ts, g_e, g_e_rr, e_raw, g_m, g_mAbs, g_mAbs_err, g_magSusc, g_magSusc_err, g_binderCu, g_binderCu_err, g_k3, g_k3_err, g_xi, g_xi_err = g_data
+
+    mean = [g_magSusc, g_xi]
+    std  = [g_magSusc_err, g_xi_err]
+
+    for i in range(2):
+        plt.sca(axs[i])
+        plt.margins(0.03) 
+
+        plt.fill_between(  g_Ts, np.array(mean[i])+np.array(std[i]), np.array(mean[i])-np.array(std[i]), alpha=0.2, color=clr, lw=0)
+        plt.plot(  g_Ts,   mean[i], sign, color=clr, lw=2.5, label=name)
+
+        if i == 1:
+            plt.legend()
 
 def plot_chi_xi(data, g_data, Tc):
     Ts, e, e_rr, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = data
@@ -410,10 +582,7 @@ def plot_chi_xi(data, g_data, Tc):
             plt.legend()
 
     #-------------------------------------------
-    savePdf("gan_perf_chi_xi")
-    savePng("gan_perf_chi_xi")
-    saveSvg("gan_perf_chi_xi")
-    return
+    return axs
 
 #--------------------------------------------------------------------
 
@@ -484,7 +653,7 @@ def histo_plot_e(Ts, res):
 
     rows = cols = 2
 
-    ticks = np.linspace(me.range_m[0], me.range_m[1], 5)
+    ticks = np.linspace(me.range_eng[0], me.range_eng[1], 6)
     empty_labels = ["" for x in ticks]
 
     clr_sim = "tab:blue"
@@ -554,18 +723,33 @@ def main():
     data = getMC_Observables(Ts, N, gen_new=0)
 
     #-------------------------------------------
-    g_data = getGAN_Observables_DCGAN(g_Ts, res, samples, gen_new=0)
-       
-    #-------------------------------------------
-    plot_m_e(data, g_data, Tc)
-    plot_chi_xi(data, g_data, Tc)
+    g_data       = getGAN_Observables_DCGAN(g_Ts, res, samples, gen_new=0)  
+    g_data_noInj = getGAN_Observables_DCGAN(g_Ts, res, samples, gen_new=0, injection=False)
+
+    g_style_data = getGAN_Observables_StyleGAN(g_Ts, res, samples, gen_new=1)
 
     #-------------------------------------------
-    histo_plot_m([2.2, 2.3, 2.4, 2.8], res)
-    save3("gan_hist_m")
+    axs = plot_m_e(data, g_data, Tc)
+    add_plot_m_e(g_data_noInj, axs, "tab:green", ":", "DC GAN")
+    add_plot_m_e(g_style_data, axs, "tab:purple", "-.", "StyleGAN2")
+    savePdf("gan_perf_m_e")
+    savePng("gan_perf_m_e")
+    saveSvg("gan_perf_m_e")
+    
+    #-------------------------------------------
+    axs = plot_chi_xi(data, g_data, Tc)
+    add_plot_chi_xi(g_data_noInj, axs, "tab:green", ":", "DC GAN")
+    add_plot_chi_xi(g_style_data, axs, "tab:purple", "-.", "StyleGAN2")
+    savePdf("gan_perf_chi_xi")
+    savePng("gan_perf_chi_xi")
+    saveSvg("gan_perf_chi_xi")
 
-    histo_plot_e([2.2, 2.3, 2.4, 2.8], res)
-    save3("gan_hist_e")
+    #-------------------------------------------
+    #histo_plot_m([2.2, 2.3, 2.4, 2.8], res)
+    #save3("gan_hist_m")
+
+    #histo_plot_e([2.2, 2.3, 2.4, 2.8], res)
+    #save3("gan_hist_e")
 
     return
 

@@ -24,7 +24,7 @@ def main() -> int:
     amplitude   = 0.7
 
     image_size = (64, 64, 1)
-    train_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train")#, "L128")
+    train_data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "train") #, "L128")
 
     if 0: #Spin_DC_GAN
         batch_sizes      = {"Spin_DC_GAN" : 64}

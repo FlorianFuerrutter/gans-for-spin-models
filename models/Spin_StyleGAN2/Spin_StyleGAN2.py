@@ -143,9 +143,9 @@ def train_conditional_model(dataset, epochs, save_period, plot_period, latent_di
 
     if 0:
         gan_model.A_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=2e-4), loss=tf.keras.losses.MeanSquaredError())
-        gan_model.A_model.fit(dataset, epochs=10)
-        gan_model.A_model.save_weights(gan_model.save_path[:-10] + "A_model_weights")
-    else:
+        gan_model.A_model.fit(dataset, epochs=20)
+        gan_model.A_model.save_weights(gan_model.save_path[:-10] + "A_model_weights_800")
+    elif 1:
         gan_model.A_model.load_weights(gan_model.save_path[:-10] + "A_model_weights")
     
     if 1:    
