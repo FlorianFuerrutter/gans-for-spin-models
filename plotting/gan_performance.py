@@ -726,7 +726,7 @@ def main():
     g_data       = getGAN_Observables_DCGAN(g_Ts, res, samples, gen_new=0)  
     g_data_noInj = getGAN_Observables_DCGAN(g_Ts, res, samples, gen_new=0, injection=False)
 
-    g_style_data = getGAN_Observables_StyleGAN(g_Ts, res, samples, gen_new=1)
+    g_style_data = getGAN_Observables_StyleGAN(g_Ts, res, samples, gen_new=0)
 
     #-------------------------------------------
     axs = plot_m_e(data, g_data, Tc)

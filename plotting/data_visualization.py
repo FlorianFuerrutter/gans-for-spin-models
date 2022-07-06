@@ -220,6 +220,9 @@ def plot_correlation_fit(x, y, fit_func, best_vals):
     plt.xlabel(r"$r$")
     plt.ylabel(r"$G_c(r)$")
 
+    plt.ylim([0, np.max(y) * 1.05])
+    plt.xlim([np.min(x)-0.5, np.max(x)+0.5])
+
     #data
     plt.plot(x, y, ".", ms=16)
 

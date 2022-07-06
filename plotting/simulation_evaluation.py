@@ -10,14 +10,15 @@ matplotlib.rcParams.update({
     'text.usetex': False,
     'font.family': 'serif',
     'font.serif': 'cmr10',
-    'font.size': 16,
+    'font.size': 18,
     'mathtext.fontset': 'cm',
     'font.family': 'STIXGeneral',
     'axes.unicode_minus': True})
 
+plot_path     = "F:/GAN - PerformancePlots"
+
 #--------------------------------------------------------------------
 
-plot_path  = os.path.dirname(__file__)
 def savePdf(filename): 
     plt.savefig(plot_path + "/" + filename + '.pdf', bbox_inches='tight')
 def savePng(filename):
@@ -62,10 +63,13 @@ def main():
 
     #--------------------------
 
-    size=(12, 5)
+    #12, 4.3
+    size=(5, 4.3)
     fig = plt.figure(figsize = size, constrained_layout = True) 
     plt.xlabel(r"$T/J$")
     plt.ylabel(r"$\xi$")
+
+    plt.xlim([1.96, 2.61])
 
     plt.axvline(Tc, color="gray", linestyle="--")
 
@@ -74,8 +78,10 @@ def main():
     #--------------------------
 
     for i in range(Ls.size):
-        L   = Ls[i]
-        clr = clrs[i]
+        x = Ls.size - 1 - i
+
+        L   = Ls[x]
+        clr = clrs[x]
 
         #--------------------------
         #legend
@@ -108,8 +114,12 @@ def main():
    
     savePdf("simulation_evaluation")
     savePng("simulation_evaluation")
-    plt.show()
     return
 
+#--------------------------------------------------------------------
+
+if __name__ == '__main__':
+    main()
+    plt.show()
 #--------------------------------------------------------------------
 

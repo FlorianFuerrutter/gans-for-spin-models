@@ -272,7 +272,7 @@ def fit_spin_spin_correlation(rs, gc_r):
 
     def f(beta, x):
         a, xi = beta
-        return a * np.exp(-x/xi)
+        return a * np.exp(-x/xi) #/ x
 
     model = Model(f)
     odr = ODR(data, model, [1,1])
