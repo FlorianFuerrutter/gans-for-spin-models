@@ -41,3 +41,4 @@ simulation_*
 /plotting/*.png
 /plotting/epochs
 /models/log
+/plotting/obs/*.npy
