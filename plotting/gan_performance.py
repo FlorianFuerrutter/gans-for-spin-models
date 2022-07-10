@@ -13,12 +13,14 @@ matplotlib.rcParams.update({
     'text.usetex': False,
     'font.family': 'serif',
     'font.serif': 'cmr10',
-    'font.size': 20,
+    'font.size': 18,
     'mathtext.fontset': 'cm',
     'font.family': 'STIXGeneral',
     'axes.unicode_minus': True})
 
-plot_path     = "F:/GAN - PerformancePlots"
+#plot_path = "F:/GAN - PerformancePlots"
+plot_path = "C:/Users/Flo/Documents/Uni/Ba-Arbeit/ba thesis/img/plots" 
+
 dc_ck_path    = "F:/GAN - DC_CK"
 style_ck_path = "F:/GAN - Style_CK"
 
@@ -478,7 +480,7 @@ def plot_m_e(data, g_data, Tc):
     g_Ts, g_e, g_e_rr, e_raw, g_m, g_mAbs, g_mAbs_err, g_magSusc, g_magSusc_err, g_binderCu, g_binderCu_err, g_k3, g_k3_err, g_xi, g_xi_err = g_data
 
     #--------------------------------------------------------------
-    size=(13, 4.8)
+    size=(13, 4.6)
     fig = plt.figure(figsize=size, constrained_layout=True) 
     gs = plt.GridSpec(1, 2, figure=fig)
     axs = np.array([fig.add_subplot(gs[0]), fig.add_subplot(gs[1])])
@@ -544,7 +546,7 @@ def plot_chi_xi(data, g_data, Tc):
     g_Ts, g_e, g_e_rr, e_raw, g_m, g_mAbs, g_mAbs_err, g_magSusc, g_magSusc_err, g_binderCu, g_binderCu_err, g_k3, g_k3_err, g_xi, g_xi_err = g_data
 
     #--------------------------------------------------------------
-    size=(13, 4.8)
+    size=(13, 4.6)
     fig = plt.figure(figsize=size, constrained_layout=True) 
     gs = plt.GridSpec(1, 2, figure=fig)
     axs = np.array([fig.add_subplot(gs[0]), fig.add_subplot(gs[1])])
@@ -589,7 +591,7 @@ def plot_chi_xi(data, g_data, Tc):
 def histo_plot_m(Ts, res):
     addpath = ""
 
-    size=(13, 6)
+    size=(13, 5.3)
     fig = plt.figure(figsize=size, constrained_layout=True) 
     gs = plt.GridSpec(2, 2, figure=fig)
     axs = np.array([fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1]), fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])])
@@ -622,8 +624,9 @@ def histo_plot_m(Ts, res):
       
             T = Ts[i]
             te = r"$T/J$ = {t}".format(t=T)
-            args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color="black")#, bbox=box)
-            plt.text(0.08, 0.98 , te, args)
+            box = dict(facecolor='white', alpha=0.87, boxstyle="round", pad=0.1)
+            args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color="black", bbox=box)
+            plt.text(0.04, 0.96 , te, args)
 
             #-------------------------
             t_energy, t_m, t_mAbs, t_m2, t_mAbs3, t_m4 = dh.load_spin_observables(T, addpath)
@@ -646,7 +649,7 @@ def histo_plot_m(Ts, res):
 def histo_plot_e(Ts, res):
     addpath = ""
 
-    size=(13, 6)
+    size=(13, 5.3)
     fig = plt.figure(figsize=size, constrained_layout=True) 
     gs = plt.GridSpec(2, 2, figure=fig)
     axs = np.array([fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1]), fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])])
@@ -679,8 +682,9 @@ def histo_plot_e(Ts, res):
       
             T = Ts[i]
             te = r"$T/J$ = {t}".format(t=T)
-            args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color="black")#, bbox=box)
-            plt.text(0.08, 0.98 , te, args)
+            box = dict(facecolor='white', alpha=0.87, boxstyle="round", pad=0.1)
+            args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color="black", bbox=box)
+            plt.text(0.04, 0.96 , te, args)
 
             #-------------------------
             t_energy, t_m, t_mAbs, t_m2, t_mAbs3, t_m4 = dh.load_spin_observables(T, addpath)
@@ -689,7 +693,7 @@ def histo_plot_e(Ts, res):
             bins   = me.bin_size_eng
             b_range = me.range_eng
 
-            plt.hist(data, bins=bins, range=b_range, density=True, label="MS", alpha=0.5, color=clr_sim)
+            plt.hist(data, bins=bins, range=b_range, density=True, label="MC", alpha=0.5, color=clr_sim)
 
             #------------------------- 
             data = e_raw[np.where(x_Ts == T)][0]
@@ -703,7 +707,74 @@ def histo_plot_e(Ts, res):
 
 #--------------------------------------------------------------------
 
+def plotTotalPerf(data, g_data, Tc, name, clr="tab:orange"):
+    Ts, e, e_rr, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = data
+    g_Ts, g_e, g_e_rr, e_raw, g_m, g_mAbs, g_mAbs_err, g_magSusc, g_magSusc_err, g_binderCu, g_binderCu_err, g_k3, g_k3_err, g_xi, g_xi_err = g_data
+
+    #--------------------------------------------------------------
+    size=(13, 8)
+    fig = plt.figure(figsize=size, constrained_layout=True) 
+    gs = plt.GridSpec(3, 2, figure=fig)
+    axs = np.array([fig.add_subplot(gs[0,0]), fig.add_subplot(gs[0,1]),
+                    fig.add_subplot(gs[1,0]), fig.add_subplot(gs[1,1]),
+                    fig.add_subplot(gs[2,0]), fig.add_subplot(gs[2,1])])
+
+    #--------------------------------------------------------------
+    title = [r"$\langle |m|\rangle$",  r"$\langle E\rangle$",
+             r"$\chi$", r"$\xi$",                           
+             r"$U_2$",  r"$\kappa_3$"  ]
+
+    mean = [mAbs    , e   , magSusc    , xi    , binderCu    , k3]
+    std  = [mAbs_err, e_rr, magSusc_err, xi_err, binderCu_err, k3_err]
+
+    g_mean = [g_mAbs    , g_e   , g_magSusc    , g_xi    , g_binderCu    , g_k3]
+    g_std  = [g_mAbs_err, g_e_rr, g_magSusc_err, g_xi_err, g_binderCu_err, g_k3_err]
+    
+    clr_sim = "tab:blue"
+    clr_gan = clr
+
+    ticks  = [1.0, 1.5, 2.0, 2.5, 3.0]
+    labels = [("%0.1f" % x) for x in ticks]      
+    empty_labels = ["" for x in ticks]
+
+    for y in range(3):
+        for x in range(2):
+
+            i = 2 * y + x
+
+            plt.sca(axs[i])
+            plt.margins(0.03) 
+            plt.axvline(Tc, color="gray", linestyle="--")
+            plt.ylabel(title[i])
+
+            if y > 1:
+                plt.xlabel(r'$T/J$')
+                plt.xticks(ticks, labels)
+            else:
+                plt.xticks(ticks, empty_labels)
+
+            #plt.errorbar(  Ts,   mean[i], fmt='.',   yerr=std[i], label="SIM", elinewidth=1, capsize=2, markersize=5, color=clr_sim)
+            #plt.errorbar(g_Ts, g_mean[i], fmt='.', yerr=g_std[i], label="GAN", elinewidth=1, capsize=2, markersize=5, color=clr_gan)
+
+            plt.fill_between(  Ts, np.array(mean[i])+np.array(std[i]), np.array(mean[i])-np.array(std[i]), alpha=0.2, color=clr_sim, lw=0)
+            plt.fill_between(g_Ts, np.array(g_mean[i])+np.array(g_std[i]), np.array(g_mean[i])-np.array(g_std[i]), alpha=0.2, color=clr_gan, lw=0)
+
+            plt.plot(  Ts,   mean[i], "-", color=clr_sim, lw=2.5, label="MC")
+            plt.plot(g_Ts, g_mean[i], "--", color=clr_gan, lw=2.5, label=name)
+        
+            #plt.plot(  Ts,   mean[i], "o", color=clr_sim)
+            #plt.plot(g_Ts, g_mean[i], "o", color=clr_gan)
+            if i ==1:
+                plt.legend()
+
+    #-------------------------------------------
+    return axs
+
+#--------------------------------------------------------------------
+
 def main():
+    matplotlib.rcParams.update({'font.size': 18})
+
     res = 64
     N   = res * res
     Tc = 1.0 * 2.0 / np.log(1.0 + np.sqrt(2.0))
@@ -729,27 +800,39 @@ def main():
     g_style_data = getGAN_Observables_StyleGAN(g_Ts, res, samples, gen_new=0)
 
     #-------------------------------------------
-    axs = plot_m_e(data, g_data, Tc)
-    add_plot_m_e(g_data_noInj, axs, "tab:green", ":", "DC GAN")
-    add_plot_m_e(g_style_data, axs, "tab:purple", "-.", "StyleGAN2")
-    savePdf("gan_perf_m_e")
-    savePng("gan_perf_m_e")
-    saveSvg("gan_perf_m_e")
+    if 0:
+        axs = plot_m_e(data, g_data, Tc)
+        add_plot_m_e(g_data_noInj, axs, "tab:green", ":", "DC GAN")
+        add_plot_m_e(g_style_data, axs, "tab:purple", "-.", "StyleGAN2")
+        savePdf("gan_perf_m_e")
+        #savePng("gan_perf_m_e")
+        #saveSvg("gan_perf_m_e")
     
-    #-------------------------------------------
-    axs = plot_chi_xi(data, g_data, Tc)
-    add_plot_chi_xi(g_data_noInj, axs, "tab:green", ":", "DC GAN")
-    add_plot_chi_xi(g_style_data, axs, "tab:purple", "-.", "StyleGAN2")
-    savePdf("gan_perf_chi_xi")
-    savePng("gan_perf_chi_xi")
-    saveSvg("gan_perf_chi_xi")
+        #----------------
+        axs = plot_chi_xi(data, g_data, Tc)
+        add_plot_chi_xi(g_data_noInj, axs, "tab:green", ":", "DC GAN")
+        add_plot_chi_xi(g_style_data, axs, "tab:purple", "-.", "StyleGAN2")
+        savePdf("gan_perf_chi_xi")
+        #savePng("gan_perf_chi_xi")
+        #saveSvg("gan_perf_chi_xi")
 
     #-------------------------------------------
-    #histo_plot_m([2.2, 2.3, 2.4, 2.8], res)
-    #save3("gan_hist_m")
+    if 0:
+        histo_plot_m([2.2, 2.3, 2.4, 2.8], res)
+        savePdf("gan_hist_m")
 
-    #histo_plot_e([2.2, 2.3, 2.4, 2.8], res)
-    #save3("gan_hist_e")
+        histo_plot_e([2.2, 2.3, 2.4, 2.8], res)
+        savePdf("gan_hist_e")
+
+    #-------------------------------------------
+    plotTotalPerf(data, g_data, Tc, "SpinGAN", "tab:orange")
+    savePdf("total_perf_spinGAN")
+
+    plotTotalPerf(data, g_data_noInj, Tc, "DCGAN", "tab:green")
+    savePdf("total_perf_dcGAN")
+
+    plotTotalPerf(data, g_style_data, Tc, "StyleGAN2", "tab:purple")
+    savePdf("total_perf_sytleGAN")
 
     return
 

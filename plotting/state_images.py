@@ -47,14 +47,14 @@ def plotImages(name, rows, cols, imgs, global_cols, titles=None):
 
     if rows==1:
         size = (12,1.9) if titles!=None else (12,1.5)
-        #wspace = 0.08
+        #wspace = 0.05
 
     fig = plt.figure(figsize=size, constrained_layout=False, dpi=180) 
     gs0 = plt.GridSpec(1, global_cols, figure=fig, wspace=wspace)
     
     axxs = list()
     for k in range(global_cols):
-        gs_tmp = gridspec.GridSpecFromSubplotSpec(rows, cols, subplot_spec=gs0[k], wspace=0.01, hspace=0.02)
+        gs_tmp = gridspec.GridSpecFromSubplotSpec(rows, cols, subplot_spec=gs0[k], wspace=0.01, hspace=0.05)
 
         axs_tmp = np.array([])
         for x in range(cols):
@@ -90,7 +90,7 @@ def plotImages(name, rows, cols, imgs, global_cols, titles=None):
 
 #--------------------------------------------------------------------
 
-def create_conditional_states_DCGAN(epoch, Ts, latent_vector):
+def create_conditional_states_DCGAN(epoch, Ts, latent_vectors):
     gan_name = "Spin_DC_GAN"
     model_data_path = os.path.join(os.path.dirname(__file__), "..", "data", "model-data")
 
@@ -112,7 +112,13 @@ def create_conditional_states_DCGAN(epoch, Ts, latent_vector):
         random_vectors = conditional_gan.sample_generator_input(batch_size, latent_dim)
         latent_vectors = np.concatenate([random_vectors, conditional_labels], axis=1)
     else: #fixed latent 
-        vecs = np.array([latent_vector for T in Ts])
+
+        vecs = list()
+        while len(vecs) < conditional_labels.shape[0]:
+            for latent_vector in latent_vectors:
+                vecs.append(latent_vector)
+        vecs = np.array(vecs)
+
         latent_vectors = np.concatenate([vecs, conditional_labels], axis=1)
 
     #------- do batches for memory ---------------------
@@ -135,13 +141,8 @@ def create_conditional_states_DCGAN(epoch, Ts, latent_vector):
 
 def plotDCGAN_Sample(name, use_title=True):
 
-    #temps = np.linspace(1.8, 3.0, 9)
-
     temps = np.array([1.2, 1.7, 2.1, 2.2, 2.25, 2.3, 2.4, 2.8, 3.4])
-
-    titles = [r"$T={T}$".format(T=x) for x in temps] if use_title else None
-
-    rows = 1
+    rows = 3
     cols = 1
 
    #------------------------
@@ -151,11 +152,13 @@ def plotDCGAN_Sample(name, use_title=True):
 
     epoch = 26
     latent_dim = 4096
-    latent_vector = np.random.normal(0, 1, size=(latent_dim))
+    latent_vector = np.random.normal(0, 1, size=(rows, latent_dim))
 
     imgs = create_conditional_states_DCGAN(epoch, Ts, latent_vector)
 
     #------------------------
+    titles = [r"$T={T}$".format(T=x) for x in temps] if use_title else None
+
     plotImages(name, rows, cols, imgs, temps.size, titles)
     return
 
@@ -185,12 +188,8 @@ def plotTrainDataSetSample():
 
 if __name__ == '__main__':
    
-    plotDCGAN_Sample("spin_gan_sample_1", 1)
-    plotDCGAN_Sample("spin_gan_sample_2", 0)
-    plotDCGAN_Sample("spin_gan_sample_3", 0)
-    plotDCGAN_Sample("spin_gan_sample_4", 0)
-
-    plotTrainDataSetSample()
+    plotDCGAN_Sample("spin_gan_sample", 1)
+    #plotTrainDataSetSample()
 
     plt.show()
 

@@ -107,6 +107,9 @@ def create_discriminator(image_size, cond_channels=0, use_aux=False):
     outputs = [output_dis, output_A] if use_aux else output_dis
 
     d_model = keras.models.Model(inputs = image_input, outputs = outputs, name="discriminator")
+
+    if not use_aux:
+        return d_model
     return d_model, A_model
 
 def create_A_model(image_res):

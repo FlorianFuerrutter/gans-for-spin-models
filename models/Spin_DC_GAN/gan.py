@@ -5,9 +5,148 @@ from tensorflow import keras
 from random import random
 import os
 
-import generator
-import discriminator
+import tensorflow as tf
+from tensorflow import keras
+from keras import layers, activations
 from keras import backend as K
+
+#--------------------------------------------------------------------
+#Hardcode singleT eval
+
+
+#-------------------dis
+class PeriodicPadding2D(keras.layers.Layer):
+    '''Pads a image with periodic conditions'''
+
+    def __init__(self, padding=2, *args, **kwargs):
+        super(PeriodicPadding2D, self).__init__(*args, **kwargs)
+        self.padding = padding
+
+    #def compute_output_shape(self, input_shape):
+    #    shape = tf.shape(input_shape)
+    #    assert shape.size == 3  
+
+    #    if shape[1] is not None:
+    #      length_h = shape[1] + 2 * self.padding         
+    #    else:
+    #      length_h = None
+
+    #    if shape[1] is not None:
+    #      length_w = shape[2] + 2 * self.padding         
+    #    else:
+    #      length_w = None
+
+    #    return tuple([shape[0], length_h, length_w])
+
+    def call(self, inputs):  
+        x    = inputs
+        size = self.padding
+
+        #assumes channel last format!
+
+        #pad cols
+        x = tf.concat([x[:, :, -size:], x, x[:, :, 0:size]], axis=2) 
+
+        #pad rows
+        x = tf.concat([x[:, -size:, :], x, x[:, 0:size, :]], axis=1)
+
+        return x
+
+    def get_config(self):
+        config = super(PeriodicPadding2D, self).get_config()
+        config.update({"padding": self.padding})
+        return config
+
+def dec_layer(dec_input, filter_size, kernel_size, kernel_initializer, strides=2, drop_rate=0.0, padding='same', use_bn=False):   
+    dec = dec_input
+    dec = layers.Conv2D(filter_size, kernel_size=kernel_size, strides=strides, padding=padding, kernel_initializer=kernel_initializer)(dec)
+
+    if use_bn:
+        dec = layers.BatchNormalization()(dec)
+
+    dec = layers.LeakyReLU(alpha=0.2)(dec)
+
+    if drop_rate > 0.0:
+        dec = layers.Dropout(drop_rate)(dec)
+
+    return dec
+
+def create_discriminator(image_res):
+    init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
+
+    #Structure
+    image_input = layers.Input(shape=image_res)
+
+    #x = layers.GaussianNoise(0.01)(image_input)
+
+    #Add periodic bounding conditions
+    x = PeriodicPadding2D(padding=1)(image_input)
+
+    #-----------Decoder
+    drop_rate = 0.0
+      
+    x = dec_layer(x,   64//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init, padding='valid') #32x32  #64//2
+    x = dec_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16                   #128//2
+    x = dec_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #8x8                     #128//2
+    #x = dec_layer(x, 128, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #4x4
+
+    #----------- Activation-layer
+    x = layers.Flatten()(x)
+    x = layers.Dropout(0.2)(x)
+    output = layers.Dense(1, activation=activations.sigmoid)(x)
+
+    #----------- Model
+    d_model = keras.models.Model(inputs = image_input, outputs = output, name="discriminator")
+    return d_model
+
+#-------------------gen
+def enc_layer(enc_input, filter_size, kernel_size, kernel_initializer, strides=2, drop_rate=0.0, padding='same', use_bn=False):   
+    enc = enc_input
+    enc = layers.Conv2DTranspose(filter_size, kernel_size=kernel_size, strides=strides, padding=padding, kernel_initializer=kernel_initializer)(enc)
+
+    if use_bn:
+        enc = layers.BatchNormalization()(enc)
+
+    enc = layers.LeakyReLU(alpha=0.2)(enc)
+
+    if drop_rate > 0.0:
+        enc = layers.Dropout(drop_rate)(enc)
+
+    return enc
+
+def create_generator(latent_dim):
+    init = keras.initializers.GlorotUniform() #RandomNormal(stddev = 0.03)
+
+    #Structure
+    latent_input = layers.Input(shape=latent_dim)
+
+    x = layers.Dense(8 * 8 * 128//2, use_bias=False)(latent_input)     
+    x = layers.Reshape((8, 8, 128//2))(x)
+
+    #----------Encoder
+    drop_rate = 0.0
+
+    x = enc_layer(x,  128//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #16x16   128 //2
+    x = enc_layer(x,  192//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #32x32   192 //2
+    x = enc_layer(x,  256//2, kernel_size=(4,4), strides=(2,2), drop_rate=drop_rate, kernel_initializer=init) #64x64   256 //2
+    #x = enc_layer(x,  1024//4, kernel_size=(4,4), strides=(1,1), drop_rate=drop_rate, kernel_initializer=init)
+
+    # 128, 192, 256 , epoch 102 looks very good!!!! , 7k and 64 batch, tain 1.5 1.25 (up to 132)
+    # 192, 256, 320 , 20k and 64 batch, tain 1.5 1.25  half ok up to 114
+    # 130, 192, 256 , 30k and 64 batch, tain 1.5 1.25, gets better,but bad, up to 27
+    # 130, 192, 256 , 10k and 128 batch, tain 1.5 1.25 colabsd at 42 els seems ok
+
+    # --------
+    #gen: 130 192 256 // 2, batch=64, data=10k, tain 1.5 1.25
+    #dis:  64 128 128 // 2
+
+    #------- Activation-layer
+    output = layers.Conv2D(1, kernel_size=(5,5), strides=1, padding='same', activation=activations.tanh)(x)
+
+    #----------- Model
+    g_model = keras.models.Model(inputs = latent_input, outputs=output, name="generator")
+    return g_model
+
 
 #--------------------------------------------------------------------
 
@@ -55,8 +194,8 @@ class gan(keras.Model):
     def __init__(self, latent_dim, image_size):
         super().__init__()
 
-        self.generator = generator.create_generator(latent_dim)
-        self.discriminator = discriminator.create_discriminator(image_size)
+        self.generator = create_generator(latent_dim)
+        self.discriminator = create_discriminator(image_size)
 
         #self.generator.summary()
         #self.discriminator.summary()

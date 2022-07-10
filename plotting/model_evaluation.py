@@ -263,7 +263,43 @@ def evaluate_model_metrics(TJs, model_name, epochs, latent_dim, image_size, imag
     for TJ in TJs:
         #------------------------
         #get spin data
-        energy, m, mAbs, m2, mAbs3, m4 = dh.load_spin_observables(TJ)
+        energy, m, mAbs, m2, mAbs3, m4 = dh.load_spin_observables(TJ, "")
+
+        epochs_t = {1.0: , 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4}
+        
+[evaluate_model_metrics] Model: Spin_DC_GAN TJ: 1.0 Best epoch: 21.0 with percent OL (m_pol): 0.5015000000000001
+
+
+
+[evaluate_model_metrics] Model: Spin_DC_GAN TJ: 1.8 Best epoch: 21.0 with percent OL (m_pol): 0.49923333333333336
+
+
+
+[evaluate_model_metrics] Model: Spin_DC_GAN TJ: 2.0 Best epoch: 9.0 with percent OL (m_pol): 0.49760000000000004
+
+
+[evaluate_model_metrics] Model: Spin_DC_GAN TJ: 2.2 Best epoch: 33.0 with percent OL (m_pol): 0.4991333395322164
+
+
+[evaluate_model_metrics] Model: Spin_DC_GAN TJ: 2.25 Best epoch: 129.0 with percent OL (m_pol): 0.4982333324988683
+
+
+[evaluate_model_metrics] Model: Spin_DC_GAN TJ: 2.3 Best epoch: 30.0 with percent OL (m_pol): 0.5729666559825342
+
+
+
+[evaluate_model_metrics] Model: Spin_DC_GAN TJ: 2.4 Best epoch: 21.0 with percent OL (m_pol): 0.8955000080317255
+
+
+
+[evaluate_model_metrics] Model: Spin_DC_GAN TJ: 2.6 Best epoch: 6.0 with percent OL (m_pol): 0.8935999969303603
+
+
+
+[evaluate_model_metrics] Model: Spin_DC_GAN TJ: 3.4 Best epoch: 51.0 with percent OL (m_pol): 0.5832000049918882
+
+
+        epochs = np.array([epochs_t[TJ]])
 
         #------------------------
         #get GAN data for all epochs to determine best epoch
