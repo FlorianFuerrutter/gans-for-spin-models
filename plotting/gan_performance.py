@@ -538,8 +538,10 @@ def add_plot_chi_xi(g_data, axs, clr, sign, name):
         plt.fill_between(  g_Ts, np.array(mean[i])+np.array(std[i]), np.array(mean[i])-np.array(std[i]), alpha=0.2, color=clr, lw=0)
         plt.plot(  g_Ts,   mean[i], sign, color=clr, lw=2.5, label=name)
 
-        if i == 1:
-            plt.legend()
+        #if i == 1:
+            #plt.legend()
+
+    return
 
 def plot_chi_xi(data, g_data, Tc):
     Ts, e, e_rr, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = data
@@ -580,13 +582,26 @@ def plot_chi_xi(data, g_data, Tc):
 
         #plt.plot(  Ts,   mean[i], "o", color=clr_sim)
         #plt.plot(g_Ts, g_mean[i], "o", color=clr_gan)
-        if i ==1:
-            plt.legend()
+        #if i ==1:
+            #plt.legend()
 
     #-------------------------------------------
     return axs
 
 #--------------------------------------------------------------------
+
+def getPOL(observable_name, spin_data, gan_data):
+
+    import model_evaluation
+    hist1, hist2, bin_edges = model_evaluation.create_hist(observable_name, spin_data, gan_data)
+    
+    #calc %OL
+    p1 = hist1 * np.diff(bin_edges)
+    p2 = hist2 * np.diff(bin_edges)
+
+    pol = np.sum(np.minimum(p1, p2))
+
+    return pol
 
 def histo_plot_m(Ts, res):
     addpath = ""
@@ -622,13 +637,8 @@ def histo_plot_m(Ts, res):
             else:
                 plt.xticks(ticks, empty_labels)
       
-            T = Ts[i]
-            te = r"$T/J$ = {t}".format(t=T)
-            box = dict(facecolor='white', alpha=0.87, boxstyle="round", pad=0.1)
-            args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color="black", bbox=box)
-            plt.text(0.04, 0.96 , te, args)
-
             #-------------------------
+            T = Ts[i]
             t_energy, t_m, t_mAbs, t_m2, t_mAbs3, t_m4 = dh.load_spin_observables(T, addpath)
 
             data   = t_m           
@@ -644,6 +654,15 @@ def histo_plot_m(Ts, res):
     
             if i ==1:
                 plt.legend()
+
+            #---------------------           
+            pol = getPOL("m", t_m, data)
+
+            te = r"$T/J$ = ${t}$ ,      POL = ${p:.2f}$ %".format(t=T, p=pol*100)
+            box = dict(facecolor='white', alpha=0.7, boxstyle="round", pad=0.1)
+            args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color="black", bbox=box)
+            plt.text(0.04, 0.96 , te, args)
+
     return
 
 def histo_plot_e(Ts, res):
@@ -679,14 +698,9 @@ def histo_plot_e(Ts, res):
                 plt.xticks(ticks)
             else:
                 plt.xticks(ticks, empty_labels)
-      
-            T = Ts[i]
-            te = r"$T/J$ = {t}".format(t=T)
-            box = dict(facecolor='white', alpha=0.87, boxstyle="round", pad=0.1)
-            args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color="black", bbox=box)
-            plt.text(0.04, 0.96 , te, args)
-
+                 
             #-------------------------
+            T = Ts[i]
             t_energy, t_m, t_mAbs, t_m2, t_mAbs3, t_m4 = dh.load_spin_observables(T, addpath)
 
             data   = t_energy           
@@ -702,6 +716,14 @@ def histo_plot_e(Ts, res):
     
             if i ==1:
                 plt.legend()
+
+            #---------------------           
+            pol = getPOL("eng", t_energy, data)
+
+            te = r"$T/J$ = ${t}$ ,      POL = ${p:.2f}$ %".format(t=T, p=pol*100)
+            box = dict(facecolor='white', alpha=0.7, boxstyle="round", pad=0.1)
+            args = dict(horizontalalignment='left',verticalalignment='top', transform=plt.gca().transAxes, color="black", bbox=box)
+            plt.text(0.04, 0.96 , te, args)
 
     return
 
@@ -817,7 +839,7 @@ def main():
         #saveSvg("gan_perf_chi_xi")
 
     #-------------------------------------------
-    if 0:
+    if 1:
         histo_plot_m([2.2, 2.3, 2.4, 2.8], res)
         savePdf("gan_hist_m")
 
@@ -825,14 +847,15 @@ def main():
         savePdf("gan_hist_e")
 
     #-------------------------------------------
-    plotTotalPerf(data, g_data, Tc, "SpinGAN", "tab:orange")
-    savePdf("total_perf_spinGAN")
+    if 0:
+        plotTotalPerf(data, g_data, Tc, "SpinGAN", "tab:orange")
+        savePdf("total_perf_spinGAN")
 
-    plotTotalPerf(data, g_data_noInj, Tc, "DCGAN", "tab:green")
-    savePdf("total_perf_dcGAN")
+        plotTotalPerf(data, g_data_noInj, Tc, "DCGAN", "tab:green")
+        savePdf("total_perf_dcGAN")
 
-    plotTotalPerf(data, g_style_data, Tc, "StyleGAN2", "tab:purple")
-    savePdf("total_perf_sytleGAN")
+        plotTotalPerf(data, g_style_data, Tc, "StyleGAN2", "tab:purple")
+        savePdf("total_perf_sytleGAN")
 
     return
 

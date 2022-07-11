@@ -28,6 +28,9 @@ def main() -> int:
     epoch_min  = 0
     epoch_max  = 1000
   
+    #data cnt taken from GAN for evaluation
+    images_count = 1024
+
     #single Ts
     if 1:
         TJs = np.array([1.0, 1.8, 2.0, 2.2, 2.25, 2.3, 2.4, 2.6, 3.4])
@@ -38,9 +41,8 @@ def main() -> int:
         latent_dims      = {"Spin_DC_GAN" : 4096}
         conditional      = {"Spin_DC_GAN" : 0}
         model_names = np.array(["Spin_DC_GAN"])
+        images_count = 2**14
 
-    #data cnt taken from GAN for evaluation
-    images_count = 2**14  #1024
 
     #-----------------------------------------------------------------
     #set this for evaluation of a single training run of a model in their folder (not the data folder) -> used for development
