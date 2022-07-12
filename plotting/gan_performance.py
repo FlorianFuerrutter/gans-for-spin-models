@@ -734,7 +734,7 @@ def plotTotalPerf(data, g_data, Tc, name, clr="tab:orange"):
     g_Ts, g_e, g_e_rr, e_raw, g_m, g_mAbs, g_mAbs_err, g_magSusc, g_magSusc_err, g_binderCu, g_binderCu_err, g_k3, g_k3_err, g_xi, g_xi_err = g_data
 
     #--------------------------------------------------------------
-    size=(13, 8)
+    size=(13, 7.8)
     fig = plt.figure(figsize=size, constrained_layout=True) 
     gs = plt.GridSpec(3, 2, figure=fig)
     axs = np.array([fig.add_subplot(gs[0,0]), fig.add_subplot(gs[0,1]),
@@ -847,7 +847,7 @@ def main():
         savePdf("gan_hist_e")
 
     #-------------------------------------------
-    if 0:
+    if 1:
         plotTotalPerf(data, g_data, Tc, "SpinGAN", "tab:orange")
         savePdf("total_perf_spinGAN")
 

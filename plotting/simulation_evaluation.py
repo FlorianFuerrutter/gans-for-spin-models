@@ -15,7 +15,8 @@ matplotlib.rcParams.update({
     'font.family': 'STIXGeneral',
     'axes.unicode_minus': True})
 
-plot_path     = "F:/GAN - PerformancePlots"
+#plot_path = "F:/GAN - PerformancePlots"
+plot_path = "C:/Users/Flo/Documents/Uni/Ba-Arbeit/ba thesis/img/plots" 
 
 #--------------------------------------------------------------------
 
@@ -64,8 +65,10 @@ def main():
     #--------------------------
 
     #12, 4.3
-    size=(5, 4.3)
+    size=(5.5, 4.3)
     fig = plt.figure(figsize = size, constrained_layout = True) 
+    matplotlib.rcParams.update({'font.size': 18})
+
     plt.xlabel(r"$T/J$")
     plt.ylabel(r"$\xi$")
 
@@ -113,7 +116,7 @@ def main():
         plt.errorbar(TJs, xis, fmt='.', yerr=xis_err, elinewidth=1, capsize=5, markersize=5, color=clr)
    
     savePdf("simulation_evaluation")
-    savePng("simulation_evaluation")
+    #savePng("simulation_evaluation")
     return
 
 #--------------------------------------------------------------------
