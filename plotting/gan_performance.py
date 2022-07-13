@@ -603,10 +603,10 @@ def getPOL(observable_name, spin_data, gan_data):
 
     return pol
 
-def histo_plot_m(Ts, res):
+def histo_plot_m(Ts, res, name="SpinGAN", clr="tab:orange"):
     addpath = ""
 
-    size=(13, 5.3)
+    size=(13, 5.1)
     fig = plt.figure(figsize=size, constrained_layout=True) 
     gs = plt.GridSpec(2, 2, figure=fig)
     axs = np.array([fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1]), fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])])
@@ -617,9 +617,14 @@ def histo_plot_m(Ts, res):
     empty_labels = ["" for x in ticks]
 
     clr_sim = "tab:blue"
-    clr_gan = "tab:orange"
+    clr_gan = clr
 
-    x_Ts, e, e_rr, e_raw, m, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = getGAN_Observables_DCGAN(None, res, 0, gen_new=False)
+    if name=="SpinGAN":
+        x_Ts, e, e_rr, e_raw, m, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = getGAN_Observables_DCGAN(None, res, 0, gen_new=False, injection=True)
+    elif name=="DCGAN":
+        x_Ts, e, e_rr, e_raw, m, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = getGAN_Observables_DCGAN(None, res, 0, gen_new=False, injection=False)
+    elif name=="StyleGAN2":
+        x_Ts, e, e_rr, e_raw, m, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = getGAN_Observables_StyleGAN(None, res, 0, gen_new=False)
 
     #-------------------------------------------
     for iy in range(rows):
@@ -650,10 +655,10 @@ def histo_plot_m(Ts, res):
             #-------------------------
             data = m[np.where(x_Ts == T)][0]
 
-            plt.hist(data, bins=bins, range=b_range, density=True, label="SpinGAN", alpha=0.5, color=clr_gan)
+            plt.hist(data, bins=bins, range=b_range, density=True, label=name, alpha=0.5, color=clr_gan)
     
             if i ==1:
-                plt.legend()
+                plt.legend(loc='upper right')
 
             #---------------------           
             pol = getPOL("m", t_m, data)
@@ -665,10 +670,10 @@ def histo_plot_m(Ts, res):
 
     return
 
-def histo_plot_e(Ts, res):
+def histo_plot_e(Ts, res, name="SpinGAN", clr="tab:orange"):
     addpath = ""
 
-    size=(13, 5.3)
+    size=(13, 5.1)
     fig = plt.figure(figsize=size, constrained_layout=True) 
     gs = plt.GridSpec(2, 2, figure=fig)
     axs = np.array([fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1]), fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])])
@@ -679,9 +684,14 @@ def histo_plot_e(Ts, res):
     empty_labels = ["" for x in ticks]
 
     clr_sim = "tab:blue"
-    clr_gan = "tab:orange"
+    clr_gan = clr
 
-    x_Ts, e, e_rr, e_raw, m, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = getGAN_Observables_DCGAN(None, res, 0, gen_new=False)
+    if name=="SpinGAN":
+        x_Ts, e, e_rr, e_raw, m, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = getGAN_Observables_DCGAN(None, res, 0, gen_new=False, injection=True)
+    elif name=="DCGAN":
+        x_Ts, e, e_rr, e_raw, m, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = getGAN_Observables_DCGAN(None, res, 0, gen_new=False, injection=False)
+    elif name=="StyleGAN2":
+        x_Ts, e, e_rr, e_raw, m, mAbs, mAbs_err, magSusc, magSusc_err, binderCu, binderCu_err, k3, k3_err, xi, xi_err = getGAN_Observables_StyleGAN(None, res, 0, gen_new=False)
 
     #-------------------------------------------
     for iy in range(rows):
@@ -712,10 +722,10 @@ def histo_plot_e(Ts, res):
             #------------------------- 
             data = e_raw[np.where(x_Ts == T)][0]
 
-            plt.hist(data, bins=bins, range=b_range, density=True, label="SpinGAN", alpha=0.5, color=clr_gan)
+            plt.hist(data, bins=bins, range=b_range, density=True, label=name, alpha=0.5, color=clr_gan)
     
             if i ==1:
-                plt.legend()
+                plt.legend(loc='upper right')
 
             #---------------------           
             pol = getPOL("eng", t_energy, data)
@@ -839,23 +849,39 @@ def main():
         #saveSvg("gan_perf_chi_xi")
 
     #-------------------------------------------
-    if 1:
-        histo_plot_m([2.2, 2.3, 2.4, 2.8], res)
+    if 0:
+        histo_plot_m([2.2, 2.3, 2.4, 2.8], res, "SpinGAN")
         savePdf("gan_hist_m")
 
-        histo_plot_e([2.2, 2.3, 2.4, 2.8], res)
+        histo_plot_e([2.2, 2.3, 2.4, 2.8], res, "SpinGAN")
         savePdf("gan_hist_e")
 
     #-------------------------------------------
     if 1:
+
+        #---------------------
         plotTotalPerf(data, g_data, Tc, "SpinGAN", "tab:orange")
         savePdf("total_perf_spinGAN")
 
+        #---------------------
         plotTotalPerf(data, g_data_noInj, Tc, "DCGAN", "tab:green")
         savePdf("total_perf_dcGAN")
 
+        histo_plot_m([2.2, 2.3, 2.4, 2.8], res, "DCGAN", "tab:green")
+        savePdf("total_perf_dcGAN_hist_m")
+
+        histo_plot_e([2.2, 2.3, 2.4, 2.8], res, "DCGAN", "tab:green")
+        savePdf("total_perf_dcGAN_hist_e")
+
+        #---------------------
         plotTotalPerf(data, g_style_data, Tc, "StyleGAN2", "tab:purple")
-        savePdf("total_perf_sytleGAN")
+        savePdf("total_perf_styleGAN")
+
+        histo_plot_m([2.2, 2.3, 2.4, 2.8], res, "StyleGAN2", "tab:purple")
+        savePdf("total_perf_styleGAN_hist_m")
+
+        histo_plot_e([2.2, 2.3, 2.4, 2.8], res, "StyleGAN2", "tab:purple")
+        savePdf("total_perf_styleGAN_hist_e")
 
     return
 
