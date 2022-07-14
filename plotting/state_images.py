@@ -48,6 +48,8 @@ def plotImages(name, rows, cols, imgs, global_cols, titles=None):
     if rows==1:
         size = (12,1.9) if titles!=None else (12,1.5)
         #wspace = 0.05
+    if rows >= 10:
+        size = (12,16.65)
 
     fig = plt.figure(figsize=size, constrained_layout=False, dpi=180) 
     gs0 = plt.GridSpec(1, global_cols, figure=fig, wspace=wspace)
@@ -142,7 +144,7 @@ def create_conditional_states_DCGAN(epoch, Ts, latent_vectors):
 def plotDCGAN_Sample(name, use_title=True):
 
     temps = np.array([1.2, 1.7, 2.1, 2.2, 2.25, 2.3, 2.4, 2.8, 3.4])
-    rows = 3
+    rows = 13 #3
     cols = 1
 
    #------------------------
@@ -188,7 +190,7 @@ def plotTrainDataSetSample():
 
 if __name__ == '__main__':
    
-    plotDCGAN_Sample("spin_gan_sample", 1)
+    plotDCGAN_Sample("spin_gan_sample_large", 1)
     #plotTrainDataSetSample()
 
     plt.show()
