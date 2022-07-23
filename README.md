@@ -4,18 +4,32 @@ Bachelor thesis
 ![spin_lattice](/img/spin_lattice.png)
 
 
-
 ---
 ## Evaluation
-**mag hist**
-![](/img/plot_performance_evaluation_hist_m_Spin_DC_GAN.png)
-**energy hist**
-![](/img/plot_performance_evaluation_hist_energy_Spin_DC_GAN.png)
-**phase hist**
-![](/img/plot_performance_evaluation_phase_Spin_DC_GAN.png)
-**observables**
-![](/img/plot_performance_evaluation_observables_Spin_DC_GAN.png)
+Comparison of the GAN performance.
 
+**Observables**
+![](/img/gan_perf_m_e.png)
+![](/img/gan_perf_chi_xi.png)
+
+
+**SpinGAN: Magnetization $m$ histogram**
+![](/img/gan_hist_m.png)
+
+**SpinGAN: Energy $E$ histogram**
+![](/img/gan_hist_e.png)
+
+
+
+---
+## State evolution
+Fix the latent vector $z\in\mathcal{Z}$ and change the conditional temperature $T$.  Evolve a state from the ferromagnetic to the the paramagnetic regime.
+
+**Latent vector 1**
+![](/img/state_evolution1.gif)
+
+**Latent vector 2**
+![](/img/state_evolution2.gif)
 
 ---
 #### Table of contents
@@ -23,20 +37,3 @@ Bachelor thesis
 - [train data](data/train)
 - [simulation](simulation)
 - [plotting](plotting)
-
----
-### 1. DC_GAN
-##### faces and landscapes
-
- Train data | Generated Image | Image evolution
---- | --- | ---
-![](/img/dc_gan_sample0.png) | ![](/img/dc_gan0.png) | ![](/img/dc_gan0.gif)
-![](/img/dc_gan_sample1.png) | ![](/img/dc_gan1.png) | ![](/img/dc_gan1.gif)
-
-
-##### spin
- Train data | Generated Image | Image evolution
---- | --- | ---
-![](/img/spin_dc_gan_sample.png) | ![](/img/spin_dc_gan.png) | ![](/img/spin_dc_gan.gif)
-
-### 2. StyleGAN2

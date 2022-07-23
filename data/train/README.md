@@ -1,3 +1,3 @@
 # train data
 
- used for model training
+ used for model training, MC simulated
