@@ -42,3 +42,4 @@ simulation_*
 /plotting/epochs
 /models/log
 /plotting/obs/*.npy
+*.vault-stats
