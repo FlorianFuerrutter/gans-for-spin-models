@@ -5,28 +5,28 @@ Machine learning experiences an uninterrupted growth over the last few years. Ad
 ## Ising model
 Advancements in \textit{quantum theory}, especially the inference of the spin concept, made a basic understanding of para- and ferromagnetism in solid matter possible. In 1924 a statistical physics model of ferromagnetism was proposed by Ernst Ising, namely the broadly known Ising model. The mathematical model describes spins at discrete lattice sides that can be considered either classically or quantum theoretically. We restrict ourselves here to the classical Ising model where the spin at lattice point $i$ is discrete. The general Hamiltonian is given with:
 
-$$H = -\sum_{\left\langle i,j \right\rangle} J_{i, j} \; \sigma_i\sigma_j -\sum_{i} h_i \sigma_i$$
+$$H = -\sum_{\left\langle i,j \right\rangle} J_{i, j}  \sigma_i\sigma_j -\sum_{i} h_i \sigma_i$$
 
-Here $\left\langle i,j \right\rangle$ means the sum over all adjacent lattice sides and $J_{i, j}$ is the exchange interaction strength between spin $i$ and $j$. The influence of an external field is denoted as $h_i$. The discrete spins are either up or down $\sigma_i\in\left\{\pm1\right\}$.  In this thesis we focus on the two-dimensional case with a global interaction strength $J=J_{i, j}>0$ and no external field $h_i=0$.
+Here $\left\langle i,j \right\rangle$ means the sum over all adjacent lattice sides and $J_{i, j}$ is the exchange interaction strength between spin $i$ and $j$. The influence of an external field is denoted as $h_i$. The discrete spins are either up or down $\sigma_i = \pm1$.  In this thesis we focus on the two-dimensional case with a global interaction strength $J=J_{i, j}>0$ and no external field $h_i=0$.
 
-![spin_lattice](/img/spin_lattice.png)
+![](/img/spin_lattice.png)
 
 ---
 ## Conditional GAN
 
-![spin_lattice](/img/GAN_cond_concept.png)
+![](/img/GAN_cond_concept.png)
 
-![spin_lattice](/img/gan_goal.png)
+![](/img/gan_goal.PNG)
 
 ---
 ## SpinGAN
 For $L=64$.
 
 **Discriminator**
-![spin_lattice](/img/spinGAN_discriminator.png)
+![](/img/spinGAN_discriminator.png)
 
 **Generator**
-![spin_lattice](/img/spinGAN_generator.png)
+![](/img/spinGAN_generator.png)
 
 
 ---
