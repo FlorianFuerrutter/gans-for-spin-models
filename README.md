@@ -1,4 +1,5 @@
 # gans-for-spin-models 
+![](BaThesis_Fuerrutter_Florian.pdf)
 ## Abstract
 Machine learning has experienced an uninterrupted growth over the last few years. Advancements in research and computation hardware allow the application of neural networks in a diverse spectrum. Motivated by remarkable results in generating indistinguishable fake images of humans and landscapes (e.g., Deep-fakes) physical problems are getting more attention. In this thesis, we look at generative adversarial networks (GAN) which are able to learn the hidden distribution of a training set sampled from a physical system. Based on conditional GANs we show the Ising model can be learned and reproduced at unseen thermodynamic control parameters. We propose the SpinGAN architecture that catches the phase transition of the 2D Ising model with great accuracy. The deterministic neural network allows us to evolve single distinct Ising states through the temperature range. Utilizing the exact differentiation of the network we present a new GAN fidelity to identify critical temperatures without knowledge of the physical system.
 
